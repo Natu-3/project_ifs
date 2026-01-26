@@ -1,42 +1,94 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+  background-color: #f7f7f7;
+}
+
+/* + Button */
+
+button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Header */
+.header {
+  height: 60px;
+  border-radius: 50px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 24px;
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  font-size: 20px;
+  font-weight: 600;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.layout {
+  width: calc(100vw - 0px);
+  display: flex;
+  height: calc(100vh - 60px);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Sidebar */
+.sidebar {
+  width: 200px;
+  background-color: #ffffff;
+  border-radius: 50px;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
 }
 
-.card {
-  padding: 2em;
+/* PostList 상단 */
+.sidebar-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.read-the-docs {
-  color: #888;
+.sidebar-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* sidebar - button*/
+.sidebar-add-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50px;
+  background-color: #2f3b52;
+  color: #ffffff;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.sidebar-add-btn:hover {
+  background-color: #1f293d;
+}
+
+/* PostList list item*/
+.sidebar-list{
+  text-align: center;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sidebar-item{
+  
 }
