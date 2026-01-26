@@ -6,7 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
+bower_components
 node_modules
 dist
 dist-ssr
@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.DS_*
+*.sublime*
+psd
+thumb
+sketch
+**/*.backup.*
+**/*.back.*
