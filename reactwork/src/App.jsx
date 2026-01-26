@@ -15,7 +15,7 @@ function App() {
     <>
       <Header />
 
-      <div>
+      <div className="layout">
         <Sidebar />
         <MainNote />
         <CalendarPanel />

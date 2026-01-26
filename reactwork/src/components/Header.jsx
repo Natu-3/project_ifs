@@ -1,7 +1,7 @@
-export default function Header() {
+export default function Header(onClick) {
     return(
-        <header>
-            <h1>Project_ifs</h1>
+        <header className="header">
+            <h1 className="logo">Project_ifs</h1>
         </header>
     )
 }
