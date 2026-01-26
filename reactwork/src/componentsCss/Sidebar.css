@@ -1,0 +1,92 @@
+/* Sidebar */
+.sidebar {
+  width: 200px;
+  transition: width 0.3s ease;
+  position: relative;
+  background-color: #ffffff;
+  border-radius: 50px;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.closed {
+    width: 50px;
+}
+
+/* PostList 상단 */
+.sidebar-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.sidebar-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* sidebar - button*/
+.sidebar-add-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50px;
+  background-color: #8c9096;
+  color: #ffffff;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.sidebar-add-btn:hover {
+  background-color: #5885df;
+}
+
+/* PostList list item*/
+.sidebar-list{
+  text-align: center;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* toggle note button */
+.toggle-note-btn {
+  position: absolute;
+  top: 16px;      /* 사이드바 상단 위치와 맞춤 */
+  right: -20px;   /* 사이드바 바깥쪽으로 위치 */
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #5885df;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  transition: transform 0.3s ease;
+}
+
+.toggle-note-btn:hover {
+  background-color: #4067c1;
+}
+
+/* 열림/닫힘 상태에 따라 버튼 화살표 회전 */
+.sidebar.closed .toggle-note-btn {
+  transform: rotate(180deg);
+}
+
+/* 닫혔을 때 글자 숨김 */
+.sidebar.closed .sidebar-title,
+.sidebar.closed .sidebar-list li {
+  display: none;
+}
+
+
+
