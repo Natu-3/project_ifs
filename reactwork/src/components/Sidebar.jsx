@@ -7,13 +7,16 @@ export default function Sidebar() {
     const handleToggle = () => {
         setIsOpen(prev => !prev);
     }
+    
     return(
         <aside className={`sidebar ${isOpen?'open':'closed'}`}>
             <div className="sidebar-header">
                 <h2 className="sidebar-title">PostList</h2>
             </div>
 
-            <button className="toggle-note-btn" onClick={handleToggle}>{isOpen ? '<':'>'}</button>
+            <button className="toggle-note-btn" onClick={handleToggle}>
+                {'<'}
+            </button>
 
             <ul className="sidebar-list">
                 <li className="sidebar-item active">post 1</li>

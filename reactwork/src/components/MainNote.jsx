@@ -1,14 +1,22 @@
+import '../componentsCss/MainNote.css'
+
 export default function MainNote() {
     return(
-        <>
-        <ul>
-            <li>post</li>
-        </ul>
-        <main>
-            <button>+</button>
-            <div>메모 영역</div>
-            <button>+</button>
-        </main>
-        </>
+        <aside>
+            <main className='mainnote'>
+                <ul className='postlest'>
+                    <li>post</li>
+                    <li>post</li>
+                    <li>post</li>
+                    <li>post</li>
+                </ul>
+                <div className="memo-container">
+                    <textarea
+                        className='memo-post-it'
+                        placeholder='메모를 입력하세요...'
+                    />
+                </div>
+            </main>
+        </aside>
     )
 }
