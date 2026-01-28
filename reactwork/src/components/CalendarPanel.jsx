@@ -11,9 +11,6 @@ export default function CalendarPanel() {
     return(
         <aside className={`calendar ${isOpen?'open':'closed'}`}>
             
-            <button className="toggle-calendar-btn" onClick={handleToggle}>
-                    {'>'}
-            </button>
             <div className="calendar-content">
                 <div>
                     <h2>개인 캘린더</h2>

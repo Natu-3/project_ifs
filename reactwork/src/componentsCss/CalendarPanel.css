@@ -4,7 +4,7 @@
 
 /* Calendar 컨테이너 */
 .calendar{
-    width: 200px;
+    width: 300px;
   background: #fff5d2;
   display: flex;
   flex-direction: column;
@@ -12,65 +12,6 @@
   transition: width 0.3s ease;
 }
 
-/* Calendar 닫힌 상태 */
-.calendar.closed {
-    width: 50px;
-}
-
-/*calendar-content 기본상태 및 내용숨김*/
-.calendar-content{
-    width: 100%;
-    padding: 16px;
-    opacity: 1;
-    transition: opacity 0s ease;
-}
-
-.calendar.closed .calendar-content{
-    opacity: 0;
-    pointer-events: none;
-}
-
 .calendar-content h2{
     border-bottom: 2px solid gray;
-}
-
-/* Toggle button */
-.toggle-calendar-btn {
-    position: absolute;
-    top: 50%;
-    left: -15px;
-    transform: translateY(-50%);
-
-    width: 30px;
-    height: 40px;
-    border-radius: 50%;
-
-    background: #5885df;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
-}
-
-/* Toggle button 호버 상태 */
-.toggle-calendar-btn:hover{
-     background: #946eff;
-}
-
-/* 버튼 포커스/액티브 상태 - outline 제거 */
-.calendar-add-btn:focus,
-.calendar-add-btn:active,
-.toggle-calendar-btn:focus,
-.toggle-calendar-btn:active{
-    outline: none;
-    box-shadow: none;
-}
-
-/* Calendar 닫힌 상태에서 toggle 버튼 회전 */
-.calendar.closed .toggle-calendar-btn {
-    transform: translateY(-50%) rotate(180deg);
 }
