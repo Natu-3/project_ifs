@@ -7,11 +7,15 @@ import Sidebar from './components/Sidebar'
 import MainNote from './components/MainNote'
 import CalendarPanel from './components/CalendarPanel'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import Login from "./pages/Login";
 
 function App() {
     const [count, setCount] = useState(0)
   // javascript
   return (
+
+    //<Login />
+
     //html
       <BrowserRouter>
         <div className="app-wrapper">
