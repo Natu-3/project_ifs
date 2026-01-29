@@ -6,30 +6,24 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.backwork.member.MemberRepository;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
+    private final AuthService authService;
 
-    private MemberRepository memberRepository;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-
-        Member member = memberRepository.findByUserid(request.getUserid())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자"));
-
-        //  지금은 더미 비밀번호 1234
-        if (!member.getPasswordHash().equals(request.getPassword())) {
-            return ResponseEntity.badRequest().body("비밀번호 불일치");
+        try {
+            return ResponseEntity.ok(authService.login(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        return ResponseEntity.ok(
-                new LoginResponse(
-                        member.getId(),
-                        member.getUserid(),
-                        member.getAuth()
-                )
-        );
     }
+
 }
