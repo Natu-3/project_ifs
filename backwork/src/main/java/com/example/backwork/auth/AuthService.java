@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 public class AuthService {
     private final MemberRepository memberRepository;
 
-    public LoginResponse login(LoginResponse request){
+    public LoginResponse login(LoginRequest request){
         Member member =memberRepository.findByUserid(request.getUserid())
                 .orElseThrow(() -> new IllegalArgumentException(("존재하지 않는 사용자")));
 
