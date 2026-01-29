@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { usePosts } from "../context/PostContext";
+import { useNavigate } from "react-router-dom";
 import '../componentsCss/Sidebar.css';
 
 export default function Sidebar() {
     const [isOpen, setIsOpen] = useState(true);
     const {posts, setSelectedPostId,addPost,deletePost} = usePosts();
+    const navigate = useNavigate();
 
     const handleToggle = () => {
         setIsOpen(prev => !prev);
@@ -23,7 +25,12 @@ export default function Sidebar() {
     return(
         <aside className={`sidebar ${isOpen?'open':'closed'}`}>
             <div className="sidebar-header">
-                <h2 className="sidebar-title">PostList</h2>
+                <h2 
+                    className="sidebar-title"
+                    onClick={()=>navigate('/login')}
+                >
+                    Login
+                </h2>
             </div>
 
             <button className="toggle-note-btn" onClick={handleToggle}>

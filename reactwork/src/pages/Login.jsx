@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { login } from "../api/auth";
 import "./Login.css";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [userid, setUserid] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     if (!userid || !password) {
@@ -27,26 +29,36 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
-      <h2>로그인</h2>
+    <div className="login-wrapper">
+      <div className="login-container">
+        <h2>로그인</h2>
 
-      <input
-        type="text"
-        placeholder="User ID"
-        value={userid}
-        onChange={(e) => setUserid(e.target.value)}
-      />
+        <input
+          type="text"
+          placeholder="User ID"
+          value={userid}
+          onChange={(e) => setUserid(e.target.value)}
+        />
 
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-      <button onClick={handleLogin} disabled={loading}>
-        {loading ? "로그인 중..." : "로그인"}
-      </button>
+        <button onClick={handleLogin} disabled={loading}>
+          {loading ? "로그인 중..." : "로그인"}
+        </button>
+
+        <button
+          className="signup-btn"
+          onClick={() => navigate("/Signup")}
+        >
+          회원가입
+        </button>
+
+      </div>
     </div>
   );
 };
