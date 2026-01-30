@@ -31,6 +31,7 @@ const Login = () => {
   return (
     <div className="login-wrapper">
       <div className="login-container">
+        <button onClick={() => navigate("/")}>홈</button>
         <h2>로그인</h2>
 
         <input

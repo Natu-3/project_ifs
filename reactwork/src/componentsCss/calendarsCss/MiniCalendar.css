@@ -1,0 +1,45 @@
+.mini-calendar {
+    width: 100%;
+    max-width: 300px;
+    background: #fff5d2;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.mini-header {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.mini-grid {
+    display: grid; /* 그리드로 요일/날짜 배치 */
+    grid-template-columns: repeat(7, 1fr); /* 7열 */
+    gap: 5px;
+}
+
+.mini-week, .mini-cell {
+    text-align: center;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.today {
+    background-color: #ffeb3b;
+}
+
+.holiday {
+    color: red;
+}
+
+.sunday {
+    color: red;
+}
+
+.saturday {
+    color: blue;
+}
+
+.empty {
+    background-color: transparent;
+}

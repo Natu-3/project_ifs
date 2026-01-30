@@ -6,6 +6,7 @@ import CalendarPanel from './components/CalendarPanel'
 import { Route, Routes } from 'react-router-dom'
 import Login from "./pages/Login";
 import Signup from './pages/signup'
+import CalendarPage from './pages/CalendarPage'
 
 function App() {
     const [count, setCount] = useState(0)
@@ -28,7 +29,17 @@ function App() {
       }
     />
       
-    
+    <Route
+      path='/calendar'
+        element={
+          <div className="app-wrapper">
+            <div className="layout">
+              <Sidebar />
+              <CalendarPage />
+            </div>
+          </div>
+        }
+    />
     </Routes>
   )
 }

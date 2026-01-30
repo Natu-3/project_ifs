@@ -1,0 +1,84 @@
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    width: 100%;
+    border-top: 1px solid #eee;
+    border-left: 1px solid #eee;
+}
+
+.cell-header {
+    display : flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+}
+
+/* 1. 요일 헤더 스타일 (일~토) */
+.day-header {
+  padding: 12px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+  background-color: #fffdf5; /* 미니 달력 테마의 연노랑 💛 */
+  border-bottom: 2px solid #fff5d2;
+}
+
+/* 요일별 색상 구분 */
+.day-header.sun { color: #e53935; } /* 일요일: 빨강 🔴 */
+.day-header.sat { color: #1e88e5; } /* 토요일: 파랑 🔵 */
+
+/* 2. 날짜 셀 기본 스타일 */
+.calendar-cell {
+  min-height: 120px; /* 직사각형 메모 공간 확보 🧱 */
+  padding: 8px;
+  background-color: #fff5d2;
+  border-right: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* 일요일/토요일 날짜 색상 */
+.calendar-cell.sun .day-number { color: #e53935; }
+.calendar-cell.sat .day-number { color: #1e88e5; }
+
+/* 3. 공휴일 스타일 강조 🇰🇷 */
+.calendar-cell.holiday {
+  background-color: #fff5d2; /* 아주 연한 빨간색 배경 */
+}
+
+.calendar-cell.holiday .day-number,
+.calendar-cell.holiday .holiday-name {
+  color: #e53935; /* 공휴일 텍스트: 빨강 */
+}
+
+.holiday-name {
+  font-size: 0.7rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 4. 오늘 날짜 노란색 동그라미 🟡 */
+.calendar-cell.today .day-number {
+  background-color: #ffeb3b;
+  color: #333 !important; /* 숫자는 검정색으로 고정 */
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* 5. 메모 공간 (내용이 길어지면 스크롤) 📝 */
+.memo-content {
+  flex-grow: 1;
+  font-size: 0.8rem;
+  color: #555;
+  overflow-y: auto;
+  padding-top: 4px;
+}

@@ -29,12 +29,3 @@
   padding: 10px;
   cursor: pointer;
 }
-
-.back-btn {
-  background: transparent;
-  border: none;
-  color: #555;
-  cursor: pointer;
-  margin-top: 8px;
-  font-size: 13px;
-}

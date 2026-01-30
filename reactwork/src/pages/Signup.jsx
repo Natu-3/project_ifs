@@ -20,6 +20,7 @@ const Signup = () => {
   return (
     <div className="login-wrapper">
       <div className="login-container">
+        <button onClick={() => navigate("/")}>홈</button>
         <h2>회원가입</h2>
 
         <input
