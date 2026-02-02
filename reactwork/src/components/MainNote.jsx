@@ -61,7 +61,7 @@ export default function MainNote() {
                 {cards.map(card=> (
                     <div
                         key={card.id}
-                        className="noto-card"
+                        className="note-card"
                         onClick={()=> setSelectedPostId(card.postId)}
                     >
                         {card.title || '제목없음'}
@@ -79,14 +79,14 @@ export default function MainNote() {
             </div>
 
             <div className="memo-container">
-            <textarea
-                ref={textAreaRef}
-                className='memo-post-it'
-                placeholder='메모를 입력하세요...'
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-            />
-            <button className='save-btn' onClick={handleSave}>↑</button>
+                <textarea
+                    ref={textAreaRef}
+                    className='memo-post-it'
+                    placeholder='메모를 입력하세요...'
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                />
+                <button className='save-btn' onClick={handleSave}>↑</button>
             </div>
         </main>
     )
