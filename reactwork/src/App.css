@@ -17,7 +17,7 @@ body {
 .app-wrapper {
   width: 100vw;
   height: 100vh;
-  padding: 30px;              /* ← 여기서 30px 확보 */
+  padding: 30px;
 }
 
 /* 실제 인터페이스 영역 */
@@ -27,5 +27,7 @@ body {
   display: grid;
   grid-template-columns: auto 1fr auto;
   overflow: hidden;
-  border-radius: 30px;        /* 있으면 UI 느낌 좋아짐 */
+  position: relative;
+
+  border-radius: 30px;
 }

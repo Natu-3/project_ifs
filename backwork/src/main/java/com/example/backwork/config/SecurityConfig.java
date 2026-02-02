@@ -2,11 +2,12 @@ package com.example.backwork.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
@@ -14,11 +15,16 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+<<<<<<< HEAD
                     .requestMatchers("/api/auth/**").permitAll()
                     
                     .anyRequest().authenticated()
+=======
+                        .anyRequest().permitAll()
+>>>>>>> 954020ad87a1a3f5a7309efb45ce64cfa315855f
                 )
-                .httpBasic(Customizer.withDefaults());
+                .httpBasic(httpBasic -> httpBasic.disable())
+                .formLogin(form -> form.disable());
 
         return http.build();
     }
