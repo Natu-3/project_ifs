@@ -1,0 +1,79 @@
+package com.example.backwork.memo;
+
+import com.example.backwork.member.Member;
+import com.example.backwork.member.MemberRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class MemoService {
+    
+    private final MemoPostRepository memoPostRepository;
+    private final MemberRepository memberRepository;
+    
+    // 메모 목록 조회
+    public List<MemoResponse> getMemos(Long userId) {
+        Member user = memberRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
+            
+        return memoPostRepository
+            .findByUserAndVisibleTrueOrderByCreatedAtDesc(user)
+            .stream()
+            .map(MemoResponse::from)
+            .collect(Collectors.toList());
+    }
+    
+    // 메모 생성
+    public MemoResponse createMemo(Long userId, MemoRequest request) {
+        Member user = memberRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
+            
+        MemoPost memo = new MemoPost();
+        memo.setUser(user);
+        memo.setContent(request.getContent());
+        memo.setPinned(request.getPinned() != null ? request.getPinned() : false);
+        memo.setVisible(request.getVisible() != null ? request.getVisible() : true);
+        
+        MemoPost saved = memoPostRepository.save(memo);
+        return MemoResponse.from(saved);
+    }
+    
+    // 메모 수정
+    public MemoResponse updateMemo(Long memoId, Long userId, MemoRequest request) {
+        Member user = memberRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
+            
+        MemoPost memo = memoPostRepository.findByIdAndUser(memoId, user)
+            .orElseThrow(() -> new IllegalArgumentException("메모를 찾을 수 없습니다"));
+            
+        if (request.getContent() != null) {
+            memo.setContent(request.getContent());
+        }
+        if (request.getPinned() != null) {
+            memo.setPinned(request.getPinned());
+        }
+        if (request.getVisible() != null) {
+            memo.setVisible(request.getVisible());
+        }
+        
+        return MemoResponse.from(memo);
+    }
+    
+    // 메모 삭제 (soft delete - visible을 false로)
+    public void deleteMemo(Long memoId, Long userId) {
+        Member user = memberRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
+            
+        MemoPost memo = memoPostRepository.findByIdAndUser(memoId, user)
+            .orElseThrow(() -> new IllegalArgumentException("메모를 찾을 수 없습니다"));
+            
+        memo.setVisible(false);
+        memoPostRepository.save(memo);
+    }
+}

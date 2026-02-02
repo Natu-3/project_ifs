@@ -1,98 +1,109 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import { getMemos, createMemo, updateMemo, deleteMemo } from "../api/memo";
 
 const PostContext = createContext();
 
 export function PostProvider({ children }) {
-
-    /*
-      posts 상태
-      - 모든 post 목록을 배열로 관리
-      - 각 post는 { id, title, content } 형태
-    */
     const [posts, setPosts] = useState([]);
-
-    /*
-      selectedPostId 상태
-      - 현재 선택된 post의 id를 저장
-      - null이면 아무 post도 선택되지 않은 상태
-    */
     const [selectedPostId, setSelectedPostId] = useState(null);
+    const [loading, setLoading] = useState(false);
 
-    /*
-      addPost 함수
-      - 새로운 post를 생성해서 posts 배열에 추가
-      - 생성과 동시에 해당 post를 선택 상태로 만듦
-    */
-    const addPost = () => {
-        const newPost = {
-            id: Date.now(),      // 고유 id (현재 시간 기준)
-            title : "new post",  // 기본 제목
-            content : ""         // 초기 내용은 빈 문자열
-        };
+    // 컴포넌트 마운트 시 메모 목록 불러오기
+    useEffect(() => {
+        loadMemos();
+    }, []);
 
-        // 기존 posts 배열에 새 post 추가
-        setPosts(prev => [...prev, newPost]);
-
-        // 새로 만든 post를 선택 상태로 설정
-        setSelectedPostId(newPost.id);
-    };
-
-    /*
-      updatePost 함수
-      - 특정 id의 post를 수정할 때 사용
-      - id가 같은 post만 updated 객체로 교체
-    */
-    const updatePost = (id, updated) => {
-        setPosts(prev =>
-            prev.map(post =>
-                post.id === id ? updated : post
-            )
-        );
-    };
-
-    /*
-      deletePost 함수
-      - 특정 id의 post를 목록에서 제거
-      - 삭제한 post가 선택된 상태였다면 선택 해제
-    */
-    const deletePost = (id) => {
-        // 해당 id를 가진 post 제거
-        setPosts(prev => prev.filter(p => p.id !== id));
-
-        // 삭제한 post가 현재 선택된 post라면 선택 해제
-        if (id === selectedPostId) {
-            setSelectedPostId(null);
+    // 서버에서 메모 목록 불러오기
+    const loadMemos = async () => {
+        try {
+            setLoading(true);
+            const response = await getMemos();
+            // 백엔드 응답을 프론트엔드 형식으로 변환
+            const formattedPosts = response.data.map(memo => ({
+                id: memo.id,
+                title: memo.title || memo.content.substring(0, 10),
+                content: memo.content
+            }));
+            setPosts(formattedPosts);
+        } catch (error) {
+            console.error("메모 불러오기 실패:", error);
+            // 에러 발생 시 빈 배열로 설정
+            setPosts([]);
+        } finally {
+            setLoading(false);
         }
     };
 
-    /*
-      selectedPost
-      - posts 배열에서 selectedPostId와 일치하는 post 찾기
-      - 없으면 undefined
-      (에디터나 상세 뷰에서 바로 사용 가능)
-    */
+    // 메모 추가
+    const addPost = async (title, content) => {
+        try {
+            const response = await createMemo(content || title);
+            const newMemo = response.data;
+            const newPost = {
+                id: newMemo.id,
+                title: newMemo.title || content.substring(0, 10),
+                content: newMemo.content
+            };
+            
+            setPosts(prev => [...prev, newPost]);
+            setSelectedPostId(newPost.id);
+            return newPost.id;
+        } catch (error) {
+            console.error("메모 생성 실패:", error);
+            alert("메모 생성에 실패했습니다.");
+            throw error;
+        }
+    };
+
+    // 메모 수정
+    const updatePost = async (id, updated) => {
+        try {
+            await updateMemo(id, updated.content);
+            setPosts(prev =>
+                prev.map(post =>
+                    post.id === id ? updated : post
+                )
+            );
+        } catch (error) {
+            console.error("메모 수정 실패:", error);
+            alert("메모 수정에 실패했습니다.");
+            throw error;
+        }
+    };
+
+    // 메모 삭제
+    const deletePost = async (id) => {
+        try {
+            await deleteMemo(id);
+            setPosts(prev => prev.filter(p => p.id !== id));
+            
+            if (id === selectedPostId) {
+                setSelectedPostId(null);
+            }
+        } catch (error) {
+            console.error("메모 삭제 실패:", error);
+            alert("메모 삭제에 실패했습니다.");
+            throw error;
+        }
+    };
+
     const selectedPost = posts.find(p => p.id === selectedPostId);
 
     return(
-        /*
-          Context Provider
-          - value에 담긴 값들이 하위 컴포넌트에서 사용 가능
-        */
         <PostContext.Provider value={{
-            posts,               // 전체 post 목록
-            setSelectedPostId,   // post 선택 함수
-            addPost,             // post 추가
-            deletePost           // post 삭제
-            // ⚠ updatePost, selectedPost도 필요하면 여기 추가 가능
+            posts,
+            selectedPost,
+            selectedPostId,
+            setSelectedPostId,
+            addPost,
+            updatePost,
+            deletePost,
+            loading,
+            loadMemos  // 필요시 수동으로 새로고침
         }}>
             {children}
         </PostContext.Provider>
     );
 }
 
-/*
-  usePosts 커스텀 훅
-  - 매번 useContext(PostContext)를 쓰지 않도록 추상화
-  - 컴포넌트에서 const { posts, addPost } = usePosts() 형태로 사용
-*/
 export const usePosts = () => useContext(PostContext);

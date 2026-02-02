@@ -18,13 +18,21 @@ export default function MainNote() {
         if (selectedPost) textAreaRef.current?.focus();
     },[selectedPost]);
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if(!text.trim()) return;
-
-        if (selectedPost){
-            updatePost(selectedPost.id, {...selectedPost, content: text, title: text.substring(0,10)});
-        } else {
-            addPost(text.substring(0, 10), text);
+    
+        try {
+            if (selectedPost){
+                await updatePost(selectedPost.id, {
+                    ...selectedPost, 
+                    content: text, 
+                    title: text.substring(0,10)
+                });
+            } else {
+                await addPost(text.substring(0, 10), text);
+            }
+        } catch (error) {
+            // 에러는 이미 PostContext에서 처리됨
         }
     };
     
