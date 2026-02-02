@@ -67,3 +67,57 @@
 .memo-post-it:focus {
     background: #ffe4bf;
 }
+
+.card-area {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.noto-card {
+    width: 120px;
+    height: 120px;
+    background: #fff3a0;
+    border-radius: 6px;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.15);
+    font-size: 11px;
+    padding: 4px;
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.noto-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 4px 4px 10px rgba(0,0,0,0.2);
+}
+
+.delete-card-btn {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 10px;
+  color: #444;
+  cursor: pointer;
+  background: none;
+
+  border: none;
+  outline: none;
+}
+
+.delete-card-btn:hover {
+  border: none;
+  outline: none;
+}
+
+.delete-card-btn:focus {
+  border: none;
+  outline: none;
+}

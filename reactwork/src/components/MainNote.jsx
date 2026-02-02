@@ -48,6 +48,10 @@ export default function MainNote() {
         setSelectedPostId(postId);
     }
 
+    const handleDeleteCard = (cardId) => {
+        setCards(prev => prev.filter(card => card.id !== cardId));
+    }
+
     return(
         <main className='mainnote'
             onDragOver={(e) =>{e.preventDefault(); setIsDragOver(true); }}
@@ -57,10 +61,19 @@ export default function MainNote() {
                 {cards.map(card=> (
                     <div
                         key={card.id}
-                        className="note-card"
+                        className="noto-card"
                         onClick={()=> setSelectedPostId(card.postId)}
                     >
                         {card.title || '제목없음'}
+                        <button
+                            className='delete-card-btn'
+                            onClick={(e)=>{
+                                e.stopPropagation();
+                                handleDeleteCard(card.id);
+                            }}
+                        >
+                            x
+                        </button>
                     </div>
                 ))}
             </div>
