@@ -40,6 +40,17 @@ function App() {
           </div>
         }
     />
+    <Route
+      path='/calendar/team/:teamId'
+        element={
+        <div className="app-wrapper">
+          <div className="layout">
+            <Sidebar />
+            <CalendarPage />
+          </div>
+        </div>
+      }
+    />
     </Routes>
   )
 }

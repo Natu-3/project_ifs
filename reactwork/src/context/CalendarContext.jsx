@@ -2,14 +2,14 @@ import { createContext, useContext, useState } from "react";
 
 const CalendarContext = createContext();
 
-export function CalendarPravider({children}){
+export function CalendarProvider({ children }) {
     const [currentDate, setCurrentDate] = useState(new Date());
 
-    return(
+    return (
         <CalendarContext.Provider value={{ currentDate, setCurrentDate }}>
-            {children}
+        {children}
         </CalendarContext.Provider>
-    )
+    );
 }
 
 export const useCalendar = () => useContext(CalendarContext);
