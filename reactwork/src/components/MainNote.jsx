@@ -1,33 +1,80 @@
+import { useState, useEffect, useRef } from 'react'
 import { usePosts } from '../context/PostContext'
 import '../componentsCss/MainNote.css'
 
 export default function MainNote() {
-    const { selectedPost, updatePost } = usePosts();
+    const { posts, selectedPost, updatePost, addPost, setSelectedPostId } = usePosts();
 
-    const handleChange = (value) => {
-        if (!selectedPost){
-            addpost(value);
-            return;
+    const [isDragOver, setIsDragOver] = useState(false);
+
+    const [ text, setText ] = useState('');
+
+    const [ cards, setCards ] = useState([]);
+
+    const textAreaRef = useRef(null);
+
+    useEffect(() => {
+        setText(selectedPost?.content || '');
+        if (selectedPost) textAreaRef.current?.focus();
+    },[selectedPost]);
+
+    const handleSave = () => {
+        if(!text.trim()) return;
+
+        if (selectedPost){
+            updatePost(selectedPost.id, {...selectedPost, content: text, title: text.substring(0,10)});
+        } else {
+            addPost(text.substring(0, 10), text);
         }
-
-        updatePost(selectedPost.id,{
-            ...selectedPost,
-            content: value
-        })
-    }
+    };
     
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setIsDragOver(false);
+
+        const postId = Number(e.dataTransfer.getData("postId"));
+
+        const post = posts.find(p => p.id === postId);
+        if(!post) return;
+
+        const newCard = {
+            id: Date.now(),
+            postId: post.id,
+            title : post.title
+        };
+
+        setCards(prev => [...prev, newCard]);
+
+        setSelectedPostId(postId);
+    }
 
     return(
-        <main className='mainnote'>
+        <main className='mainnote'
+            onDragOver={(e) =>{e.preventDefault(); setIsDragOver(true); }}
+            onDragLeave={()=> setIsDragOver(false)}
+            onDrop={handleDrop}>
+            <div className='card-area'>
+                {cards.map(card=> (
+                    <div
+                        key={card.id}
+                        className="note-card"
+                        onClick={()=> setSelectedPostId(card.postId)}
+                    >
+                        {card.title || '제목없음'}
+                    </div>
+                ))}
+            </div>
+
             <div className="memo-container">
             <textarea
+                ref={textAreaRef}
                 className='memo-post-it'
                 placeholder='메모를 입력하세요...'
-                value={selectedPost?.content || ''}
-                onChange={(e) => handleChange(e.target.value)}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
             />
+            <button className='save-btn' onClick={handleSave}>↑</button>
             </div>
-            
         </main>
     )
 }

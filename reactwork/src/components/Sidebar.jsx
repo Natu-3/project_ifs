@@ -5,22 +5,22 @@ import '../componentsCss/Sidebar.css';
 
 export default function Sidebar() {
     const [isOpen, setIsOpen] = useState(true);
-    const {posts, setSelectedPostId,addPost,deletePost} = usePosts();
+    const {posts, setSelectedPostId, addPost, deletePost, selectedPostId} = usePosts();
     const navigate = useNavigate();
 
-    const handleToggle = () => {
+    const handleToggle = () =>{
         setIsOpen(prev => !prev);
     };
 
-    // const handleAddPost = () => {
-    //     setPosts(prev => [
-    //         ...prev,
-    //         {
-    //             id : Date.now(),
-    //             title: "new write"
-    //         }
-    //     ]);
-    // };
+    const handleDragStart = (e, postId) => {
+        e.dataTransfer.setData("postId", postId);
+    };
+
+    const handleAddnewPost = () => {
+        const newId = addPost("새 메모", "", "");
+        setSelectedPostId(newId);
+    };
+
     
     return(
         <aside className={`sidebar ${isOpen?'open':'closed'}`}>
@@ -41,21 +41,21 @@ export default function Sidebar() {
                 {posts.map(post => (
                     <li
                         key={post.id}
-                        className="siderbar-item"
+                        className={`sidebar-item ${selectedPostId === post.id ? 'selected' : ''}`}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, post.id)}
                         onClick={()=>setSelectedPostId(post.id)}
                     >
-                        {post.title}
+                        {post.title || "제목 없음"}
                         <button
                             onClick={(e) =>{
                                 e.stopPropagation();
                                 deletePost(post.id);
                             }}
-                        >
-                            ✕
-                        </button>
+                        >✕</button>
                     </li>
                 ))}
-                <button className="sidebar-add-btn" onClick={addPost}>
+                <button className="sidebar-add-btn" onClick={handleAddnewPost}>
                     +
                 </button>
             </ul>

@@ -11,11 +11,11 @@ export default function CalendarHeader({ currentDate, onChange}){
     };
 
     return(
-        <div>
-            <button onClick={()=> moveMonth(-1)}>◀</button>
+        <div className="calendar-header">
+            <button onClick={()=> moveMonth(-1) }>◀</button>
             <span>{year}년 {month +1}월</span>
             <button onClick={()=> moveMonth(1)}>▶</button>
-            <button onClick={() => navigate("/")}>홈</button>
+            <button onClick={() => navigate("/")} className="calendar-home-but">홈</button>
         </div>
         
     )

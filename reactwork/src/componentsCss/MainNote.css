@@ -22,6 +22,18 @@
   padding: 60px 50px;
   background: #f0f0f0;
   border-radius: 20px;
+
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mainnote ul li:hover {
+    transform: translateY(-4px);
+    box-sizing: 0 8px 18px rgba(0,0,0,0.15);
+}
+
+.mainnote.drag-over {
+  outline: 3px dashed #ffb703;
+  background: #fff1b8;
 }
 
 .memo-container {
@@ -47,4 +59,11 @@
     padding: 14px;
     border-radius: 14px;
     background: #ffdbab;
+
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    animation: popIn 0.25s ease;
+}
+
+.memo-post-it:focus {
+    background: #ffe4bf;
 }
