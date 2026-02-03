@@ -9,9 +9,9 @@ import java.time.LocalDateTime;
 
 // 멤버테이블 값들 변수형 선언하는 인터페이스
 @Entity
-@Table(name = "member")
+@Table(name = "user")
 @Getter
-public class Member {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,8 +23,8 @@ public class Member {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
-    private String passwordHash;
+    @Column(name = "password", nullable = false)
+    private String password;
 
     @Column(nullable = false)
     private String auth; // USER / ADMIN

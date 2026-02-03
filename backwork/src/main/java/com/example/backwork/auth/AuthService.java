@@ -1,27 +1,27 @@
  package com.example.backwork.auth;
 
- import com.example.backwork.member.Member;
- import com.example.backwork.member.MemberRepository;
+ import com.example.backwork.member.User;
+ import com.example.backwork.member.UserRepository;
  import lombok.RequiredArgsConstructor;
  import org.springframework.stereotype.Service;
 
  @Service
  @RequiredArgsConstructor
  public class AuthService {
-     private final MemberRepository memberRepository;
+     private final UserRepository userRepository;
 
      public LoginResponse login(LoginRequest request){
-         Member member =memberRepository.findByUserid(request.getUserid())
+         User user = userRepository.findByUserid(request.getUserid())
                  .orElseThrow(() -> new IllegalArgumentException(("존재하지 않는 사용자")));
 
-         if(!member.getPasswordHash().equals(request.getPassword_hash())){
+         if(!user.getPassword().equals(request.getPassword())){
              throw new IllegalArgumentException("비밀번호 불일치");
          }
 
          return new LoginResponse(
-           member.getId(),
-           member.getUserid(),
-           member.getAuth()
+           user.getId(),
+           user.getUserid(),
+           user.getAuth()
          );
      }
  }

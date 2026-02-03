@@ -13,7 +13,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        System.out.println("🔥 login request: " + request.getUserid());
+        System.out.println("login request: " + request.getUserid());
         return ResponseEntity.ok(authService.login(request));
     }
 }
