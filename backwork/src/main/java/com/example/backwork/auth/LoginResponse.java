@@ -15,8 +15,6 @@
      private Long id;
      private String userid;
      private String auth;
-
-
      private String devToken;
  }
 

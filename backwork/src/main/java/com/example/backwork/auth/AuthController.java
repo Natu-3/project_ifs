@@ -21,7 +21,7 @@ public class AuthController {
 
         System.out.println("login request: " + request.getUserid());
         LoginResult result = authService.login(request);
-
+        //Login 결과값 = 쿠키로 보내지 않을 키값까지 저장함
 
         ResponseCookie cookie = ResponseCookie.from("ACCESS_TOKEN", result.getAccessToken())
                 .httpOnly(true)
