@@ -1,6 +1,11 @@
 package com.example.backwork.auth;
 
+import com.example.backwork.LoginResult;
+import com.example.backwork.member.User;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,8 +17,37 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request,HttpServletResponse response) {
+
         System.out.println("login request: " + request.getUserid());
-        return ResponseEntity.ok(authService.login(request));
+        LoginResult result = authService.login(request);
+
+
+        ResponseCookie cookie = ResponseCookie.from("ACCESS_TOKEN", result.getAccessToken())
+                .httpOnly(true)
+                .path("/")
+                .maxAge(60 * 30)
+                .sameSite("Lax")
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
+        User user = result.getUser();
+
+        return ResponseEntity.ok(
+                new LoginResponse(
+                        user.getId(),
+                        user.getUserid(),
+                        user.getAuth(),
+                        result.getDevToken()
+                )
+        );
     }
+
+      //  return ResponseEntity.ok(authService.login(request));
+
+
+
+//    @PostMapping("/signup")
+//    public ResponseEntity<?> signup(@RequestBody SignupRequest request){
+//        System.out.println("Sign up cleared")
+//    }
 }

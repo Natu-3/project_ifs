@@ -1,5 +1,6 @@
  package com.example.backwork.auth;
 
+ import com.example.backwork.member.User;
  import lombok.Getter;
  import lombok.AllArgsConstructor;
  import lombok.RequiredArgsConstructor;
@@ -11,9 +12,11 @@
  @Setter
  @AllArgsConstructor
  public class LoginResponse{
-     private Long Id;
+     private Long id;
      private String userid;
      private String auth;
-     private String accessToken;
+
+
+     private String devToken;
  }
 
