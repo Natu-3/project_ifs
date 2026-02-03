@@ -1,6 +1,6 @@
 package com.example.backwork.memo;
 
-import com.example.backwork.member.Member;
+import com.example.backwork.member.User;
 import com.example.backwork.member.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,7 +19,7 @@ public class MemoService {
     
     // 메모 목록 조회
     public List<MemoResponse> getMemos(Long userId) {
-        Member user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
             
         return memoPostRepository
@@ -31,7 +31,7 @@ public class MemoService {
     
     // 메모 생성
     public MemoResponse createMemo(Long userId, MemoRequest request) {
-        Member user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
             
         MemoPost memo = new MemoPost();
@@ -46,7 +46,7 @@ public class MemoService {
     
     // 메모 수정
     public MemoResponse updateMemo(Long memoId, Long userId, MemoRequest request) {
-        Member user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
             
         MemoPost memo = memoPostRepository.findByIdAndUser(memoId, user)
@@ -67,7 +67,7 @@ public class MemoService {
     
     // 메모 삭제 (soft delete - visible을 false로)
     public void deleteMemo(Long memoId, Long userId) {
-        Member user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
             
         MemoPost memo = memoPostRepository.findByIdAndUser(memoId, user)
