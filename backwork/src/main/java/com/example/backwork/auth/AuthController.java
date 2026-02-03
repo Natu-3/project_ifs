@@ -23,6 +23,8 @@ public class AuthController {
         LoginResult result = authService.login(request);
         //Login 결과값 = 쿠키로 보내지 않을 키값까지 저장함
 
+
+        //쿠키 값 설정 부분
         ResponseCookie cookie = ResponseCookie.from("ACCESS_TOKEN", result.getAccessToken())
                 .httpOnly(true)
                 .path("/")
@@ -30,14 +32,18 @@ public class AuthController {
                 .sameSite("Lax")
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
-        User user = result.getUser();
 
+        User user = result.getUser();
+        String dev = result.getDevToken();
+        System.out.println(dev);
+
+        // 리턴 - 로컬용 ID / UserID / 사용자 권한 / 임시토큰
         return ResponseEntity.ok(
                 new LoginResponse(
                         user.getId(),
                         user.getUserid(),
                         user.getAuth(),
-                        result.getDevToken()
+                        dev
                 )
         );
     }

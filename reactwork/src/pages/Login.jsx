@@ -20,11 +20,11 @@ const Login = () => {
     try {
       setLoading(true);
       const res = await login(userid, password);
-       const { accessToken, userid: userId, auth } = res.data;
+       const { devToken, userid: userId, auth } = res.data;
       //로그인 성공여부 대기
 
       //토큰 저장공간 지정
-      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("DevToken", devToken);
       localStorage.setItem("userid", userid);
       localStorage.setItem("auth",auth);
       //원래는 cookieStore에 서버단에서 저장해줘야함
