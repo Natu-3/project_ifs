@@ -13,5 +13,5 @@
  @AllArgsConstructor
  public class LoginRequest {
      private String userid;
-     private String password_hash;
+     private String password;
  }

@@ -1,6 +1,6 @@
 package com.example.backwork.memo;
 
-import com.example.backwork.member.Member;
+import com.example.backwork.member.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +20,7 @@ public class MemoPost {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private Member user;
+    private User user;
     
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;

@@ -11,7 +11,7 @@
  @Setter
  @AllArgsConstructor
  public class LoginResponse{
-     private Long memberId;
+     private Long Id;
      private String userid;
      private String auth;
  }
