@@ -1,5 +1,6 @@
  package com.example.backwork.auth;
 
+ import com.example.backwork.auth.jwt.JwtProvider;
  import com.example.backwork.member.User;
  import com.example.backwork.member.UserRepository;
  import lombok.RequiredArgsConstructor;
@@ -18,10 +19,18 @@
              throw new IllegalArgumentException("비밀번호 불일치");
          }
 
+         String token = JwtProvider.generateToken(
+                 user.getId(),
+                 user.getUserid(),
+                 user.getAuth()
+         );
+
+
          return new LoginResponse(
            user.getId(),
            user.getUserid(),
-           user.getAuth()
+           user.getAuth(),
+                 token
          );
      }
  }

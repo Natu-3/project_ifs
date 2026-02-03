@@ -2,10 +2,12 @@ import { useState } from "react";
 import { login } from "../api/auth";
 import "./Login.css";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Login = () => {
   const [userid, setUserid] = useState("");
   const [password, setPassword] = useState("");
+
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -18,8 +20,19 @@ const Login = () => {
     try {
       setLoading(true);
       const res = await login(userid, password);
+       const { accessToken, userid: userId, auth } = res.data;
+      //로그인 성공여부 대기
+
+      //토큰 저장공간 지정
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("userid", userid);
+      localStorage.setItem("auth",auth);
+      //원래는 cookieStore에 서버단에서 저장해줘야함
       console.log("로그인 성공:", res.data);
       alert("로그인 성공");
+
+      //성공시 홈 화면으로 넘기기
+      navigate("/")
     } catch (err) {
       console.error(err);
       alert("로그인 실패");

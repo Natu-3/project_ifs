@@ -14,5 +14,6 @@
      private Long Id;
      private String userid;
      private String auth;
+     private String accessToken;
  }
 
