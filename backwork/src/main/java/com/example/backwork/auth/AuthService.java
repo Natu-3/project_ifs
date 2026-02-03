@@ -2,6 +2,8 @@
 
  import com.example.backwork.LoginResult;
  import com.example.backwork.auth.jwt.JwtProvider;
+ import com.example.backwork.calendar.Calendar;
+ import com.example.backwork.calendar.CalendarRepository;
  import com.example.backwork.member.User;
  import com.example.backwork.member.UserRepository;
  import lombok.RequiredArgsConstructor;
@@ -14,13 +16,14 @@
      private final UserRepository userRepository;
      private final JwtProvider jwtProvider;
      private final PasswordEncoder passwordEncoder;
+     private final CalendarRepository calendarRepository;
 
      public LoginResult login(LoginRequest request){
          // 사용자 정보 유저테이블에서 찾기
          User user = userRepository.findByUserid(request.getUserid())
                  .orElseThrow(() -> new IllegalArgumentException(("존재하지 않는 사용자")));
          //비밀번호 일치 확인 로직
-         if(!user.getPassword().equals(request.getPassword())){
+         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
              throw new IllegalArgumentException("비밀번호 불일치");
          }
         // 토큰 발급부, 여기서 발급할때 쿠키로 보내기 위한 세팅 넣어야함
@@ -44,8 +47,36 @@
 //         );
      }
 
-//     public SignupResponse singup(SignupRequest request) {
-//         userRepository.signup(request.getPassword());
-//
-//     }
+     public SignupResponse singup(SignupRequest request) {
+
+         if (userRepository.existsByUserid(request.getUserid())){
+             throw new IllegalArgumentException("이미 존재하는 userid");
+         }
+//         if (userRepository.existsByEmail(request.getU())){
+//             throw new IllegalArgumentException("이미 존재하는 이메일");
+//         }
+
+         User user = new User(
+                 request.getUserid(),
+                 passwordEncoder.encode(request.getPassword())
+         );
+
+         User saveUser = userRepository.save(user);
+         Calendar personalCalendar = new Calendar(
+           "개인 캘린더",
+           "PERSONAL",
+           saveUser
+         );
+
+         calendarRepository.save(personalCalendar);
+
+
+         return  new SignupResponse(
+                 saveUser.getId(),
+                 saveUser.getUserid(),
+                 null,
+                 saveUser.getAuth()
+         );
+
+     }
  }

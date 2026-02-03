@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-
+//로그인으로만 접근 가능한 페이지 구현용입니다
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("accessToken");
 

@@ -2,6 +2,7 @@ package com.example.backwork.member;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDateTime;
 
@@ -12,6 +13,9 @@ import java.time.LocalDateTime;
 @Table(name = "user")
 @Getter
 public class User {
+    protected User() {
+        // JPA용 기본 생성자
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,7 +24,7 @@ public class User {
     @Column(nullable = false, unique = true)
     private String userid;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = true, unique = false)
     private String email;
 
     @Column(name = "password", nullable = false)
@@ -31,4 +35,12 @@ public class User {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    public User(String userid, @Nullable String encode) {
+
+        this.userid = userid;
+        this.password = encode;
+        this.auth = "USER";
+        this.email = "";
+    }
 }

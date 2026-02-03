@@ -1,20 +1,39 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { signup } from "../api/auth";
 import "./Signup.css";
 
 const Signup = () => {
   const [userid, setUserid] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSignup = () => {
+  const handleSignup = async() => {
     if (!userid || !password) {
       alert("모든 값을 입력하세요");
       return;
     }
+  try {
+      setLoading(true);
 
-    alert("회원가입 완료 (임시)");
-    navigate("/login");
+      await signup(userid, password);
+
+      alert("회원가입 완료");
+      navigate("/login");
+
+    } catch (err) {
+      console.error(err);
+
+      if (err.response?.data?.message) {
+        alert(err.response.data.message);
+      } else {
+        alert("회원가입 실패");
+      }
+    } finally {
+      setLoading(false);
+    }
+    
   };
 
   return (
@@ -37,7 +56,9 @@ const Signup = () => {
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        <button onClick={handleSignup}>회원가입</button>
+        <button onClick={handleSignup} disabled={loading}>
+          {loading ? "가입 중..." : "회원가입"}
+        </button>
 
         <button onClick={() => navigate("/login")}>
           로그인으로 돌아가기
