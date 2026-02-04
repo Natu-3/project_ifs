@@ -43,7 +43,7 @@ export default function MainNote() {
         const postId = Number(e.dataTransfer.getData("postId"));
 
         const post = posts.find(p => p.id === postId);
-        if(!post) return;
+        if(!post) return ;
 
         const newCard = {
             id: post.id,
@@ -51,7 +51,12 @@ export default function MainNote() {
             title : post.title
         };
 
-        setCards(prev => [newCard]);
+        setCards(prev => {
+            const exists = prev.some(card => card.postId === postId)
+            if (exists) return prev;
+            
+            return [...prev, newCard];
+        });
 
         setSelectedPostId(postId);
     }
