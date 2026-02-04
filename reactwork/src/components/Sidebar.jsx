@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { usePosts } from "../context/PostContext";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import '../componentsCss/Sidebar.css';
 
 export default function Sidebar() {
     const [isOpen, setIsOpen] = useState(true);
-    const {posts, setSelectedPostId, addPost, deletePost, selectedPostId} = usePosts();
+    const { posts, setSelectedPostId, addPost, deletePost, selectedPostId } = usePosts();
+    const { user } = useAuth();
     const navigate = useNavigate();
-
+    
     const handleToggle = () =>{
         setIsOpen(prev => !prev);
     };
@@ -27,9 +29,9 @@ export default function Sidebar() {
             <div className="sidebar-header">
                 <h2 
                     className="sidebar-title"
-                    onClick={()=>navigate('/login')}
+                    onClick={() => (!user) && navigate('/login')}
                 >
-                    Login
+                    {user ?`${user.id} 님 환영합니다.`: 'Login'}
                 </h2>
             </div>
 
