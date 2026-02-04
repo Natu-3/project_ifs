@@ -7,7 +7,7 @@ import '../componentsCss/Sidebar.css';
 export default function Sidebar() {
     const [isOpen, setIsOpen] = useState(true);
     const { posts, setSelectedPostId, addPost, deletePost, selectedPostId } = usePosts();
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
     
     const handleToggle = () =>{
@@ -27,13 +27,30 @@ export default function Sidebar() {
     return(
         <aside className={`sidebar ${isOpen?'open':'closed'}`}>
             <div className="sidebar-header">
-                <h2 
-                    className="sidebar-title"
-                    onClick={() => (!user) && navigate('/login')}
-                >
+    {!user ? (
+        <h2
+            className="sidebar-title"
+            onClick={() => navigate("/login")}
+        >
                     {user ?`${user.id} 님 환영합니다.`: 'Login'}
-                </h2>
+        </h2>
+    ) : (
+            <div className="sidebar-user">
+                <span className="sidebar-title">
+                    {user.id} 님 환영합니다.
+                </span>
+                <button
+                    className="logout-btn"
+                    onClick={() => {
+                        logout();
+                        navigate("/login");
+                    }}
+                >
+                    로그아웃
+                </button>
             </div>
+        )}
+        </div>
 
             <button className="toggle-note-btn" onClick={handleToggle}>
                 {'<'}
