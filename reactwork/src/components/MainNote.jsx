@@ -46,12 +46,12 @@ export default function MainNote() {
         if(!post) return;
 
         const newCard = {
-            id: Date.now(),
+            id: post.id,
             postId: post.id,
             title : post.title
         };
 
-        setCards(prev => [...prev, newCard]);
+        setCards(prev => [newCard]);
 
         setSelectedPostId(postId);
     }
