@@ -3,6 +3,7 @@ import { login } from "../api/auth";
 import "./Login.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
   const [userid, setUserid] = useState("");
@@ -10,36 +11,41 @@ const Login = () => {
 
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const {fetchMe} = useAuth();
 
   const handleLogin = async () => {
-    if (!userid || !password) {
-      alert("아이디와 비밀번호를 입력하세요");
-      return;
-    }
+  if (!userid || !password) {
+    alert("아이디와 비밀번호를 입력하세요");
+    return;
+  }
 
-    try {
-      setLoading(true);
-      const res = await login(userid, password);
-       const { devToken, userid: userId, auth } = res.data;
-      //로그인 성공여부 대기
+  try {
+    setLoading(true);
 
-      //토큰 저장공간 지정
-      localStorage.setItem("DevToken", devToken);
-      localStorage.setItem("userid", userid);
-      localStorage.setItem("auth",auth);
-      //원래는 cookieStore에 서버단에서 저장해줘야함
-      console.log("로그인 성공:", res.data);
-      alert("로그인 성공");
+    //  로그인 요청 (쿠키 발급)
+    const res = await login(userid, password);
 
-      //성공시 홈 화면으로 넘기기
-      navigate("/")
-    } catch (err) {
-      console.error(err);
-      alert("로그인 실패");
-    } finally {
-      setLoading(false);
-    }
-  };
+    // (개발용 localStorage 유지)
+    const { devToken, userid: uid, auth } = res.data;
+    localStorage.setItem("DevToken", devToken);
+    localStorage.setItem("userid", uid);
+    localStorage.setItem("auth", auth);
+
+    //  쿠키 기반으로 유저 상태 동기화
+    await fetchMe();
+
+    console.log("로그인 성공");
+    alert("로그인 성공");
+
+    //  이동
+    navigate("/");
+  } catch (err) {
+    console.error(err);
+    alert("로그인 실패");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="login-wrapper">

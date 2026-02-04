@@ -41,6 +41,6 @@ public class User {
         this.userid = userid;
         this.password = encode;
         this.auth = "USER";
-        this.email = "";
+        this.email = null;
     }
 }
