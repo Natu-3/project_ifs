@@ -64,6 +64,11 @@ public class SecurityConfig {
     }
 
     @Bean
+    public JwtAuthFilter jwtAuthFilter(JwtProvider jwtProvider) {
+        return new JwtAuthFilter(jwtProvider);
+    }
+
+    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration config = new CorsConfiguration();

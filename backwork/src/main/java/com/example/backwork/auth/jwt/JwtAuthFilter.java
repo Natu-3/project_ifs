@@ -10,6 +10,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.query.PreprocessedQuery;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -20,7 +21,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.example.backwork.auth.jwt.JwtProvider;
 import java.io.IOException;
 import java.util.List;
-
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
@@ -34,8 +34,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         String token = extractTokenFromCookie(request);
-
+        System.out.println("JWT COOKIE TOKEN = " + token);
         if (token != null && jwtProvider.validateToken(token)) {
+            System.out.println("JWT VALID = " + jwtProvider.validateToken(token));
             try {
                 Claims claims = jwtProvider.parseToken(token);
 
@@ -73,7 +74,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (request.getCookies() == null) return null;
 
         for (Cookie cookie : request.getCookies()) {
-            if ("accessToken".equals(cookie.getName())) {
+            if ("ACCESS_TOKEN".equals(cookie.getName())) {
                 return cookie.getValue();
             }
         }

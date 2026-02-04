@@ -28,6 +28,7 @@ public class AuthController {
         //쿠키 값 설정 부분
         ResponseCookie cookie = ResponseCookie.from("ACCESS_TOKEN", result.getAccessToken())
                 .httpOnly(true)
+                .secure(false)
                 .path("/")
                 .maxAge(60 * 30)
                 .sameSite("Lax")
