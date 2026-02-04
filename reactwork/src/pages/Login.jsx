@@ -26,10 +26,14 @@ const Login = () => {
     const res = await login(userid, password);
 
     // (개발용 localStorage 유지)
-    const { devToken, userid: uid, auth } = res.data;
+    const { id, devToken, userid: uid, auth } = res.data;
     localStorage.setItem("DevToken", devToken);
     localStorage.setItem("userid", uid);
     localStorage.setItem("auth", auth);
+    // 메모 API에서 쓰는 실제 numeric userId 저장 (새로고침/재로그인 시 일관성 유지)
+    if (id !== undefined && id !== null) {
+      localStorage.setItem("userId", String(id));
+    }
 
     //  쿠키 기반으로 유저 상태 동기화
     await fetchMe();

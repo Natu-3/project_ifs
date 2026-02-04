@@ -4,7 +4,9 @@ import axios from "axios";
 // 임시로 localStorage에서 가져오거나 기본값 사용
 const getUserId = () => {
   // 로그인 정보가 있으면 사용, 없으면 임시로 1 사용
-  return localStorage.getItem('userId') || 1;
+  const raw = localStorage.getItem("userId");
+  const parsed = raw ? Number(raw) : NaN;
+  return Number.isFinite(parsed) ? parsed : 1;
 };
 
 // 메모 목록 조회
