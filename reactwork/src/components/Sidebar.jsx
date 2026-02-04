@@ -53,9 +53,14 @@ const matchesKoreanQuery = (text, rawQuery) => {
 
 export default function Sidebar() {
     const [isOpen, setIsOpen] = useState(true);
+<<<<<<< HEAD
     const [query, setQuery] = useState("");
     const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId } = usePosts();
     const { user , logout} = useAuth();
+=======
+    const { posts, setSelectedPostId, addPost, deletePost, selectedPostId } = usePosts();
+    const { user, logout } = useAuth();
+>>>>>>> 18b87c1 (02.04.19:12 로그아웃 기능병합)
     const navigate = useNavigate();
     
     const handleToggle = () =>{
@@ -92,6 +97,7 @@ export default function Sidebar() {
         >
                     {user ?`${user.id} 님 환영합니다.`: 'Login'}
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
                 </h2>
@@ -100,6 +106,8 @@ export default function Sidebar() {
                     {isOpen ? '◀' : '▶'}
 =======
 >>>>>>> e2f048763801fac05ebc6281aa0b9cb89ccd8adc
+=======
+>>>>>>> 18b87c1 (02.04.19:12 로그아웃 기능병합)
         </h2>
     ) : (
             <div className="sidebar-user">
@@ -115,8 +123,11 @@ export default function Sidebar() {
                 >
                     로그아웃
                 </button>
+<<<<<<< HEAD
 =======
 >>>>>>> parent of c01c3e5 (사이드바 중간 머지)
+=======
+>>>>>>> 18b87c1 (02.04.19:12 로그아웃 기능병합)
             </div>
         )}
         </div>
