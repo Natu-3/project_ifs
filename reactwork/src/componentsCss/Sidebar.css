@@ -40,6 +40,26 @@
     text-align: center;
 }
 
+/* 검색 */
+.sidebar-search {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.15);
+}
+
+.sidebar-search-input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.2);
+    outline: none;
+    background: rgba(255,255,255,0.9);
+}
+
+.sidebar-search-input:focus {
+    border-color: #6584da;
+    box-shadow: 0 0 0 3px rgba(101,132,218,0.2);
+}
+
 /* Sidebar 메모 아이템 */
 .sidebar-item {
     margin-bottom: 8px;
@@ -47,6 +67,7 @@
     border-radius: 10px;
     background: #ffffff;
     cursor: pointer;
+    position: relative;
 
     transition:
         transform 0.2s ease,
@@ -68,11 +89,62 @@
 }
 
 /* 삭제 버튼 */
-.sidebar-item button {
-    float: right;
+.sidebar-item .delete-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    /* 전역 button 스타일(index.css) 덮어쓰기 */
+    padding: 0;
     border: none;
-    background: none;
+    background: transparent;
+    border-radius: 0;
     cursor: pointer;
+    color: #666;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.sidebar-item .delete-btn:hover {
+    color: #ff3b30;
+}
+
+/* 고정 버튼 */
+.sidebar-item .pin-btn {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    /* 전역 button 스타일(index.css) 덮어쓰기 */
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: 0;
+    cursor: pointer;
+    color: rgba(0,0,0,0.25);
+    font-size: 14px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.sidebar-item .pin-btn.pinned {
+    color: #ffb703;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.1);
+}
+
+.sidebar-item-title {
+    display: inline-block;
+    max-width: 85%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 28px; /* 좌/우 버튼 공간 */
 }
 
 /* Sidebar 추가 버튼 */
@@ -134,6 +206,7 @@
 
 /* Sidebar 닫힌 상태에서 숨김 */
 .sidebar.closed .sidebar-title,
+.sidebar.closed .sidebar-search,
 .sidebar.closed .sidebar-list,
 .sidebar.closed .sidebar-header {
     display: none;

@@ -87,6 +87,7 @@ INSERT INTO user (userid, email, password, auth)
 VALUES
   ('user1', 'user@test.local', '$2a$10_dummyhash', 'USER'),
   ('admin1', 'admin@test.local', '$2a$10_dummyhash', 'ADMIN');
+  
 
 INSERT INTO calendar (name, type, owner_id)
 VALUES
