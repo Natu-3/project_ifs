@@ -1,5 +1,7 @@
 import { getHolidayNames } from "@hyunbinseo/holidays-kr";
 import { getMonthDays } from "../../utils/calendar";
+import { useCalendar } from "../../context/CalendarContext";
+import { usePosts } from "../../context/PostContext";
 
 export default function CalendarGrid({ currentDate }) {
   const year = currentDate.getFullYear();
@@ -9,6 +11,25 @@ export default function CalendarGrid({ currentDate }) {
   const today = new Date();
 
   const days = getMonthDays(year, month);
+
+  const { events, addEvent } = useCalendar();
+  const { posts } = usePosts();
+
+  const handleDrop = (e, dateKey) => {
+      e.preventDefault();
+
+      const postId = Number(e.dataTransfer.getData("postId"));
+      if (!postId) return;
+
+      const post = posts.find((p) => p.id === postId);
+      if (!post) return;
+
+      addEvent(dateKey, {
+        id: Date.now(),
+        postId: post.id,
+        title: post.title,
+      });
+    };
 
   return (
     <div className="calendar-grid">
@@ -31,6 +52,7 @@ export default function CalendarGrid({ currentDate }) {
           day === today.getDate();
 
         const dayOfweek = i % 7;
+        const dateKey = `${year}-${month +1}-${day}`;
       
         return (
           <div
@@ -41,12 +63,20 @@ export default function CalendarGrid({ currentDate }) {
               ${isHoliday ? "holiday" : ""}
               ${dayOfweek === 0 ? "sun" : dayOfweek === 6 ? "sat" : ""}
             `}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => handleDrop(e, dateKey)}
           >
             <div className="cell-header">
               <span className="day-number">{day}</span>
               {isHoliday && <span className="holiday-name">{holidayNames[0]}</span>}
             </div>
-            <div className="memo-content"></div>
+            <div className="memo-content">
+              {events[dateKey]?.map(ev => (
+                <div key={ev.id} className="calendar-event">
+                  {ev.title}
+                </div>
+              ))}
+            </div>
           </div>
         );
       })}
