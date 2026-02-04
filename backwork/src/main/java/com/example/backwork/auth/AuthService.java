@@ -1,6 +1,5 @@
  package com.example.backwork.auth;
 
- import com.example.backwork.LoginResult;
  import com.example.backwork.auth.jwt.JwtProvider;
  import com.example.backwork.calendar.Calendar;
  import com.example.backwork.calendar.CalendarRepository;

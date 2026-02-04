@@ -7,7 +7,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-
+// 접근시 돌려줄 오류구분 (인증 진입지점 상속받아 들어가는 값들 오버라이드함)
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 

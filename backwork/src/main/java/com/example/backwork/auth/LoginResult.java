@@ -1,4 +1,4 @@
-package com.example.backwork;
+package com.example.backwork.auth;
 
 import com.example.backwork.member.User;
 import lombok.AllArgsConstructor;

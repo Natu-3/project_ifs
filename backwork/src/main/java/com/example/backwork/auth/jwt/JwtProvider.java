@@ -3,13 +3,18 @@ package com.example.backwork.auth.jwt;
 import com.example.backwork.member.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.util.Date;
 @Service
 public class JwtProvider {
-
+/* 토큰 제공용 객체
+    현재 로컬에서 바로 확인가능한 generateToken - 실제 빌드때는 삭제예정,
+    실질적 서비스용 쿠키에 발급되는 토큰 createAccessToken
+ */
     private static final String SECRET_KEY =
             "ifs-project-jwt-secret-key-ifs-project-jwt-secret-key";
 
@@ -52,4 +57,35 @@ public class JwtProvider {
                 .parseClaimsJws(token)
                 .getBody();
     }
+    // 받은 스트링키 처리
+    public String resolveTokenFromCookie(HttpServletRequest request) {
+
+        if (request.getCookies() == null) return null;
+
+        for (Cookie cookie : request.getCookies()) {
+            if ("accessToken".equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token);
+            return true;
+        } catch (ExpiredJwtException e) {
+            // 토큰 만료
+            return false;
+        } catch (JwtException | IllegalArgumentException e) {
+            // 위조, 변조, 형식 오류
+            return false;
+        }
+    }
+
+
+
 }

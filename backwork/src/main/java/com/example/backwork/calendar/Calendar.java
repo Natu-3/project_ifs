@@ -6,7 +6,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+/*
+캘린더 정의
+id
+name
+type - personal / team
+owner fk( user id )
+created_at
 
+
+ */
 @Entity
 @Table(name = "calendar")
 @Getter
