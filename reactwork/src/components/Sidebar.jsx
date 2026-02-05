@@ -91,11 +91,10 @@ export default function Sidebar() {
                 >
                     {user ?`${user.id} 님 환영합니다.`: 'Login'}
                 </h2>
+                <button className="toggle-note-btn" onClick={handleToggle} title={isOpen ? "사이드바 닫기" : "사이드바 열기"}>
+                    {isOpen ? '◀' : '▶'}
+                </button>
             </div>
-
-            <button className="toggle-note-btn" onClick={handleToggle}>
-                {'<'}
-            </button>
 
             <div className="sidebar-search">
                 <input
@@ -106,41 +105,45 @@ export default function Sidebar() {
                 />
             </div>
 
-            <ul className="sidebar-list">
-                {filteredPosts.map(post => (
-                    <li
-                        key={post.id}
-                        className={`sidebar-item ${selectedPostId === post.id ? 'selected' : ''}`}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, post.id)}
-                        onClick={()=>setSelectedPostId(post.id)}
-                    >
-                        <button
-                            className={`pin-btn ${post.pinned ? "pinned" : ""}`}
-                            title={post.pinned ? "고정 해제" : "고정"}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                togglePinned(post.id);
-                            }}
+            <div className="sidebar-list-wrapper">
+                <ul className="sidebar-list">
+                    {filteredPosts.map(post => (
+                        <li
+                            key={post.id}
+                            className={`sidebar-item ${selectedPostId === post.id ? 'selected' : ''}`}
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, post.id)}
+                            onClick={()=>setSelectedPostId(post.id)}
                         >
-                            ★
-                        </button>
-                        <span className="sidebar-item-title">
-                            {post.title || "새 메모"}
+                            <button
+                                className={`pin-btn ${post.pinned ? "pinned" : ""}`}
+                                title={post.pinned ? "고정 해제" : "고정"}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    togglePinned(post.id);
+                                }}
+                            >
+                                ★
+                            </button>
+                            <span className="sidebar-item-title">
+                                {post.title || "새 메모"}
+                            </span>
+                            <button
+                                className="delete-btn"
+                                onClick={(e) =>{
+                                    e.stopPropagation();
+                                    deletePost(post.id);
+                                }}
+                            >✕</button>
+                        </li>
+                    ))}
+                    <li className="sidebar-item sidebar-add-item" onClick={handleAddnewPost}>
+                        <span className="sidebar-item-title" style={{ padding: '0 28px', textAlign: 'center' }}>
+                            +
                         </span>
-                        <button
-                            className="delete-btn"
-                            onClick={(e) =>{
-                                e.stopPropagation();
-                                deletePost(post.id);
-                            }}
-                        >✕</button>
                     </li>
-                ))}
-                <button className="sidebar-add-btn" onClick={handleAddnewPost}>
-                    +
-                </button>
-            </ul>
+                </ul>
+            </div>
         </aside>
     )
 }
