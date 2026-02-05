@@ -53,14 +53,9 @@ const matchesKoreanQuery = (text, rawQuery) => {
 
 export default function Sidebar() {
     const [isOpen, setIsOpen] = useState(true);
-<<<<<<< HEAD
-    const { posts, setSelectedPostId, addPost, deletePost, selectedPostId } = usePosts();
-    const { user, logout } = useAuth();
-=======
     const [query, setQuery] = useState("");
     const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId } = usePosts();
     const { user } = useAuth();
->>>>>>> e0c018fbdeb05426b6c9ea0c39e96edb3013d0e2
     const navigate = useNavigate();
     
     const handleToggle = () =>{
@@ -127,7 +122,7 @@ export default function Sidebar() {
                     placeholder="메모 검색..."
                 />
             </div>
-
+            <div className="sidebar-list-wrapper">
             <ul className="sidebar-list">
                 {filteredPosts.map(post => (
                     <li
@@ -158,11 +153,14 @@ export default function Sidebar() {
                             }}
                         >✕</button>
                     </li>
-                ))}
+                    ))}
+            </ul>
+            </div>
+            <div className="sidebar-footer">
                 <button className="sidebar-add-btn" onClick={handleAddnewPost}>
                     +
                 </button>
-            </ul>
+            </div>
         </aside>
     )
 }

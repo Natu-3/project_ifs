@@ -1,5 +1,5 @@
 .mainnote {
-    height: 100%;
+    height: 93vh;
     display: flex;
     flex-direction: column;
     background: #fff5d2;
@@ -38,8 +38,7 @@
 }
 
 .memo-container {
-    flex: 0 0 auto;
-    overflow-y: auto;
+    flex-shrink: 0;
     padding: 20px;
 
     display: flex;

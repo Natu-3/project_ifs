@@ -4,6 +4,7 @@
 
 .sidebar {
     width: 300px;
+    height: 93vh;
     background: #fff5d2;
     display: flex;
     flex-direction: column;
@@ -35,9 +36,22 @@
 /* Sidebar 리스트 */
 .sidebar-list {
     list-style: none;
-    padding: 8px;
+    padding: 0px;
     margin: 0;
     text-align: center;
+}
+
+.sidebar-list-wrapper {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+.sidebar-footer {
+    display: flex;
+    justify-content: center;
+    padding: 10px 0;
+    background: #fff5d2;
 }
 
 /* 검색 */
@@ -71,7 +85,6 @@
 
     transition:
         transform 0.2s ease,
-        background 0.2s ease,
         box-shadow 0.2s ease;
 }
 
@@ -149,29 +162,39 @@
 
 /* Sidebar 추가 버튼 */
 .sidebar-add-btn {
-    width: 28px;
-    height: 35px;
-    margin: 12px auto;
-    border-radius: 50%;
-    background: #c0cfe4;
-    color: #fff;
+    margin-bottom: 8px;
+    padding: 10px;
+    border-radius: 10px;
+    background: #e0e0e0;
+    color: #333;
     border: none;
     cursor: pointer;
+
+    width: 85%;
+    height: auto;
+
+    font-size: 18px;
+    font-weight: bold;
 
     display: flex;
     align-items: center;
     justify-content: center;
+    align-content: center;
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .sidebar-add-btn:hover {
     background: #adadad;
+    transform: translatey(-2px);
 }
 
 /* Toggle button */
 .toggle-note-btn {
     position: absolute;
     top: 50%;
-    right: -15px;
+    right: -25px;
+    z-index: 9999;
     width: 40px;
     height: 40px;
     border-radius: 50%;
