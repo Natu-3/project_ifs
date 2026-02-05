@@ -6,12 +6,16 @@
     width: 300px;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     height: 100%;
 =======
     height: 93vh;
 >>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
 =======
 >>>>>>> parent of c01c3e5 (사이드바 중간 머지)
+=======
+    height: 93vh;
+>>>>>>> 8f913f5 (사이드바 및 메인 note 사이드바 추가 add-btn 하단 고정 text공간 확보 26.02.05 09:29)
     background: #fff5d2;
     display: flex;
     flex-direction: column;
@@ -258,30 +262,40 @@
 =======
 /* Sidebar 추가 버튼 */
 .sidebar-add-btn {
-    width: 28px;
-    height: 35px;
-    margin: 12px auto;
-    border-radius: 50%;
-    background: #c0cfe4;
-    color: #fff;
+    margin-bottom: 8px;
+    padding: 10px;
+    border-radius: 10px;
+    background: #e0e0e0;
+    color: #333;
     border: none;
     cursor: pointer;
 >>>>>>> parent of c01c3e5 (사이드바 중간 머지)
 
+    width: 85%;
+    height: auto;
+
+    font-size: 18px;
+    font-weight: bold;
+
     display: flex;
     align-items: center;
     justify-content: center;
+    align-content: center;
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .sidebar-add-btn:hover {
     background: #adadad;
+    transform: translatey(-2px);
 }
 
 /* Toggle button */
 .toggle-note-btn {
     position: absolute;
     top: 50%;
-    right: -15px;
+    right: -25px;
+    z-index: 9999;
     width: 40px;
     height: 40px;
     border-radius: 50%;
