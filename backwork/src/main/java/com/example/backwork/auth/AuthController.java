@@ -1,6 +1,7 @@
 package com.example.backwork.auth;
 
 import com.example.backwork.member.CustomUserDetails;
+import com.example.backwork.member.SessionUser;
 import com.example.backwork.member.User;
 import com.example.backwork.member.dto.UserMeResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,7 +35,14 @@ public class AuthController {
         User user = authService.login(request);
 
         HttpSession session = httpRequest.getSession(true);
-        session.setAttribute("LOGIN_USER", user);
+        session.setAttribute("LOGIN_USER",
+                new SessionUser(
+                        user.getId(),
+                        user.getUserid(),
+                        user.getAuth()
+                )
+
+                );
 
 
 //        ResponseCookie cookie = ResponseCookie.from("ACCESS_TOKEN", result.getAccessToken())
@@ -62,18 +70,40 @@ public class AuthController {
     public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
         return ResponseEntity.ok(authService.singup(request));
     }
+//    jwt 기반 구현했던것
+//    @GetMapping("/me")
+//    public ResponseEntity<?> me(Authentication authentication) {
+//
+//        if (authentication == null || !authentication.isAuthenticated()) {
+//            return ResponseEntity.status(401).build();
+//        }
+//
+//        CustomUserDetails user =
+//                (CustomUserDetails) authentication.getPrincipal();
+//
+//        assert user != null;
+//        return ResponseEntity.ok(
+//                new UserMeResponse(
+//                        user.getId(),
+//                        user.getUserid(),
+//                        user.getAuth()
+//                )
+//        );
+//    }
 
     @GetMapping("/me")
-    public ResponseEntity<?> me(Authentication authentication) {
+    public ResponseEntity<?> me(HttpServletRequest request) {
 
-        if (authentication == null || !authentication.isAuthenticated()) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
             return ResponseEntity.status(401).build();
         }
 
-        CustomUserDetails user =
-                (CustomUserDetails) authentication.getPrincipal();
+        SessionUser user = (SessionUser) session.getAttribute("LOGIN_USER");
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
 
-        assert user != null;
         return ResponseEntity.ok(
                 new UserMeResponse(
                         user.getId(),
