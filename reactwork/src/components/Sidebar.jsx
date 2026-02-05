@@ -55,7 +55,7 @@ export default function Sidebar() {
     const [isOpen, setIsOpen] = useState(true);
     const [query, setQuery] = useState("");
     const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId } = usePosts();
-    const { user } = useAuth();
+    const { user , logout} = useAuth();
     const navigate = useNavigate();
     
     const handleToggle = () =>{
