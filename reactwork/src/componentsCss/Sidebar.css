@@ -4,7 +4,11 @@
 
 .sidebar {
     width: 300px;
+<<<<<<< HEAD
     height: 100%;
+=======
+    height: 93vh;
+>>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
     background: #fff5d2;
     display: flex;
     flex-direction: column;
@@ -49,13 +53,26 @@
 /* Sidebar 리스트 */
 .sidebar-list {
     list-style: none;
-    padding: 8px;
+    padding: 0px;
     margin: 0;
     text-align: center;
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
     min-height: 0;
+}
+
+.sidebar-list-wrapper {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+.sidebar-footer {
+    display: flex;
+    justify-content: center;
+    padding: 10px 0;
+    background: #fff5d2;
 }
 
 /* 검색 */
@@ -89,7 +106,6 @@
 
     transition:
         transform 0.2s ease,
-        background 0.2s ease,
         box-shadow 0.2s ease;
 }
 
@@ -165,6 +181,7 @@
     padding: 0 28px; /* 좌/우 버튼 공간 */
 }
 
+<<<<<<< HEAD
 /* Sidebar 추가 버튼 (메모 아이템과 같은 스타일, 스크롤 끝에서만 하단 고정) */
 .sidebar-add-item {
     margin-bottom: 8px;
@@ -192,6 +209,35 @@
     transform: translateY(-2px);
     box-shadow: 0 6px 14px rgba(0,0,0,0.12);
     color: #6584da;
+=======
+/* Sidebar 추가 버튼 */
+.sidebar-add-btn {
+    margin-bottom: 8px;
+    padding: 10px;
+    border-radius: 10px;
+    background: #e0e0e0;
+    color: #333;
+    border: none;
+    cursor: pointer;
+
+    width: 85%;
+    height: auto;
+
+    font-size: 18px;
+    font-weight: bold;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sidebar-add-btn:hover {
+    background: #adadad;
+    transform: translatey(-2px);
+>>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
 }
 
 .sidebar-add-item:active {
@@ -201,11 +247,24 @@
 
 /* Toggle button - 헤더 내부 버튼 */
 .toggle-note-btn {
+<<<<<<< HEAD
     width: 32px;
     height: 32px;
     border-radius: 6px;
     background: rgba(255, 255, 255, 0.8);
     border: 1px solid rgba(0,0,0,0.1);
+=======
+    position: absolute;
+    top: 50%;
+    right: -25px;
+    z-index: 9999;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #6584da;
+    color: #fff;
+    border: none;
+>>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     z-index: 10;

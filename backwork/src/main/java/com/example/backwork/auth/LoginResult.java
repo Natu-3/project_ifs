@@ -9,5 +9,5 @@ import lombok.Getter;
 public class LoginResult {
     private User user;
     private String accessToken; // 쿠키용 (실제 인증)
-    private String devToken;    // 로컬스토리지 임시용
+  //  private String devToken;    // 로컬스토리지 임시용
 }

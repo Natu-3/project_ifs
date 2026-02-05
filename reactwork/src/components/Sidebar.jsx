@@ -55,7 +55,7 @@ export default function Sidebar() {
     const [isOpen, setIsOpen] = useState(true);
     const [query, setQuery] = useState("");
     const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId } = usePosts();
-    const { user } = useAuth();
+    const { user , logout} = useAuth();
     const navigate = useNavigate();
     
     const handleToggle = () =>{
@@ -85,16 +85,36 @@ export default function Sidebar() {
     return(
         <aside className={`sidebar ${isOpen?'open':'closed'}`}>
             <div className="sidebar-header">
-                <h2 
-                    className="sidebar-title"
-                    onClick={() => (!user) && navigate('/login')}
-                >
+    {!user ? (
+        <h2
+            className="sidebar-title"
+            onClick={() => navigate("/login")}
+        >
                     {user ?`${user.id} 님 환영합니다.`: 'Login'}
+<<<<<<< HEAD
                 </h2>
                 <button className="toggle-note-btn" onClick={handleToggle} title={isOpen ? "사이드바 닫기" : "사이드바 열기"}>
                     {isOpen ? '◀' : '▶'}
+=======
+        </h2>
+    ) : (
+            <div className="sidebar-user">
+                <span className="sidebar-title">
+                    {user.id} 님 환영합니다.
+                </span>
+                <button
+                    className="logout-btn"
+                    onClick={() => {
+                        logout();
+                        navigate("/login");
+                    }}
+                >
+                    로그아웃
+>>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
                 </button>
             </div>
+        )}
+        </div>
 
             <div className="sidebar-search">
                 <input
@@ -104,6 +124,7 @@ export default function Sidebar() {
                     placeholder="메모 검색..."
                 />
             </div>
+<<<<<<< HEAD
 
             <div className="sidebar-list-wrapper">
                 <ul className="sidebar-list">
@@ -114,6 +135,25 @@ export default function Sidebar() {
                             draggable
                             onDragStart={(e) => handleDragStart(e, post.id)}
                             onClick={()=>setSelectedPostId(post.id)}
+=======
+            <div className="sidebar-list-wrapper">
+            <ul className="sidebar-list">
+                {filteredPosts.map(post => (
+                    <li
+                        key={post.id}
+                        className={`sidebar-item ${selectedPostId === post.id ? 'selected' : ''}`}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, post.id)}
+                        onClick={()=>setSelectedPostId(post.id)}
+                    >
+                        <button
+                            className={`pin-btn ${post.pinned ? "pinned" : ""}`}
+                            title={post.pinned ? "고정 해제" : "고정"}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                togglePinned(post.id);
+                            }}
+>>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
                         >
                             <button
                                 className={`pin-btn ${post.pinned ? "pinned" : ""}`}
@@ -142,7 +182,17 @@ export default function Sidebar() {
                             +
                         </span>
                     </li>
+<<<<<<< HEAD
                 </ul>
+=======
+                    ))}
+            </ul>
+            </div>
+            <div className="sidebar-footer">
+                <button className="sidebar-add-btn" onClick={handleAddnewPost}>
+                    +
+                </button>
+>>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
             </div>
         </aside>
     )
