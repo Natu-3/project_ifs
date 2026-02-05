@@ -3,64 +3,61 @@ package com.example.backwork.auth;
 import com.example.backwork.member.CustomUserDetails;
 import com.example.backwork.member.User;
 import com.example.backwork.member.dto.UserMeResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    //private final AuthenticationConfiguration authenticationConfiguration;
 
-   // private final AuthenticationManager authenticationManager;
     private final AuthService authService;
+
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(
-            @RequestBody LoginRequest request,
-            HttpServletRequest httpRequest
-    ) {
-        User user = authService.login(request);
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request,HttpServletResponse response) {
 
-        HttpSession session = httpRequest.getSession(true);
-        session.setAttribute("LOGIN_USER", user);
+        System.out.println("login request: " + request.getUserid());
+        LoginResult result = authService.login(request);
+        //Login 결과값 = 쿠키로 보내지 않을 키값까지 저장함
 
 
-//        ResponseCookie cookie = ResponseCookie.from("ACCESS_TOKEN", result.getAccessToken())
-//                .httpOnly(true)
-//                .path("/")
-//                .maxAge(60 * 30)
-//                .sameSite("Lax")
-//                .build();
+        //쿠키 값 설정 부분
+        ResponseCookie cookie = ResponseCookie.from("ACCESS_TOKEN", result.getAccessToken())
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(60 * 30)
+                .sameSite("Lax")
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
 
-       // response.addHeader("Set-Cookie", cookie.toString());
+        User user = result.getUser();
+        String dev = result.getDevToken();
+        System.out.println(dev);
 
-        //User user = result.getUser();
-
+        // 리턴 - 로컬용 ID / UserID / 사용자 권한 / 임시토큰
         return ResponseEntity.ok(
                 new LoginResponse(
                         user.getId(),
                         user.getUserid(),
-                        user.getAuth()
-                       // result.getDevToken()
+                        user.getAuth(),
+                        dev
                 )
         );
     }
 
+      //  return ResponseEntity.ok(authService.login(request));
+
+
+
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
-        return ResponseEntity.ok(authService.singup(request));
+    public ResponseEntity<?> signup(@RequestBody SignupRequest request){
+        System.out.println("Sign up cleared");
+                return ResponseEntity.ok(authService.singup(request));
     }
 
     @GetMapping("/me")

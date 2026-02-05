@@ -93,6 +93,7 @@ export default function Sidebar() {
                     {user ?`${user.id} 님 환영합니다.`: 'Login'}
 <<<<<<< HEAD
                 </h2>
+<<<<<<< HEAD
                 <button className="toggle-note-btn" onClick={handleToggle} title={isOpen ? "사이드바 닫기" : "사이드바 열기"}>
                     {isOpen ? '◀' : '▶'}
 =======
@@ -112,9 +113,15 @@ export default function Sidebar() {
                     로그아웃
 >>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
                 </button>
+=======
+>>>>>>> parent of c01c3e5 (사이드바 중간 머지)
             </div>
         )}
         </div>
+
+            <button className="toggle-note-btn" onClick={handleToggle}>
+                {'<'}
+            </button>
 
             <div className="sidebar-search">
                 <input
@@ -126,6 +133,7 @@ export default function Sidebar() {
             </div>
 <<<<<<< HEAD
 
+<<<<<<< HEAD
             <div className="sidebar-list-wrapper">
                 <ul className="sidebar-list">
                     {filteredPosts.map(post => (
@@ -137,6 +145,8 @@ export default function Sidebar() {
                             onClick={()=>setSelectedPostId(post.id)}
 =======
             <div className="sidebar-list-wrapper">
+=======
+>>>>>>> parent of c01c3e5 (사이드바 중간 머지)
             <ul className="sidebar-list">
                 {filteredPosts.map(post => (
                     <li
@@ -153,35 +163,25 @@ export default function Sidebar() {
                                 e.stopPropagation();
                                 togglePinned(post.id);
                             }}
+<<<<<<< HEAD
 >>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
+=======
+>>>>>>> parent of c01c3e5 (사이드바 중간 머지)
                         >
-                            <button
-                                className={`pin-btn ${post.pinned ? "pinned" : ""}`}
-                                title={post.pinned ? "고정 해제" : "고정"}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    togglePinned(post.id);
-                                }}
-                            >
-                                ★
-                            </button>
-                            <span className="sidebar-item-title">
-                                {post.title || "새 메모"}
-                            </span>
-                            <button
-                                className="delete-btn"
-                                onClick={(e) =>{
-                                    e.stopPropagation();
-                                    deletePost(post.id);
-                                }}
-                            >✕</button>
-                        </li>
-                    ))}
-                    <li className="sidebar-item sidebar-add-item" onClick={handleAddnewPost}>
-                        <span className="sidebar-item-title" style={{ padding: '0 28px', textAlign: 'center' }}>
-                            +
+                            ★
+                        </button>
+                        <span className="sidebar-item-title">
+                            {post.title || "새 메모"}
                         </span>
+                        <button
+                            className="delete-btn"
+                            onClick={(e) =>{
+                                e.stopPropagation();
+                                deletePost(post.id);
+                            }}
+                        >✕</button>
                     </li>
+<<<<<<< HEAD
 <<<<<<< HEAD
                 </ul>
 =======
@@ -194,6 +194,13 @@ export default function Sidebar() {
                 </button>
 >>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
             </div>
+=======
+                ))}
+                <button className="sidebar-add-btn" onClick={handleAddnewPost}>
+                    +
+                </button>
+            </ul>
+>>>>>>> parent of c01c3e5 (사이드바 중간 머지)
         </aside>
     )
 }
