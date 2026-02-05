@@ -90,12 +90,12 @@ export default function Sidebar() {
             className="sidebar-title"
             onClick={() => navigate("/login")}
         >
-                    {user ?`${user.id} 님 환영합니다.`: 'Login'}
+                    {user ?`${user.userid} 님 환영합니다.`: 'Login'}
         </h2>
     ) : (
             <div className="sidebar-user">
                 <span className="sidebar-title">
-                    {user.id} 님 환영합니다.
+                    {user.userid} 님 환영합니다.
                 </span>
                 <button
                     className="logout-btn"
