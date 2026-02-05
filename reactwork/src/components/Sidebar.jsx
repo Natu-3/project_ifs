@@ -54,6 +54,7 @@ const matchesKoreanQuery = (text, rawQuery) => {
 export default function Sidebar() {
     const [isOpen, setIsOpen] = useState(true);
 <<<<<<< HEAD
+<<<<<<< HEAD
     const [query, setQuery] = useState("");
     const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId } = usePosts();
     const { user , logout} = useAuth();
@@ -61,6 +62,11 @@ export default function Sidebar() {
     const { posts, setSelectedPostId, addPost, deletePost, selectedPostId } = usePosts();
     const { user, logout } = useAuth();
 >>>>>>> 18b87c1 (02.04.19:12 로그아웃 기능병합)
+=======
+    const [query, setQuery] = useState("");
+    const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId } = usePosts();
+    const { user } = useAuth();
+>>>>>>> 8f913f5 (사이드바 및 메인 note 사이드바 추가 add-btn 하단 고정 text공간 확보 26.02.05 09:29)
     const navigate = useNavigate();
     
     const handleToggle = () =>{
@@ -145,6 +151,7 @@ export default function Sidebar() {
                 />
             </div>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 
@@ -163,6 +170,9 @@ export default function Sidebar() {
             <div className="sidebar-list-wrapper">
 =======
 >>>>>>> parent of c01c3e5 (사이드바 중간 머지)
+=======
+            <div className="sidebar-list-wrapper">
+>>>>>>> 8f913f5 (사이드바 및 메인 note 사이드바 추가 add-btn 하단 고정 text공간 확보 26.02.05 09:29)
             <ul className="sidebar-list">
                 {filteredPosts.map(post => (
                     <li
@@ -201,16 +211,20 @@ export default function Sidebar() {
                         >✕</button>
                     </li>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
                 </ul>
 =======
 >>>>>>> e2f048763801fac05ebc6281aa0b9cb89ccd8adc
+=======
+>>>>>>> 8f913f5 (사이드바 및 메인 note 사이드바 추가 add-btn 하단 고정 text공간 확보 26.02.05 09:29)
                     ))}
             </ul>
             </div>
             <div className="sidebar-footer">
+<<<<<<< HEAD
                 <button className="sidebar-add-btn" onClick={handleAddnewPost}>
                     +
                 </button>
@@ -222,6 +236,12 @@ export default function Sidebar() {
                 </button>
             </ul>
 >>>>>>> parent of c01c3e5 (사이드바 중간 머지)
+=======
+                <button className="sidebar-add-btn" onClick={handleAddnewPost}>
+                    +
+                </button>
+            </div>
+>>>>>>> 8f913f5 (사이드바 및 메인 note 사이드바 추가 add-btn 하단 고정 text공간 확보 26.02.05 09:29)
         </aside>
     )
 }
