@@ -108,6 +108,7 @@ export default function Sidebar() {
                     {user ?`${user.id} 님 환영합니다.`: 'Login'}
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
                 </h2>
@@ -118,6 +119,8 @@ export default function Sidebar() {
 >>>>>>> e2f048763801fac05ebc6281aa0b9cb89ccd8adc
 =======
 >>>>>>> 18b87c1 (02.04.19:12 로그아웃 기능병합)
+=======
+>>>>>>> ca0e1ad (사이드바 임시 저장)
         </h2>
     ) : (
             <div className="sidebar-user">
@@ -156,6 +159,7 @@ export default function Sidebar() {
             </div>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 
@@ -171,6 +175,8 @@ export default function Sidebar() {
                             onClick={()=>setSelectedPostId(post.id)}
 =======
 >>>>>>> e2f048763801fac05ebc6281aa0b9cb89ccd8adc
+=======
+>>>>>>> ca0e1ad (사이드바 임시 저장)
             <div className="sidebar-list-wrapper">
 =======
 >>>>>>> parent of c01c3e5 (사이드바 중간 머지)
@@ -194,12 +200,15 @@ export default function Sidebar() {
                                 togglePinned(post.id);
                             }}
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
 =======
 >>>>>>> parent of c01c3e5 (사이드바 중간 머지)
 >>>>>>> e2f048763801fac05ebc6281aa0b9cb89ccd8adc
+=======
+>>>>>>> ca0e1ad (사이드바 임시 저장)
                         >
                             ★
                         </button>
@@ -216,6 +225,7 @@ export default function Sidebar() {
                     </li>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -224,6 +234,8 @@ export default function Sidebar() {
 >>>>>>> e2f048763801fac05ebc6281aa0b9cb89ccd8adc
 =======
 >>>>>>> 8f913f5 (사이드바 및 메인 note 사이드바 추가 add-btn 하단 고정 text공간 확보 26.02.05 09:29)
+=======
+>>>>>>> ca0e1ad (사이드바 임시 저장)
                     ))}
             </ul>
             </div>

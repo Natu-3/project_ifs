@@ -36,6 +36,9 @@ public class AuthController {
 
         HttpSession session = httpRequest.getSession(true);
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ca0e1ad (사이드바 임시 저장)
         session.setAttribute("LOGIN_USER",
                 new SessionUser(
                         user.getId(),
@@ -44,9 +47,12 @@ public class AuthController {
                 )
 
                 );
+<<<<<<< HEAD
 =======
         session.setAttribute("LOGIN_USER", user);
 >>>>>>> 3017083 (26.02.05 10:03 로그인 로그아웃 회원가입 세션 기반 스프링부트 로직 완성, 프론트 연결작업 진행중)
+=======
+>>>>>>> ca0e1ad (사이드바 임시 저장)
 
 
 //        ResponseCookie cookie = ResponseCookie.from("ACCESS_TOKEN", result.getAccessToken())
@@ -107,6 +113,7 @@ public class AuthController {
         if (user == null) {
             return ResponseEntity.status(401).build();
         }
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 =======
@@ -115,6 +122,9 @@ public class AuthController {
 
         assert user != null;
 >>>>>>> 3017083 (26.02.05 10:03 로그인 로그아웃 회원가입 세션 기반 스프링부트 로직 완성, 프론트 연결작업 진행중)
+=======
+
+>>>>>>> ca0e1ad (사이드바 임시 저장)
         return ResponseEntity.ok(
                 new UserMeResponse(
                         user.getId(),
