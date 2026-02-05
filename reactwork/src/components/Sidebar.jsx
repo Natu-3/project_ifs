@@ -91,6 +91,15 @@ export default function Sidebar() {
             onClick={() => navigate("/login")}
         >
                     {user ?`${user.id} 님 환영합니다.`: 'Login'}
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+                </h2>
+<<<<<<< HEAD
+                <button className="toggle-note-btn" onClick={handleToggle} title={isOpen ? "사이드바 닫기" : "사이드바 열기"}>
+                    {isOpen ? '◀' : '▶'}
+=======
+>>>>>>> e2f048763801fac05ebc6281aa0b9cb89ccd8adc
         </h2>
     ) : (
             <div className="sidebar-user">
@@ -106,6 +115,8 @@ export default function Sidebar() {
                 >
                     로그아웃
                 </button>
+=======
+>>>>>>> parent of c01c3e5 (사이드바 중간 머지)
             </div>
         )}
         </div>
@@ -122,7 +133,25 @@ export default function Sidebar() {
                     placeholder="메모 검색..."
                 />
             </div>
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+
+<<<<<<< HEAD
             <div className="sidebar-list-wrapper">
+                <ul className="sidebar-list">
+                    {filteredPosts.map(post => (
+                        <li
+                            key={post.id}
+                            className={`sidebar-item ${selectedPostId === post.id ? 'selected' : ''}`}
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, post.id)}
+                            onClick={()=>setSelectedPostId(post.id)}
+=======
+>>>>>>> e2f048763801fac05ebc6281aa0b9cb89ccd8adc
+            <div className="sidebar-list-wrapper">
+=======
+>>>>>>> parent of c01c3e5 (사이드바 중간 머지)
             <ul className="sidebar-list">
                 {filteredPosts.map(post => (
                     <li
@@ -139,6 +168,13 @@ export default function Sidebar() {
                                 e.stopPropagation();
                                 togglePinned(post.id);
                             }}
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
+=======
+>>>>>>> parent of c01c3e5 (사이드바 중간 머지)
+>>>>>>> e2f048763801fac05ebc6281aa0b9cb89ccd8adc
                         >
                             ★
                         </button>
@@ -153,6 +189,13 @@ export default function Sidebar() {
                             }}
                         >✕</button>
                     </li>
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+                </ul>
+=======
+>>>>>>> e2f048763801fac05ebc6281aa0b9cb89ccd8adc
                     ))}
             </ul>
             </div>
@@ -161,6 +204,13 @@ export default function Sidebar() {
                     +
                 </button>
             </div>
+=======
+                ))}
+                <button className="sidebar-add-btn" onClick={handleAddnewPost}>
+                    +
+                </button>
+            </ul>
+>>>>>>> parent of c01c3e5 (사이드바 중간 머지)
         </aside>
     )
 }
