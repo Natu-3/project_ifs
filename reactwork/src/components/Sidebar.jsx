@@ -65,8 +65,12 @@ export default function Sidebar() {
 =======
     const [query, setQuery] = useState("");
     const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId } = usePosts();
+<<<<<<< HEAD
     const { user } = useAuth();
 >>>>>>> 8f913f5 (사이드바 및 메인 note 사이드바 추가 add-btn 하단 고정 text공간 확보 26.02.05 09:29)
+=======
+    const { user , logout} = useAuth();
+>>>>>>> 9559777 (merge sidebar)
     const navigate = useNavigate();
     
     const handleToggle = () =>{
