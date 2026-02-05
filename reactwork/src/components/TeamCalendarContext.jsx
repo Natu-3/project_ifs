@@ -6,10 +6,9 @@ export function TeamCalendarProvider({children}){
     const [teams, setTeams] = useState([]);
 
     const addTeam = (name) => {
-        setTeams(prev => [
-            ...prev,
-            { id: Date.now(), name,}
-        ])
+        const newTeam = { id: Date.now().toString(), name };
+        setTeams(prev => [...prev, newTeam]);
+        return newTeam;
     }
     return(
         <TeamCalendarContext.Provider value={{ teams, addTeam }}>

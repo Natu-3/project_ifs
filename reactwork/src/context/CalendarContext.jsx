@@ -5,21 +5,38 @@ const CalendarContext = createContext();
 export function CalendarProvider({ children }) {
     const [currentDate, setCurrentDate] = useState(new Date());
     
-    //날자별 일정 저장
-    const [events, setEvents] = useState({});
+    // 캘린더별 일정 저장: { personal: {...}, 'team-1': {...}, 'team-2': {...} }
+    const [calendarEvents, setCalendarEvents] = useState({
+        personal: {},
+    });
     
-    //일정 추가
+    // 현재 활성화된 캘린더 ID (null이면 개인 캘린더, 문자열이면 팀 캘린더)
+    const [activeCalendarId, setActiveCalendarId] = useState(null);
+    
+    // 현재 캘린더의 events 가져오기
+    const getCurrentEvents = () => {
+        const calendarKey = activeCalendarId === null ? 'personal' : `team-${activeCalendarId}`;
+        return calendarEvents[calendarKey] || {};
+    };
+    
+    // 일정 추가
     const addEvent = (date, event) => {
-        setEvents(prev => ({
+        const calendarKey = activeCalendarId === null ? 'personal' : `team-${activeCalendarId}`;
+        setCalendarEvents(prev => ({
             ...prev,
-            [date]: [...(prev[date] || []), event],
+            [calendarKey]: {
+                ...(prev[calendarKey] || {}),
+                [date]: [...((prev[calendarKey] || {})[date] || []), event],
+            },
         }));
     };
 
-    //일정 수정
+    // 일정 수정
     const updateEvent = (oldDate, eventId, updatedEvent) => {
-        setEvents(prev => {
-            const oldList = prev[oldDate] || [];
+        const calendarKey = activeCalendarId === null ? 'personal' : `team-${activeCalendarId}`;
+        setCalendarEvents(prev => {
+            const currentEvents = prev[calendarKey] || {};
+            const oldList = currentEvents[oldDate] || [];
 
             const targetEvent = oldList.find(ev => ev.id === eventId);
             if (!targetEvent) return prev;
@@ -30,42 +47,69 @@ export function CalendarProvider({ children }) {
             if (oldDate === newDate) {
                 return {
                     ...prev,
-                    [oldDate]: oldList.map(ev =>
-                        ev.id === eventId ? { ...ev, ...updatedEvent } : ev
-                    ),
+                    [calendarKey]: {
+                        ...currentEvents,
+                        [oldDate]: oldList.map(ev =>
+                            ev.id === eventId ? { ...ev, ...updatedEvent } : ev
+                        ),
+                    },
                 };
             }
 
             // 날짜가 바뀐 경우 → 이동
             return {
                 ...prev,
-                [oldDate]: oldList.filter(ev => ev.id !== eventId),
-                [newDate]: [
-                    ...(prev[newDate] || []),
-                    { ...targetEvent, ...updatedEvent },
-                ],
+                [calendarKey]: {
+                    ...currentEvents,
+                    [oldDate]: oldList.filter(ev => ev.id !== eventId),
+                    [newDate]: [
+                        ...(currentEvents[newDate] || []),
+                        { ...targetEvent, ...updatedEvent },
+                    ],
+                },
             };
         });
     };
 
-    //일정 삭제
+    // 일정 삭제
     const deleteEvent = (date, eventId) => {
-        setEvents(prev => ({
+        const calendarKey = activeCalendarId === null ? 'personal' : `team-${activeCalendarId}`;
+        setCalendarEvents(prev => ({
             ...prev,
-            [date]: (prev[date] || []).filter(ev => ev.id !== eventId),
+            [calendarKey]: {
+                ...(prev[calendarKey] || {}),
+                [date]: ((prev[calendarKey] || {})[date] || []).filter(ev => ev.id !== eventId),
+            },
         }));
     };
 
+    // 팀 캘린더 초기화 (빈 events로 시작)
+    const initializeTeamCalendar = (teamId) => {
+        const calendarKey = `team-${teamId}`;
+        setCalendarEvents(prev => {
+            if (prev[calendarKey]) {
+                // 이미 존재하면 초기화하지 않음
+                return prev;
+            }
+            return {
+                ...prev,
+                [calendarKey]: {},
+            };
+        });
+    };
 
     return (
         <CalendarContext.Provider 
         value={{
             currentDate,
             setCurrentDate,
-            events,
+            events: getCurrentEvents(),
             addEvent,
             updateEvent,
             deleteEvent,
+            activeCalendarId,
+            setActiveCalendarId,
+            initializeTeamCalendar,
             }}>
         {children}
         </CalendarContext.Provider>
