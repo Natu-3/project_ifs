@@ -3,7 +3,7 @@ import { getMonthDays } from "../../utils/calendar";
 import { useCalendar } from "../../context/CalendarContext";
 import { usePosts } from "../../context/PostContext";
 
-export default function CalendarGrid({ currentDate }) {
+export default function CalendarGrid({ currentDate, onDateClick, onEventClick }) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
@@ -68,6 +68,7 @@ export default function CalendarGrid({ currentDate }) {
               ${isHoliday ? "holiday" : ""}
               ${dayOfweek === 0 ? "sun" : dayOfweek === 6 ? "sat" : ""}
             `}
+            onClick={()=> onDateClick(dateKey)}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => handleDrop(e, dateKey)}
           >
@@ -81,6 +82,10 @@ export default function CalendarGrid({ currentDate }) {
                   key={ev.id}
                   className="calendar-event"
                   style={{borderLeft: `4px solid ${getEventColor(ev.postId)}`}}
+                  onClick={(e) =>{
+                    e.stopPropagation();
+                    onEventClick(dateKey, ev);
+                  }}
                 >
                   {ev.title}
                 </div>
