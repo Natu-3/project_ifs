@@ -28,6 +28,9 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick })
         id: Date.now(),
         postId: post.id,
         title: post.title,
+        content : post.content || "",
+        date: dateKey,
+        dateKey: dateKey,
       });
   };
   
@@ -57,7 +60,7 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick })
           day === today.getDate();
 
         const dayOfweek = i % 7;
-        const dateKey = `${year}-${month +1}-${day}`;
+        const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
       
         return (
           <div
@@ -85,6 +88,7 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick })
                   onClick={(e) =>{
                     e.stopPropagation();
                     onEventClick(dateKey, ev);
+                    dateKey;
                   }}
                 >
                   {ev.title}

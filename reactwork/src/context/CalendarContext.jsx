@@ -17,13 +17,35 @@ export function CalendarProvider({ children }) {
     };
 
     //일정 수정
-    const updateEvent = (date, eventId, updatedData) => {
-        setEvents(prev => ({
-        ...prev,
-        [date]: prev[date].map(ev =>
-            ev.id === eventId ? { ...ev, ...updatedData } : ev
-        ),
-        }));
+    const updateEvent = (oldDate, eventId, updatedEvent) => {
+        setEvents(prev => {
+            const oldList = prev[oldDate] || [];
+
+            const targetEvent = oldList.find(ev => ev.id === eventId);
+            if (!targetEvent) return prev;
+
+            const newDate = updatedEvent.date;
+
+            //날짜가 안 바뀐 경우
+            if (oldDate === newDate) {
+                return {
+                    ...prev,
+                    [oldDate]: oldList.map(ev =>
+                        ev.id === eventId ? { ...ev, ...updatedEvent } : ev
+                    ),
+                };
+            }
+
+            // 날짜가 바뀐 경우 → 이동
+            return {
+                ...prev,
+                [oldDate]: oldList.filter(ev => ev.id !== eventId),
+                [newDate]: [
+                    ...(prev[newDate] || []),
+                    { ...targetEvent, ...updatedEvent },
+                ],
+            };
+        });
     };
 
     //일정 삭제

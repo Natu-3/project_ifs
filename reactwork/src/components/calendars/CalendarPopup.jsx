@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCalendar } from "../../context/CalendarContext";
 import "../../componentsCss/calendarsCss/CalendarPopup.css";
 
@@ -6,25 +6,41 @@ export default function CalendarPopup({ date, event, onClose}) {
     const { addEvent, updateEvent, deleteEvent } = useCalendar();
 
     //입력 상태
-    const [ title, setTitle ] = useState(event?.title || "");
-    const [ constent, setConstent ] = useState(event?.content || "");
-    const [ selectedDate, setSelectedDate ] = useState(date);
+    const [ title, setTitle ] = useState("");
+    const [ content, setContent ] = useState("");
+    const [ selectedDate, setSelectedDate ] = useState("");
 
     const isEditMode = !!event;
+
+    useEffect(() => {
+        setTitle(event?.title || "");
+        setContent(event?.content || "");
+        setSelectedDate(event?.date || date);
+    }, [date, event]);
 
     //저장
     const handleSave = () => {
         if (!title.trim()) return;
 
         if (isEditMode) {
-            updateEvent(event.dateKey, event.id, { ...event,title, constent, date: selectedDate});
-        } else {
-            addEvent(selectedDate, {
+             addEvent(selectedDate, {
                 id: Date.now(),
                 title,
-                constent: constent,
+                content,
                 postId : event?.postId || null, //복사본
+                date: selectedDate,
             });
+            
+        } else {
+           updateEvent(
+                event.dateKey,
+                event.id,
+                {
+                    ...event,
+                    title,
+                    content,
+                    date: selectedDate,
+                });
         }
         onClose();
     };
@@ -55,8 +71,8 @@ export default function CalendarPopup({ date, event, onClose}) {
                 />
                 
                 <textarea
-                    value={constent}
-                    onChange={e => setConstent(e.target.value)}
+                    value={content}
+                    onChange={e => setContent(e.target.value)}
                     placeholder="내용"
                 />
                 
