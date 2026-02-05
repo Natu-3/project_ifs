@@ -19,6 +19,7 @@ export function AuthProvider({ children }) {
        // return;
       }
       
+      
       const data = await res.json();
       setUser(data);
     } catch(e) {

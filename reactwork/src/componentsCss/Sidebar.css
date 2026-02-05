@@ -4,7 +4,24 @@
 
 .sidebar {
     width: 300px;
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e2f0487 (Revert "사이드바 중간 머지")
+    height: 100%;
+=======
     height: 93vh;
+>>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
+=======
+>>>>>>> parent of c01c3e5 (사이드바 중간 머지)
+<<<<<<< HEAD
+=======
+    height: 93vh;
+>>>>>>> 8f913f5 (사이드바 및 메인 note 사이드바 추가 add-btn 하단 고정 text공간 확보 26.02.05 09:29)
+=======
+>>>>>>> e2f0487 (Revert "사이드바 중간 머지")
     background: #fff5d2;
     display: flex;
     flex-direction: column;
@@ -160,6 +177,36 @@
     padding: 0 28px; /* 좌/우 버튼 공간 */
 }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+/* Sidebar 추가 버튼 (메모 아이템과 같은 스타일, 스크롤 끝에서만 하단 고정) */
+.sidebar-add-item {
+    margin-bottom: 8px;
+    padding: 10px;
+    border-radius: 10px;
+    background: #ffffff !important;
+    cursor: pointer;
+    position: sticky;
+    bottom: 0;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+    color: #666;
+    z-index: 10;
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.sidebar-add-item:hover {
+    background: #fff0c2 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+    color: #6584da;
+=======
 /* Sidebar 추가 버튼 */
 .sidebar-add-btn {
     margin-bottom: 8px;
@@ -187,14 +234,96 @@
 .sidebar-add-btn:hover {
     background: #adadad;
     transform: translatey(-2px);
+>>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
+}
+
+.sidebar-add-item:active {
+    transform: scale(1.05);
+    opacity: 0.85;
+}
+
+/* Toggle button - 헤더 내부 버튼 */
+.toggle-note-btn {
+<<<<<<< HEAD
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0,0,0,0.1);
+=======
+    position: absolute;
+    top: 50%;
+    right: -25px;
+    z-index: 9999;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #6584da;
+    color: #fff;
+    border: none;
+>>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 10;
+=======
+/* Sidebar 추가 버튼 */
+.sidebar-add-btn {
+<<<<<<< HEAD
+    margin-bottom: 8px;
+    padding: 10px;
+    border-radius: 10px;
+    background: #e0e0e0;
+    color: #333;
+    border: none;
+    cursor: pointer;
+>>>>>>> parent of c01c3e5 (사이드바 중간 머지)
+
+    width: 85%;
+    height: auto;
+
+    font-size: 18px;
+    font-weight: bold;
+=======
+    width: 28px;
+    height: 35px;
+    margin: 12px auto;
+    border-radius: 50%;
+    background: #c0cfe4;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+>>>>>>> parent of c01c3e5 (사이드바 중간 머지)
+>>>>>>> e2f0487 (Revert "사이드바 중간 머지")
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+<<<<<<< HEAD
+    align-content: center;
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+=======
+>>>>>>> e2f0487 (Revert "사이드바 중간 머지")
+}
+
+.sidebar-add-btn:hover {
+    background: #adadad;
+<<<<<<< HEAD
+    transform: translatey(-2px);
+=======
+>>>>>>> e2f0487 (Revert "사이드바 중간 머지")
 }
 
 /* Toggle button */
 .toggle-note-btn {
     position: absolute;
     top: 50%;
+<<<<<<< HEAD
     right: -25px;
     z-index: 9999;
+=======
+    right: -15px;
+>>>>>>> e2f0487 (Revert "사이드바 중간 머지")
     width: 40px;
     height: 40px;
     border-radius: 50%;

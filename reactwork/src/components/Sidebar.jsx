@@ -53,9 +53,24 @@ const matchesKoreanQuery = (text, rawQuery) => {
 
 export default function Sidebar() {
     const [isOpen, setIsOpen] = useState(true);
+<<<<<<< HEAD
+<<<<<<< HEAD
     const [query, setQuery] = useState("");
     const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId } = usePosts();
     const { user , logout} = useAuth();
+=======
+    const { posts, setSelectedPostId, addPost, deletePost, selectedPostId } = usePosts();
+    const { user, logout } = useAuth();
+>>>>>>> 18b87c1 (02.04.19:12 로그아웃 기능병합)
+=======
+    const [query, setQuery] = useState("");
+    const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId } = usePosts();
+<<<<<<< HEAD
+    const { user } = useAuth();
+>>>>>>> 8f913f5 (사이드바 및 메인 note 사이드바 추가 add-btn 하단 고정 text공간 확보 26.02.05 09:29)
+=======
+    const { user , logout} = useAuth();
+>>>>>>> 9559777 (merge sidebar)
     const navigate = useNavigate();
     
     const handleToggle = () =>{
@@ -91,6 +106,21 @@ export default function Sidebar() {
             onClick={() => navigate("/login")}
         >
                     {user ?`${user.id} 님 환영합니다.`: 'Login'}
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+                </h2>
+<<<<<<< HEAD
+                <button className="toggle-note-btn" onClick={handleToggle} title={isOpen ? "사이드바 닫기" : "사이드바 열기"}>
+                    {isOpen ? '◀' : '▶'}
+=======
+>>>>>>> e2f048763801fac05ebc6281aa0b9cb89ccd8adc
+=======
+>>>>>>> 18b87c1 (02.04.19:12 로그아웃 기능병합)
+=======
+>>>>>>> ca0e1ad (사이드바 임시 저장)
         </h2>
     ) : (
             <div className="sidebar-user">
@@ -106,6 +136,16 @@ export default function Sidebar() {
                 >
                     로그아웃
                 </button>
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> parent of c01c3e5 (사이드바 중간 머지)
+=======
+>>>>>>> 18b87c1 (02.04.19:12 로그아웃 기능병합)
+=======
+=======
+>>>>>>> parent of c01c3e5 (사이드바 중간 머지)
+>>>>>>> e2f0487 (Revert "사이드바 중간 머지")
             </div>
         )}
         </div>
@@ -122,7 +162,35 @@ export default function Sidebar() {
                     placeholder="메모 검색..."
                 />
             </div>
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+
+<<<<<<< HEAD
             <div className="sidebar-list-wrapper">
+                <ul className="sidebar-list">
+                    {filteredPosts.map(post => (
+                        <li
+                            key={post.id}
+                            className={`sidebar-item ${selectedPostId === post.id ? 'selected' : ''}`}
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, post.id)}
+                            onClick={()=>setSelectedPostId(post.id)}
+=======
+>>>>>>> e2f048763801fac05ebc6281aa0b9cb89ccd8adc
+=======
+>>>>>>> ca0e1ad (사이드바 임시 저장)
+            <div className="sidebar-list-wrapper">
+=======
+>>>>>>> parent of c01c3e5 (사이드바 중간 머지)
+<<<<<<< HEAD
+=======
+            <div className="sidebar-list-wrapper">
+>>>>>>> 8f913f5 (사이드바 및 메인 note 사이드바 추가 add-btn 하단 고정 text공간 확보 26.02.05 09:29)
+=======
+>>>>>>> e2f0487 (Revert "사이드바 중간 머지")
             <ul className="sidebar-list">
                 {filteredPosts.map(post => (
                     <li
@@ -139,6 +207,22 @@ export default function Sidebar() {
                                 e.stopPropagation();
                                 togglePinned(post.id);
                             }}
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
+=======
+>>>>>>> parent of c01c3e5 (사이드바 중간 머지)
+>>>>>>> e2f048763801fac05ebc6281aa0b9cb89ccd8adc
+=======
+>>>>>>> ca0e1ad (사이드바 임시 저장)
+=======
+>>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
+=======
+>>>>>>> parent of c01c3e5 (사이드바 중간 머지)
+>>>>>>> e2f0487 (Revert "사이드바 중간 머지")
                         >
                             ★
                         </button>
@@ -153,14 +237,47 @@ export default function Sidebar() {
                             }}
                         >✕</button>
                     </li>
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e2f0487 (Revert "사이드바 중간 머지")
+                </ul>
+=======
+>>>>>>> e2f048763801fac05ebc6281aa0b9cb89ccd8adc
+=======
+>>>>>>> 8f913f5 (사이드바 및 메인 note 사이드바 추가 add-btn 하단 고정 text공간 확보 26.02.05 09:29)
+=======
+>>>>>>> ca0e1ad (사이드바 임시 저장)
                     ))}
             </ul>
             </div>
             <div className="sidebar-footer">
+<<<<<<< HEAD
                 <button className="sidebar-add-btn" onClick={handleAddnewPost}>
                     +
                 </button>
             </div>
+=======
+                ))}
+                <button className="sidebar-add-btn" onClick={handleAddnewPost}>
+                    +
+                </button>
+            </ul>
+>>>>>>> parent of c01c3e5 (사이드바 중간 머지)
+<<<<<<< HEAD
+=======
+                <button className="sidebar-add-btn" onClick={handleAddnewPost}>
+                    +
+                </button>
+            </div>
+>>>>>>> 8f913f5 (사이드바 및 메인 note 사이드바 추가 add-btn 하단 고정 text공간 확보 26.02.05 09:29)
+=======
+>>>>>>> e2f0487 (Revert "사이드바 중간 머지")
         </aside>
     )
 }
