@@ -54,7 +54,7 @@ const matchesKoreanQuery = (text, rawQuery) => {
 export default function Sidebar() {
     const [isOpen, setIsOpen] = useState(true);
     const [query, setQuery] = useState("");
-    const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId } = usePosts();
+    const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId, resetPosts } = usePosts();
     const { user , logout} = useAuth();
     const navigate = useNavigate();
     
@@ -100,6 +100,7 @@ export default function Sidebar() {
                 <button
                     className="logout-btn"
                     onClick={() => {
+                        resetPosts();
                         logout();
                         navigate("/login");
                     }}
