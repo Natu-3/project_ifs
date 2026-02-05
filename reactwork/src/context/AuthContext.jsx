@@ -21,7 +21,6 @@ export function AuthProvider({ children }) {
       
       const data = await res.json();
       setUser(data);
-      console.log(data);
     } catch(e) {
         console.error("fetchMe Err",e);
         
