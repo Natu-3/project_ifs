@@ -23,16 +23,7 @@ export default function CalendarPopup({ date, event, onClose}) {
         if (!title.trim()) return;
 
         if (isEditMode) {
-             addEvent(selectedDate, {
-                id: Date.now(),
-                title,
-                content,
-                postId : event?.postId || null, //복사본
-                date: selectedDate,
-            });
-            
-        } else {
-           updateEvent(
+            updateEvent(
                 event.dateKey,
                 event.id,
                 {
@@ -41,6 +32,14 @@ export default function CalendarPopup({ date, event, onClose}) {
                     content,
                     date: selectedDate,
                 });
+        } else {
+            addEvent(selectedDate, {
+                id: Date.now(),
+                title,
+                content,
+                postId : event?.postId || null, //복사본
+                date: selectedDate,
+            });
         }
         onClose();
     };
