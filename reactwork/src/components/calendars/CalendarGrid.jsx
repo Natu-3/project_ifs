@@ -29,7 +29,12 @@ export default function CalendarGrid({ currentDate }) {
         postId: post.id,
         title: post.title,
       });
-    };
+  };
+  
+  const getEventColor = (postId) => {
+    const colors = ["#FF5733", "#33FF57", "#3357FF", "#F333FF", "#33FFF5", "#F5FF33"];
+    return colors[postId % colors.length];
+  };
 
   return (
     <div className="calendar-grid">
@@ -72,7 +77,11 @@ export default function CalendarGrid({ currentDate }) {
             </div>
             <div className="memo-content">
               {events[dateKey]?.map(ev => (
-                <div key={ev.id} className="calendar-event">
+                <div 
+                  key={ev.id}
+                  className="calendar-event"
+                  style={{borderLeft: `4px solid ${getEventColor(ev.postId)}`}}
+                >
                   {ev.title}
                 </div>
               ))}

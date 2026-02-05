@@ -4,13 +4,19 @@
 
 .sidebar {
     width: 300px;
+<<<<<<< HEAD
+<<<<<<< HEAD
     height: 100%;
+=======
+    height: 93vh;
+>>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
+=======
+>>>>>>> parent of c01c3e5 (사이드바 중간 머지)
     background: #fff5d2;
     display: flex;
     flex-direction: column;
     position: relative;
     transition: width 0.3s ease;
-    overflow: hidden;
 }
 
 /* Sidebar 닫힌 상태 */
@@ -23,10 +29,8 @@
     height: 60px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
+    justify-content: center;
     border-bottom: 2px solid gray;
-    position: relative;
 }
 
 /* Sidebar 제목 */
@@ -36,26 +40,25 @@
     cursor: pointer;
 }
 
-/* Sidebar 리스트 래퍼 */
-.sidebar-list-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    overflow: hidden;
-    position: relative;
-}
-
 /* Sidebar 리스트 */
 .sidebar-list {
     list-style: none;
-    padding: 8px;
+    padding: 0px;
     margin: 0;
     text-align: center;
-    flex: 1;
+}
+
+.sidebar-list-wrapper {
+    flex-grow: 1;
     overflow-y: auto;
-    overflow-x: hidden;
-    min-height: 0;
+    padding: 8px;
+}
+
+.sidebar-footer {
+    display: flex;
+    justify-content: center;
+    padding: 10px 0;
+    background: #fff5d2;
 }
 
 /* 검색 */
@@ -89,7 +92,6 @@
 
     transition:
         transform 0.2s ease,
-        background 0.2s ease,
         box-shadow 0.2s ease;
 }
 
@@ -165,6 +167,8 @@
     padding: 0 28px; /* 좌/우 버튼 공간 */
 }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 /* Sidebar 추가 버튼 (메모 아이템과 같은 스타일, 스크롤 끝에서만 하단 고정) */
 .sidebar-add-item {
     margin-bottom: 8px;
@@ -192,6 +196,35 @@
     transform: translateY(-2px);
     box-shadow: 0 6px 14px rgba(0,0,0,0.12);
     color: #6584da;
+=======
+/* Sidebar 추가 버튼 */
+.sidebar-add-btn {
+    margin-bottom: 8px;
+    padding: 10px;
+    border-radius: 10px;
+    background: #e0e0e0;
+    color: #333;
+    border: none;
+    cursor: pointer;
+
+    width: 85%;
+    height: auto;
+
+    font-size: 18px;
+    font-weight: bold;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sidebar-add-btn:hover {
+    background: #adadad;
+    transform: translatey(-2px);
+>>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
 }
 
 .sidebar-add-item:active {
@@ -201,59 +234,91 @@
 
 /* Toggle button - 헤더 내부 버튼 */
 .toggle-note-btn {
+<<<<<<< HEAD
     width: 32px;
     height: 32px;
     border-radius: 6px;
     background: rgba(255, 255, 255, 0.8);
     border: 1px solid rgba(0,0,0,0.1);
+=======
+    position: absolute;
+    top: 50%;
+    right: -25px;
+    z-index: 9999;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #6584da;
+    color: #fff;
+    border: none;
+>>>>>>> 3017083dd63962be2f59b2700e5299fb61d2bf12
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     z-index: 10;
+=======
+/* Sidebar 추가 버튼 */
+.sidebar-add-btn {
+    width: 28px;
+    height: 35px;
+    margin: 12px auto;
+    border-radius: 50%;
+    background: #c0cfe4;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+>>>>>>> parent of c01c3e5 (사이드바 중간 머지)
 
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
-    color: #6584da;
-    font-weight: bold;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
+}
+
+.sidebar-add-btn:hover {
+    background: #adadad;
+}
+
+/* Toggle button */
+.toggle-note-btn {
+    position: absolute;
+    top: 50%;
+    right: -15px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #6584da;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
 }
 
 .toggle-note-btn:hover {
-    background: rgba(255, 255, 255, 1);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    color: #946eff;
-    transform: scale(1.05);
-}
-
-.toggle-note-btn:active {
-    transform: scale(0.95);
+    background: #946eff;
 }
 
 /* 포커스 제거 */
-.sidebar-add-item:focus,
+.sidebar-add-btn:focus,
+.sidebar-add-btn:active,
 .toggle-note-btn:focus,
 .toggle-note-btn:active {
     outline: none;
     box-shadow: none;
 }
 
+/* Sidebar 닫힌 상태에서 toggle 버튼 회전 */
+.sidebar.closed .toggle-note-btn {
+    transform: rotate(180deg);
+}
 
 /* Sidebar 닫힌 상태에서 숨김 */
 .sidebar.closed .sidebar-title,
 .sidebar.closed .sidebar-search,
-.sidebar.closed .sidebar-list {
-    display: none;
-}
-
-/* 사이드바 닫힌 상태에서 헤더는 버튼만 보이도록 */
+.sidebar.closed .sidebar-list,
 .sidebar.closed .sidebar-header {
-    justify-content: center;
-    padding: 0;
-}
-
-.sidebar.closed .sidebar-title {
     display: none;
 }
 

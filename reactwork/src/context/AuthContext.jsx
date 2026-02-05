@@ -1,10 +1,11 @@
 import { createContext, use, useContext, useState, useEffect } from "react";
-
+import {logout as logoutApi } from "../api/auth";
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     // const [loading, setLoading] = useState(true);
+
 
     // 내 정보 불러오기 위한 메소드화
     const fetchMe = async () => {
@@ -17,6 +18,7 @@ export function AuthProvider({ children }) {
         throw new Error("unauthorized");
        // return;
       }
+      
       
       const data = await res.json();
       setUser(data);
@@ -31,16 +33,21 @@ export function AuthProvider({ children }) {
     fetchMe(); // 최초 진입 시
      }, []);
 
-    const logout = async () => {
-        await fetch("/auth/logout", {
-            method: "POST",
-            credentials: "include"
-        });
+
+      const logout = async () => {
+    try {
+        await logoutApi();
+    } catch (e) {
+        console.error("logout err", e);
+    } finally {
         setUser(null);
     }
+};
+
+   
 
     return (
-        <AuthContext.Provider value={{ user, fetchMe }}>
+        <AuthContext.Provider value={{ user, fetchMe, logout }}>
       {children}
     </AuthContext.Provider>
     );

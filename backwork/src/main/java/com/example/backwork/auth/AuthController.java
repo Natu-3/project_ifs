@@ -1,6 +1,7 @@
 package com.example.backwork.auth;
 
 import com.example.backwork.member.CustomUserDetails;
+import com.example.backwork.member.SessionUser;
 import com.example.backwork.member.User;
 import com.example.backwork.member.dto.UserMeResponse;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,11 +19,21 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request,HttpServletResponse response) {
+    public ResponseEntity<LoginResponse> login(
+            @RequestBody LoginRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        User user = authService.login(request);
 
-        System.out.println("login request: " + request.getUserid());
-        LoginResult result = authService.login(request);
-        //Login 결과값 = 쿠키로 보내지 않을 키값까지 저장함
+        HttpSession session = httpRequest.getSession(true);
+        session.setAttribute("LOGIN_USER",
+                new SessionUser(
+                        user.getId(),
+                        user.getUserid(),
+                        user.getAuth()
+                )
+
+                );
 
 
         //쿠키 값 설정 부분
@@ -59,18 +70,40 @@ public class AuthController {
         System.out.println("Sign up cleared");
                 return ResponseEntity.ok(authService.singup(request));
     }
+//    jwt 기반 구현했던것
+//    @GetMapping("/me")
+//    public ResponseEntity<?> me(Authentication authentication) {
+//
+//        if (authentication == null || !authentication.isAuthenticated()) {
+//            return ResponseEntity.status(401).build();
+//        }
+//
+//        CustomUserDetails user =
+//                (CustomUserDetails) authentication.getPrincipal();
+//
+//        assert user != null;
+//        return ResponseEntity.ok(
+//                new UserMeResponse(
+//                        user.getId(),
+//                        user.getUserid(),
+//                        user.getAuth()
+//                )
+//        );
+//    }
 
     @GetMapping("/me")
-    public ResponseEntity<?> me(Authentication authentication) {
+    public ResponseEntity<?> me(HttpServletRequest request) {
 
-        if (authentication == null || !authentication.isAuthenticated()) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
             return ResponseEntity.status(401).build();
         }
 
-        CustomUserDetails user =
-                (CustomUserDetails) authentication.getPrincipal();
-        System.out.println("auth me 실행중");
-        assert user != null;
+        SessionUser user = (SessionUser) session.getAttribute("LOGIN_USER");
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+
         return ResponseEntity.ok(
                 new UserMeResponse(
                         user.getId(),
@@ -80,5 +113,13 @@ public class AuthController {
         );
     }
 
-
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.ok().build();
+    }
 }

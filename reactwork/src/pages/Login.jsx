@@ -21,10 +21,13 @@ const Login = () => {
 
   try {
     setLoading(true);
-
+      await login(userid, password);
     //  로그인 요청 (쿠키 발급)
     const res = await login(userid, password);
 
+
+
+      await fetchMe();
     // (개발용 localStorage 유지)
     const { id, devToken, userid: uid, auth } = res.data;
     localStorage.setItem("DevToken", devToken);
