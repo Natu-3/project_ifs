@@ -12,7 +12,11 @@ export default function MiniCalendar() {
 
     const days = getMonthDays(year, month);
     const week = ["일","월","화","수","목","금","토"];
-    
+
+    const getEventColor = (postId) => {
+    const colors = ["#FF5733", "#33FF57", "#3357FF", "#F333FF", "#33FFF5", "#FF6B6B"];
+    return colors[postId % colors.length];
+    };    
 
     return (
         <div className="mini-calendar">
