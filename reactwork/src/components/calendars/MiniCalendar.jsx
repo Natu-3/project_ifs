@@ -4,14 +4,15 @@ import { getMonthDays } from "../../utils/calendar";
 import '../../componentsCss/calendarsCss/MiniCalendar.css'
 
 export default function MiniCalendar() {
-    const { currentDate, setCurrentDate } = useCalendar();
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
+    const {  setCurrentDate } = useCalendar();
+  
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
 
     const days = getMonthDays(year, month);
-
     const week = ["일","월","화","수","목","금","토"];
-    const today = new Date();
+    
 
     return (
         <div className="mini-calendar">
