@@ -4,6 +4,8 @@
     width: 100%;
     border-top: 1px solid #eee;
     border-left: 1px solid #eee;
+    position: relative;
+    overflow: hidden; /* 가로 스크롤 방지 */
 }
 
 .cell-header {
@@ -37,6 +39,17 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
+  position: relative;
+  user-select: none;
+  cursor: pointer;
+  overflow: hidden; /* 가로 스크롤 방지 */
+  z-index: 0;
+}
+
+/* 날짜 범위 선택 중인 셀 */
+.calendar-cell.range-selecting {
+  background-color: #fff9e6;
+  box-shadow: inset 0 0 0 2px rgba(101, 132, 218, 0.3);
 }
 
 /* 일요일/토요일 날짜 색상 */
@@ -80,7 +93,10 @@
   font-size: 0.8rem;
   color: #555;
   overflow-y: auto;
+  overflow-x: visible; /* 범위 이벤트가 가로로 연결되도록 */
   padding-top: 4px;
+  position: relative;
+  z-index: 0;
 }
 
 .calendar-header {
@@ -112,6 +128,69 @@
   border-radius: 4px;
   font-size: 0.75rem;
   box-sizing: border-box;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+/* 날짜 범위 이벤트 스타일 - 야놀자 스타일 완전 연결 */
+.calendar-event.range-single {
+  border-radius: 4px;
+}
+
+.calendar-event.range-start {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  margin-right: -9px; /* 셀 padding(8px) + border(1px) */
+  padding-right: 9px;
+  width: 100%; /* width는 100% 유지, margin으로만 확장 */
+  position: relative;
+  z-index: 20;
+}
+
+.calendar-event.range-middle {
+  border-radius: 0;
+  margin-right: -9px;
+  margin-left: -9px;
+  padding-left: 9px;
+  padding-right: 9px;
+  width: 100%; /* width는 100% 유지, margin으로만 확장 */
+  position: relative;
+  z-index: 20;
+}
+
+.calendar-event.range-end {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  margin-left: -9px; /* 셀 padding(8px) + border(1px) */
+  padding-left: 9px;
+  width: 100%; /* width는 100% 유지, margin으로만 확장 */
+  position: relative;
+  z-index: 20;
+}
+
+/* 메모 컨텐츠 영역 */
+.memo-content {
+  flex-grow: 1;
+  font-size: 0.8rem;
+  color: #555;
+  overflow-y: auto;
+  overflow-x: hidden; /* 가로 스크롤 방지 */
+  padding-top: 4px;
+  position: relative;
+  z-index: 1;
+}
+
+/* 범위 이벤트 호버 효과 */
+.calendar-event.range-start:hover,
+.calendar-event.range-middle:hover,
+.calendar-event.range-end:hover {
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
 }
 
 .event-title {

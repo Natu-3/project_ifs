@@ -37,6 +37,13 @@ export default function CalendarPage() {
     setPopupOpen(true);
   }
 
+  // 날짜 범위 선택 핸들러
+  const handleDateRangeSelect = (startDate, endDate) => {
+    setSelectedDate(startDate);
+    setSelectedEvent({ startDate, endDate }); // 범위 정보 전달
+    setPopupOpen(true);
+  }
+
   //팝업 닫기
   const closePopup = () => {
     setPopupOpen(false);
@@ -55,6 +62,7 @@ export default function CalendarPage() {
         currentDate={currentDate}
         onDateClick={openPopup}
         onEventClick={openPopup}
+        onDateRangeSelect={handleDateRangeSelect}
       />
       {popupOpen && (
         <CalendarPopup

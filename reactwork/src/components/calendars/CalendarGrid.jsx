@@ -1,9 +1,10 @@
+import { useState, useRef, useEffect } from "react";
 import { getHolidayNames } from "@hyunbinseo/holidays-kr";
 import { getMonthDays } from "../../utils/calendar";
 import { useCalendar } from "../../context/CalendarContext";
 import { usePosts } from "../../context/PostContext";
 
-export default function CalendarGrid({ currentDate, onDateClick, onEventClick }) {
+export default function CalendarGrid({ currentDate, onDateClick, onEventClick, onDateRangeSelect }) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
@@ -14,6 +15,49 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick })
 
   const { events, addEvent } = useCalendar();
   const { posts } = usePosts();
+  
+  // 날짜 범위 선택 상태
+  const [isSelectingRange, setIsSelectingRange] = useState(false);
+  const [rangeStart, setRangeStart] = useState(null);
+  const [rangeEnd, setRangeEnd] = useState(null);
+  const selectingRef = useRef(false);
+  const rangeStartRef = useRef(null);
+  const rangeEndRef = useRef(null);
+
+  // ref 동기화
+  useEffect(() => {
+    rangeStartRef.current = rangeStart;
+    rangeEndRef.current = rangeEnd;
+  }, [rangeStart, rangeEnd]);
+
+  // 전역 마우스 이벤트로 범위 선택 종료 처리
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (selectingRef.current) {
+        selectingRef.current = false;
+        
+        const start = rangeStartRef.current;
+        const end = rangeEndRef.current;
+        
+        if (start && end && onDateRangeSelect) {
+          const sortedStart = start < end ? start : end;
+          const sortedEnd = start < end ? end : start;
+          onDateRangeSelect(sortedStart, sortedEnd);
+        }
+        
+        setIsSelectingRange(false);
+        setRangeStart(null);
+        setRangeEnd(null);
+      }
+    };
+
+    if (isSelectingRange) {
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      return () => {
+        document.removeEventListener('mouseup', handleGlobalMouseUp);
+      };
+    }
+  }, [isSelectingRange, onDateRangeSelect]);
 
   const handleDrop = (e, dateKey) => {
       e.preventDefault();
@@ -35,8 +79,125 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick })
   };
   
   const getEventColor = (postId) => {
-    const colors = ["#FF5733", "#33FF57", "#3357FF", "#F333FF", "#33FFF5", "#F5FF33"];
+    const colors = ["#FF5733", "#33FF57", "#3357FF", "#F333FF", "#33FFF5", "#FF6B6B"];
     return colors[postId % colors.length];
+  };
+
+  // 날짜 범위 선택 시작
+  const handleMouseDown = (dateKey) => {
+    if (selectingRef.current) return; // 이미 선택 중이면 무시
+    selectingRef.current = true;
+    setIsSelectingRange(true);
+    setRangeStart(dateKey);
+    setRangeEnd(dateKey);
+  };
+
+  // 날짜 범위 선택 중
+  const handleMouseEnter = (dateKey) => {
+    if (!selectingRef.current) return;
+    setRangeEnd(dateKey);
+  };
+
+  // 날짜 범위 선택 종료
+  const handleMouseUp = (e) => {
+    if (!selectingRef.current) return;
+    e.stopPropagation();
+  };
+
+  // 날짜가 선택 범위에 포함되는지 확인
+  const isInSelectedRange = (dateKey) => {
+    if (!isSelectingRange || !rangeStart || !rangeEnd) return false;
+    const start = rangeStart < rangeEnd ? rangeStart : rangeEnd;
+    const end = rangeStart < rangeEnd ? rangeEnd : rangeStart;
+    return dateKey >= start && dateKey <= end;
+  };
+
+  // 같은 범위의 이벤트들을 찾아서 위치 결정
+  const getRangePosition = (dateKey, event) => {
+    // 1. rangeId가 있는 경우 (팝업으로 만든 범위 이벤트)
+    if (event?.isRangeEvent && event?.rangeId) {
+      const allRangeEvents = [];
+      Object.keys(events).forEach(key => {
+        events[key]?.forEach(ev => {
+          if (ev.rangeId === event.rangeId && ev.isRangeEvent) {
+            allRangeEvents.push({ dateKey: key, event: ev });
+          }
+        });
+      });
+      
+      if (allRangeEvents.length > 0) {
+        allRangeEvents.sort((a, b) => a.dateKey.localeCompare(b.dateKey));
+        const firstDate = allRangeEvents[0].dateKey;
+        const lastDate = allRangeEvents[allRangeEvents.length - 1].dateKey;
+        
+        if (firstDate === lastDate) {
+          return 'single';
+        } else if (dateKey === firstDate) {
+          return 'start';
+        } else if (dateKey === lastDate) {
+          return 'end';
+        } else {
+          return 'middle';
+        }
+      }
+    }
+    
+    // 2. 같은 postId를 가진 연속된 날짜의 이벤트들 (드래그로 만든 이벤트)
+    if (event?.postId) {
+      const samePostEvents = [];
+      Object.keys(events).forEach(key => {
+        events[key]?.forEach(ev => {
+          if (ev.postId === event.postId && !ev.isRangeEvent) {
+            samePostEvents.push({ dateKey: key, event: ev });
+          }
+        });
+      });
+      
+      if (samePostEvents.length > 1) {
+        // 날짜 순으로 정렬
+        samePostEvents.sort((a, b) => a.dateKey.localeCompare(b.dateKey));
+        
+        // 연속된 날짜인지 확인 (날짜 문자열을 Date로 변환)
+        let isConsecutive = true;
+        for (let i = 1; i < samePostEvents.length; i++) {
+          const prevDateStr = samePostEvents[i - 1].dateKey;
+          const currDateStr = samePostEvents[i].dateKey;
+          
+          const [prevYear, prevMonth, prevDay] = prevDateStr.split('-').map(Number);
+          const [currYear, currMonth, currDay] = currDateStr.split('-').map(Number);
+          
+          const prevDate = new Date(prevYear, prevMonth - 1, prevDay);
+          const currDate = new Date(currYear, currMonth - 1, currDay);
+          prevDate.setDate(prevDate.getDate() + 1);
+          
+          // 날짜 문자열로 비교
+          const prevNextStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}-${String(prevDate.getDate()).padStart(2, '0')}`;
+          const currStr = `${currYear}-${String(currMonth).padStart(2, '0')}-${String(currDay).padStart(2, '0')}`;
+          
+          if (prevNextStr !== currStr) {
+            isConsecutive = false;
+            break;
+          }
+        }
+        
+        if (isConsecutive) {
+          const firstDate = samePostEvents[0].dateKey;
+          const lastDate = samePostEvents[samePostEvents.length - 1].dateKey;
+          
+          if (firstDate === lastDate) {
+            return 'single';
+          } else if (dateKey === firstDate) {
+            return 'start';
+          } else if (dateKey === lastDate) {
+            return 'end';
+          } else {
+            return 'middle';
+          }
+        }
+      }
+    }
+    
+    return null;
   };
 
   return (
@@ -62,6 +223,8 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick })
         const dayOfweek = i % 7;
         const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
       
+        const inRange = isInSelectedRange(dateKey);
+        
         return (
           <div
             key={i}
@@ -70,8 +233,49 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick })
               ${isToday ? "today" : ""}
               ${isHoliday ? "holiday" : ""}
               ${dayOfweek === 0 ? "sun" : dayOfweek === 6 ? "sat" : ""}
+              ${inRange ? "range-selecting" : ""}
             `}
-            onClick={()=> onDateClick(dateKey)}
+            onMouseDown={(e) => {
+              // 이벤트가 아닌 빈 공간 클릭 시에만 범위 선택 시작
+              if (e.target === e.currentTarget || e.target.closest('.cell-header') || e.target.closest('.day-number')) {
+                e.preventDefault();
+                selectingRef.current = true;
+                setIsSelectingRange(true);
+                setRangeStart(dateKey);
+                setRangeEnd(dateKey);
+              }
+            }}
+            onMouseEnter={(e) => {
+              if (selectingRef.current) {
+                // 이벤트 영역이 아닌 빈 공간에서만 범위 선택
+                if (e.target === e.currentTarget || e.target.closest('.cell-header') || e.target.closest('.day-number')) {
+                  handleMouseEnter(dateKey);
+                }
+              }
+            }}
+            onMouseUp={(e) => {
+              if (selectingRef.current) {
+                e.preventDefault();
+                e.stopPropagation();
+                selectingRef.current = false;
+                
+                if (rangeStart && rangeEnd && onDateRangeSelect) {
+                  const start = rangeStart < rangeEnd ? rangeStart : rangeEnd;
+                  const end = rangeStart < rangeEnd ? rangeEnd : rangeStart;
+                  onDateRangeSelect(start, end);
+                }
+                
+                setIsSelectingRange(false);
+                setRangeStart(null);
+                setRangeEnd(null);
+              }
+            }}
+            onClick={(e) => {
+              // 범위 선택 중이 아니고, 이벤트가 아닌 빈 공간 클릭 시에만 팝업 열기
+              if (!isSelectingRange && (e.target === e.currentTarget || e.target.closest('.cell-header') || e.target.closest('.day-number'))) {
+                onDateClick(dateKey);
+              }
+            }}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => handleDrop(e, dateKey)}
           >
@@ -80,20 +284,30 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick })
               {isHoliday && <span className="holiday-name">{holidayNames[0]}</span>}
             </div>
             <div className="memo-content">
-              {events[dateKey]?.map(ev => (
-                <div 
-                  key={ev.id}
-                  className="calendar-event"
-                  style={{borderLeft: `4px solid ${getEventColor(ev.postId)}`}}
-                  onClick={(e) =>{
-                    e.stopPropagation();
-                    onEventClick(dateKey, ev);
-                    dateKey;
-                  }}
-                >
-                  {ev.title}
-                </div>
-              ))}
+              {events[dateKey]?.map(ev => {
+                const rangePos = getRangePosition(dateKey, ev);
+                const eventColor = getEventColor(ev.postId);
+                // 범위 이벤트는 더 진한 배경색 사용 (투명도 40%로 증가)
+                // 노란색 계열 제거하고 더 명확한 색상 사용
+                const bgColor = rangePos ? `${eventColor}66` : '#fff';
+                
+                return (
+                  <div 
+                    key={ev.id}
+                    className={`calendar-event ${rangePos ? `range-${rangePos}` : ''}`}
+                    style={{
+                      borderLeft: `4px solid ${eventColor}`,
+                      backgroundColor: bgColor,
+                    }}
+                    onClick={(e) =>{
+                      e.stopPropagation();
+                      onEventClick(dateKey, ev);
+                    }}
+                  >
+                    {ev.title}
+                  </div>
+                );
+              })}
             </div>
           </div>
         );
