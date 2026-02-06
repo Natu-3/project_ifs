@@ -2,57 +2,42 @@ import { useState } from "react";
 import { login } from "../api/auth";
 import "./Login.css";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+//import { useMemo } from "../context/PostContext";
 
 const Login = () => {
   const [userid, setUserid] = useState("");
   const [password, setPassword] = useState("");
-
   const [loading, setLoading] = useState(false);
+  //const [resetPosts] = useMemo();
+
   const navigate = useNavigate();
-  const {fetchMe} = useAuth();
+  const { fetchMe } = useAuth();
 
   const handleLogin = async () => {
-  if (!userid || !password) {
-    alert("아이디와 비밀번호를 입력하세요");
-    return;
-  }
-
-  try {
-    setLoading(true);
-      await login(userid, password);
-    //  로그인 요청 (쿠키 발급)
-    const res = await login(userid, password);
-
-
-
-      await fetchMe();
-    // (개발용 localStorage 유지)
-    const { id, devToken, userid: uid, auth } = res.data;
-    localStorage.setItem("DevToken", devToken);
-    localStorage.setItem("userid", uid);
-    localStorage.setItem("auth", auth);
-    // 메모 API에서 쓰는 실제 numeric userId 저장 (새로고침/재로그인 시 일관성 유지)
-    if (id !== undefined && id !== null) {
-      localStorage.setItem("userId", String(id));
+    if (!userid || !password) {
+      alert("아이디와 비밀번호를 입력하세요");
+      return;
     }
 
-    //  쿠키 기반으로 유저 상태 동기화
-    await fetchMe();
+    try {
+      setLoading(true);
+     // resetPosts();
+      // 로그인 (세션 쿠키 발급)
+      await login(userid, password);
 
-    console.log("로그인 성공");
-    alert("로그인 성공");
+      // 세션 기반 유저 정보 동기화
+      await fetchMe();
 
-    //  이동
-    navigate("/");
-  } catch (err) {
-    console.error(err);
-    alert("로그인 실패");
-  } finally {
-    setLoading(false);
-  }
-};
+      alert("로그인 성공");
+      navigate("/");
+    } catch (err) {
+      console.error("login err", err);
+      alert("로그인 실패");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="login-wrapper">
@@ -84,7 +69,6 @@ const Login = () => {
         >
           회원가입
         </button>
-
       </div>
     </div>
   );

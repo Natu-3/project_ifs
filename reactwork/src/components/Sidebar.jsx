@@ -53,24 +53,9 @@ const matchesKoreanQuery = (text, rawQuery) => {
 
 export default function Sidebar() {
     const [isOpen, setIsOpen] = useState(true);
-<<<<<<< HEAD
-<<<<<<< HEAD
     const [query, setQuery] = useState("");
-    const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId } = usePosts();
+    const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId, resetPosts } = usePosts();
     const { user , logout} = useAuth();
-=======
-    const { posts, setSelectedPostId, addPost, deletePost, selectedPostId } = usePosts();
-    const { user, logout } = useAuth();
->>>>>>> 18b87c1 (02.04.19:12 로그아웃 기능병합)
-=======
-    const [query, setQuery] = useState("");
-    const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId } = usePosts();
-<<<<<<< HEAD
-    const { user } = useAuth();
->>>>>>> 8f913f5 (사이드바 및 메인 note 사이드바 추가 add-btn 하단 고정 text공간 확보 26.02.05 09:29)
-=======
-    const { user , logout} = useAuth();
->>>>>>> 9559777 (merge sidebar)
     const navigate = useNavigate();
     
     const handleToggle = () =>{
@@ -105,31 +90,17 @@ export default function Sidebar() {
             className="sidebar-title"
             onClick={() => navigate("/login")}
         >
-                    {user ?`${user.id} 님 환영합니다.`: 'Login'}
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-                </h2>
-<<<<<<< HEAD
-                <button className="toggle-note-btn" onClick={handleToggle} title={isOpen ? "사이드바 닫기" : "사이드바 열기"}>
-                    {isOpen ? '◀' : '▶'}
-=======
->>>>>>> e2f048763801fac05ebc6281aa0b9cb89ccd8adc
-=======
->>>>>>> 18b87c1 (02.04.19:12 로그아웃 기능병합)
-=======
->>>>>>> ca0e1ad (사이드바 임시 저장)
+                    {user ?`${user.userid} 님 환영합니다.`: 'Login'}
         </h2>
     ) : (
             <div className="sidebar-user">
                 <span className="sidebar-title">
-                    {user.id} 님 환영합니다.
+                    {user.userid} 님 환영합니다.
                 </span>
                 <button
                     className="logout-btn"
                     onClick={() => {
+                        resetPosts();
                         logout();
                         navigate("/login");
                     }}

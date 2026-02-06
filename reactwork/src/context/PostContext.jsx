@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { getMemos, createMemo, updateMemo, deleteMemo } from "../api/memo";
+import { useAuth } from "./AuthContext";
+
 
 const PostContext = createContext();
 
@@ -8,11 +10,24 @@ export function PostProvider({ children }) {
     const [selectedPostId, setSelectedPostId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [hydrated, setHydrated] = useState(false);
-
+    const {user} = useAuth();
     // 컴포넌트 마운트 시 메모 목록 불러오기
     useEffect(() => {
-        loadMemos();
-    }, []);
+    if (!user) {
+        // 🔹 비로그인 상태
+        setPosts([]);
+        setSelectedPostId(null);
+        setHydrated(false);
+        return;
+    }
+
+    // 🔹 로그인된 순간
+    setPosts([]);               // ⭐ 중요: 기존 비로그인 메모 제거
+    setSelectedPostId(null);
+    setHydrated(false);
+
+    loadMemos();                // 서버 메모만 다시 로드
+}, [user]);
 
     // 서버에서 메모 목록 불러오기
     const loadMemos = async () => {
@@ -132,6 +147,19 @@ export function PostProvider({ children }) {
             throw error;
         }
     };
+    
+
+    //메모 리셋
+    const resetPosts = () => {
+    setPosts([]);
+    setSelectedPostId(null);
+    setLoading(false);
+    setHydrated(false);
+    };
+
+
+
+
 
     const selectedPost = posts.find(p => p.id === selectedPostId);
 
@@ -147,7 +175,8 @@ export function PostProvider({ children }) {
             togglePinned,
             loading,
             hydrated,
-            loadMemos  // 필요시 수동으로 새로고침
+            loadMemos,  // 필요시 수동으로 새로고침
+            resetPosts
         }}>
             {children}
         </PostContext.Provider>

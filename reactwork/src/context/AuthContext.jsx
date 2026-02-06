@@ -24,6 +24,7 @@ export function AuthProvider({ children }) {
       setUser(data);
     } catch(e) {
         console.error("fetchMe Err",e);
+        
       setUser(null);
     } 
     };

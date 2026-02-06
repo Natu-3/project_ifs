@@ -21,12 +21,8 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request,HttpServletResponse response) {
 
-<<<<<<< HEAD
+
         HttpSession session = httpRequest.getSession(true);
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> ca0e1ad (사이드바 임시 저장)
         session.setAttribute("LOGIN_USER",
                 new SessionUser(
                         user.getId(),
@@ -35,17 +31,11 @@ public class AuthController {
                 )
 
                 );
-<<<<<<< HEAD
-=======
-        session.setAttribute("LOGIN_USER", user);
->>>>>>> 3017083 (26.02.05 10:03 로그인 로그아웃 회원가입 세션 기반 스프링부트 로직 완성, 프론트 연결작업 진행중)
-=======
->>>>>>> ca0e1ad (사이드바 임시 저장)
-=======
+
         System.out.println("login request: " + request.getUserid());
         LoginResult result = authService.login(request);
         //Login 결과값 = 쿠키로 보내지 않을 키값까지 저장함
->>>>>>> e2f0487 (Revert "사이드바 중간 머지")
+
 
 
         //쿠키 값 설정 부분
@@ -115,18 +105,22 @@ public class AuthController {
         if (user == null) {
             return ResponseEntity.status(401).build();
         }
-<<<<<<< HEAD
 
-<<<<<<< HEAD
-=======
+
         CustomUserDetails user =
                 (CustomUserDetails) authentication.getPrincipal();
 
         assert user != null;
->>>>>>> 3017083 (26.02.05 10:03 로그인 로그아웃 회원가입 세션 기반 스프링부트 로직 완성, 프론트 연결작업 진행중)
-=======
 
->>>>>>> ca0e1ad (사이드바 임시 저장)
+            return ResponseEntity.status(401).build();
+        }
+
+        SessionUser user = (SessionUser) session.getAttribute("LOGIN_USER");
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+
         return ResponseEntity.ok(
                 new UserMeResponse(
                         user.getId(),

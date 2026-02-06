@@ -4,14 +4,19 @@ import { getMonthDays } from "../../utils/calendar";
 import '../../componentsCss/calendarsCss/MiniCalendar.css'
 
 export default function MiniCalendar() {
-    const { currentDate, setCurrentDate } = useCalendar();
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
+    const { setCurrentDate, events } = useCalendar();
+  
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
 
     const days = getMonthDays(year, month);
-
     const week = ["일","월","화","수","목","금","토"];
-    const today = new Date();
+
+    const getEventColor = (postId) => {
+    const colors = ["#FF5733", "#33FF57", "#3357FF", "#F333FF", "#33FFF5", "#FF6B6B"];
+    return colors[postId % colors.length];
+    };    
 
     return (
         <div className="mini-calendar">
@@ -27,6 +32,9 @@ export default function MiniCalendar() {
           if (!day) return <div key={i} className="mini-cell empty"></div>;
 
           const date = new Date(year, month, day);
+
+          const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+          const dayEvents = events?.[dateKey] || [];
 
           // 공휴일 이름 배열 또는 null
           const holidayNames = getHolidayNames(date);
@@ -52,7 +60,19 @@ export default function MiniCalendar() {
               title={holidayText}
               onClick={() => setCurrentDate(date)}
             >
-              {day}
+              <div className="day-number">{day}</div>
+
+              {dayEvents.length > 0 &&(
+                <div className="event-lines">
+                  {dayEvents.slice(0, 3).map(ev =>(
+                    <span
+                      key={ev.id}
+                      className="event-line"
+                      style={{ backgroundColor: ev.color || "#4CAF50" }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}
