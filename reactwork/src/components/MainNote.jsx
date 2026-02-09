@@ -228,7 +228,10 @@ export default function MainNote() {
                     }}
                     onChange={(e) => setText(e.target.value)}
                 />
-                <button className='save-btn' onClick={handleSave}>↑</button>
+                <div className='memo-btn'>
+                    <button className='AImemo'> AI메모 </button>
+                    <button className='save-btn' onClick={handleSave}>↑</button>
+                </div>
             </div>
         </main>
     )
