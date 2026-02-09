@@ -9,8 +9,8 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# 2단계: nginx
-FROM nginx:alpine
+# 2단계: nginx 가동, 설치해야함
+FROM nginx:alpine 
 
 # 기존 nginx 설정 제거
 RUN rm -rf /etc/nginx/conf.d/*
