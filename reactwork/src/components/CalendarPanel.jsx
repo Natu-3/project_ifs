@@ -2,19 +2,32 @@ import { useLocation, useNavigate } from "react-router-dom";
 import MiniCalendar from "./calendars/MiniCalendar";
 import { useTeamCalendar } from "./TeamCalendarContext";
 import { useCalendar } from "../context/CalendarContext";
+import { useAuth } from "../context/AuthContext";
+import { useEffect } from "react";
 import '../componentsCss/CalendarPanel.css'
 
 export default function CalendarPanel() {
     const navigate = useNavigate();
     const location = useLocation();
     const { teams, addTeam } = useTeamCalendar();
-    const { initializeTeamCalendar } = useCalendar();
+    const { initializeTeamCalendar, resetCalendar } = useCalendar();
+    const { user } = useAuth();
+
+
+    useEffect(() => {
+        if (!user?.id) {
+            // 로그아웃 → 캘린더 초기화
+            resetCalendar();
+            // 팀 초기화는 TeamCalendarContext에서 처리되므로 여기서 setTeams 필요 없음
+        }
+    }, [user?.id, resetCalendar]);
 
     const createTeam = () => {
         const name = prompt("팀 이름을 입력하세요:");
         if (!name) return;
         const newTeam = addTeam(name.trim());
         if (!newTeam?.id) return;
+        
         initializeTeamCalendar(newTeam.id); // 새 팀 캘린더는 빈 상태로 시작
         navigate(`/calendar/team/${newTeam.id}`);
     }
