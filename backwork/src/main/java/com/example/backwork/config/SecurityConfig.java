@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/memos/**").permitAll()
+                        .requestMatchers("/api/team-calendars/**").permitAll()
                         .anyRequest().authenticated()
                 );
 

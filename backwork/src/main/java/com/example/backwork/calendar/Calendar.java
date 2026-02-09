@@ -36,13 +36,17 @@ public class Calendar {
     @JoinColumn(name = "owner_id")
     private User owner;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     public Calendar(String name, String type, User owner) {
         this.name = name;
         this.type = type;
         this.owner = owner;
-        this.createdAt = LocalDateTime.now();
+    }
+    
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
     }
 }
