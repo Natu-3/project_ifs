@@ -33,7 +33,7 @@ function App() {
       path='/calendar'
         element={
           <div className="app-wrapper">
-            <div className="layout">
+            <div className="layout calendar-layout">
               <Sidebar />
               <CalendarPage />
             </div>
@@ -44,7 +44,7 @@ function App() {
       path='/calendar/team/:teamId'
         element={
         <div className="app-wrapper">
-          <div className="layout">
+          <div className="layout calendar-layout">
             <Sidebar />
             <CalendarPage />
           </div>

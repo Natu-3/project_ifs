@@ -111,8 +111,12 @@ export function TeamCalendarProvider({children}){
         return newTeam;
     }
     
+    const removeTeam = (teamId) => {
+        setTeams(prev => prev.filter(team => team.id !== teamId));
+    }
+    
     return(
-        <TeamCalendarContext.Provider value={{ teams, addTeam }}>
+        <TeamCalendarContext.Provider value={{ teams, addTeam, removeTeam }}>
             {children}
         </TeamCalendarContext.Provider>
     )
