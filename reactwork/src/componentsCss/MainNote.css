@@ -152,3 +152,39 @@
     outline: 2px solid rgba(255, 0, 0, 0.5);
     outline-offset: 2px;
 }
+
+/* 캘린더 정보 배지 */
+.calendar-badge {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #6584da;
+    color: white;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    white-space: nowrap;
+    font-weight: 500;
+    z-index: 5;
+}
+
+.memo-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.AImemo{
+    align-self: flex-start;
+    margin-top: 4px;
+    white-space: nowrap;
+
+}
+
+.save-btn {
+    margin-right: 10px;
+    margin-bottom: 4px;
+    align-self: flex-end;
+}

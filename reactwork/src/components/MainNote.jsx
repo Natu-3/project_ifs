@@ -1,11 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
 import { usePosts } from '../context/PostContext'
 import { useAuth } from '../context/AuthContext'
+import { useCalendar } from '../context/CalendarContext'
+import { useTeamCalendar } from '../components/TeamCalendarContext'
 import '../componentsCss/MainNote.css'
 
 export default function MainNote() {
     const { posts, loading, hydrated, selectedPost, selectedPostId, updatePost, addPost, setSelectedPostId } = usePosts();
     const { user } = useAuth();
+    const { getPostCalendarInfo } = useCalendar();
+    const { teams } = useTeamCalendar();
 
     const [isDragOver, setIsDragOver] = useState(false);
 
@@ -25,6 +29,11 @@ export default function MainNote() {
 
     // 새로고침해도 중앙 카드가 유지되도록 localStorage에 저장/복원
     useEffect(() => {
+        // 이미 이 storageKey에 대해 복원했으면 다시 복원하지 않음 (중복 방지)
+        if (hydratedKeysRef.current.has(storageKey)) {
+            return;
+        }
+        
         try {
             // 1) 로그인 직후 user 키에 저장된 카드가 없으면, guest 키에서 1회 복사(마이그레이션)
             //    - "다시 로그인하면 사라짐" 문제의 대부분이 여기서 발생 (guest에만 저장돼 있던 케이스)
@@ -56,7 +65,9 @@ export default function MainNote() {
                 .filter((x) => Number.isFinite(x.postId));
 
             // posts가 아직 로드 전이어도 일단 복원해두고, 아래 posts 동기화 effect가 정리해줌
-            setCards(restored.map(r => ({ id: r.postId, postId: r.postId, title: '' })));
+            if (restored.length > 0) {
+                setCards(restored.map(r => ({ id: r.postId, postId: r.postId, title: '' })));
+            }
             hydratedKeysRef.current.add(storageKey);
         } catch {
             // 파싱 실패 시 무시
@@ -101,7 +112,8 @@ export default function MainNote() {
         setCards(prevCards => {
             // 최초 1회 posts 로드가 끝나기 전에는(=hydrated 전) 복원한 cards를 지우지 않음
             // 로딩 중에도 동일하게 보호
-            if (!hydrated || loading) return prevCards;
+            // posts가 비어있을 때도 복원된 카드를 지우지 않음
+            if (!hydrated || loading || posts.length === 0) return prevCards;
 
             const updatedCards = prevCards
                 .filter(card => posts.some(post => post.id === card.postId))
@@ -195,6 +207,18 @@ export default function MainNote() {
                     const post = posts.find(p => p.id === card.postId);
                     const displayTitle = post?.title || card.title || '제목없음';
                     
+                    // 캘린더 정보 가져오기
+                    const calendarInfo = getPostCalendarInfo(card.postId);
+                    let calendarLabel = null;
+                    if (calendarInfo) {
+                        if (calendarInfo.type === 'personal') {
+                            calendarLabel = '개인';
+                        } else if (calendarInfo.type === 'team' && calendarInfo.teamId) {
+                            const team = teams.find(t => t.id === calendarInfo.teamId);
+                            calendarLabel = team ? team.name : '팀';
+                        }
+                    }
+                    
                     return (
                         <div
                             key={card.id}
@@ -202,6 +226,11 @@ export default function MainNote() {
                             onClick={()=> setSelectedPostId(card.postId)}
                         >
                             {displayTitle}
+                            {calendarLabel && (
+                                <div className="calendar-badge">
+                                    {calendarLabel}
+                                </div>
+                            )}
                             <button
                                 className='delete-card-btn'
                                 onClick={(e)=>{
@@ -228,8 +257,12 @@ export default function MainNote() {
                     }}
                     onChange={(e) => setText(e.target.value)}
                 />
-                <button className='save-btn' onClick={handleSave}>↑</button>
+                <div className='memo-btn'>
+                    <button className='AImemo'> AI메모 </button>
+                    <button className='save-btn' onClick={handleSave}>↑</button>
+                </div>
             </div>
         </main>
+        
     )
 }

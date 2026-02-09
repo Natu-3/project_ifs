@@ -4,7 +4,7 @@ import { getMonthDays } from "../../utils/calendar";
 import '../../componentsCss/calendarsCss/MiniCalendar.css'
 
 export default function MiniCalendar() {
-    const { setCurrentDate, events } = useCalendar();
+    const { setCurrentDate, getPersonalEvents, getEventColor } = useCalendar();
   
     const today = new Date();
     const year = today.getFullYear();
@@ -12,11 +12,9 @@ export default function MiniCalendar() {
 
     const days = getMonthDays(year, month);
     const week = ["일","월","화","수","목","금","토"];
-
-    const getEventColor = (postId) => {
-    const colors = ["#FF5733", "#33FF57", "#3357FF", "#F333FF", "#33FFF5", "#FF6B6B"];
-    return colors[postId % colors.length];
-    };    
+    
+    // 개인 캘린더의 이벤트 가져오기
+    const personalEvents = getPersonalEvents();    
 
     return (
         <div className="mini-calendar">
@@ -34,7 +32,8 @@ export default function MiniCalendar() {
           const date = new Date(year, month, day);
 
           const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-          const dayEvents = events?.[dateKey] || [];
+          // 개인 캘린더의 해당 날짜 이벤트 가져오기
+          const dayEvents = personalEvents[dateKey] || [];
 
           // 공휴일 이름 배열 또는 null
           const holidayNames = getHolidayNames(date);
@@ -64,13 +63,17 @@ export default function MiniCalendar() {
 
               {dayEvents.length > 0 &&(
                 <div className="event-lines">
-                  {dayEvents.slice(0, 3).map(ev =>(
-                    <span
-                      key={ev.id}
-                      className="event-line"
-                      style={{ backgroundColor: ev.color || "#4CAF50" }}
-                    />
-                  ))}
+                  {dayEvents.slice(0, 3).map(ev => {
+                    // postId가 있으면 해당 색상 사용, 없으면 기본 색상
+                    const eventColor = ev.postId ? getEventColor(ev.postId) : "#4CAF50";
+                    return (
+                      <span
+                        key={ev.id}
+                        className="event-line"
+                        style={{ backgroundColor: eventColor }}
+                      />
+                    );
+                  })}
                 </div>
               )}
             </div>

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { usePosts } from "../context/PostContext";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useCalendar } from "../context/CalendarContext";
 import '../componentsCss/Sidebar.css';
 
 const CHOSEONG = [
@@ -56,6 +57,7 @@ export default function Sidebar() {
     const [query, setQuery] = useState("");
     const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId, resetPosts } = usePosts();
     const { user , logout} = useAuth();
+    const { usedPostIds, getPostColor, deleteEventsByPostId } = useCalendar();
     const navigate = useNavigate();
     
     const handleToggle = () =>{
@@ -125,13 +127,21 @@ export default function Sidebar() {
             </div>
             <div className="sidebar-list-wrapper">
             <ul className="sidebar-list">
-                {filteredPosts.map(post => (
+                {filteredPosts.map(post => {
+                    const hasCalendarEvent = usedPostIds.has(post.id);
+                    const eventColor = hasCalendarEvent ? getPostColor(post.id) : null;
+                    
+                    return (
                     <li
                         key={post.id}
-                        className={`sidebar-item ${selectedPostId === post.id ? 'selected' : ''}`}
+                        className={`sidebar-item ${selectedPostId === post.id ? 'selected' : ''} ${hasCalendarEvent ? 'has-calendar-event' : ''}`}
                         draggable
                         onDragStart={(e) => handleDragStart(e, post.id)}
                         onClick={()=>setSelectedPostId(post.id)}
+                        style={hasCalendarEvent && eventColor ? {
+                            borderLeft: `4px solid ${eventColor}`,
+                            backgroundColor: `${eventColor}15`
+                        } : {}}
                     >
                         <button
                             className={`pin-btn ${post.pinned ? "pinned" : ""}`}
@@ -150,11 +160,16 @@ export default function Sidebar() {
                             className="delete-btn"
                             onClick={(e) =>{
                                 e.stopPropagation();
+                                // 메모 삭제 전에 캘린더 이벤트도 삭제
+                                if (deleteEventsByPostId) {
+                                    deleteEventsByPostId(post.id);
+                                }
                                 deletePost(post.id);
                             }}
                         >✕</button>
                     </li>
-                    ))}
+                    );
+                })}
             </ul>
             </div>
             <div className="sidebar-footer">
