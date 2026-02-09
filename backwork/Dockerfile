@@ -1,5 +1,5 @@
-FROM amazoncorretto:21.0.4
+FROM openjdk:17-jdk-slim
 WORKDIR /app
-COPY . .
+COPY build/libs/demo-0.0.1-SNAPSHOT.jar app.jar
 RUN ./gradlew build
-CMD ["java", "-jar", "/app/server.jar"]
+CMD ["java", "-jar", "app.jar"]
