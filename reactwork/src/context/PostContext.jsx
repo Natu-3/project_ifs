@@ -11,29 +11,37 @@ export function PostProvider({ children }) {
     const [loading, setLoading] = useState(false);
     const [hydrated, setHydrated] = useState(false);
     const {user} = useAuth();
-    // 컴포넌트 마운트 시 메모 목록 불러오기
+    // 로그인 상태 변경 시 메모 목록 불러오기
     useEffect(() => {
-    if (!user) {
-        // 🔹 비로그인 상태
-        setPosts([]);
+        if (!user) {
+            // 🔹 비로그인 상태
+            setPosts([]);
+            setSelectedPostId(null);
+            setHydrated(false);
+            return;
+        }
+
+        // 🔹 로그인된 순간
+        setPosts([]);               // ⭐ 중요: 기존 비로그인 메모 제거
         setSelectedPostId(null);
         setHydrated(false);
-        return;
-    }
 
-    // 🔹 로그인된 순간
-    setPosts([]);               // ⭐ 중요: 기존 비로그인 메모 제거
-    setSelectedPostId(null);
-    setHydrated(false);
-
-    loadMemos();                // 서버 메모만 다시 로드
-}, [user]);
+        loadMemos();                // 서버 메모만 다시 로드 (user.id 사용)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.id]);
 
     // 서버에서 메모 목록 불러오기
     const loadMemos = async () => {
+        if (!user?.id) {
+            setPosts([]);
+            setHydrated(true);
+            return;
+        }
+        
         try {
             setLoading(true);
-            const response = await getMemos();
+            // user.id를 직접 전달 (로그인한 사용자의 ID)
+            const response = await getMemos(user.id);
             // 백엔드 응답을 프론트엔드 형식으로 변환
             const formattedPosts = response.data.map(memo => {
                 const content = memo.content ?? "";
@@ -66,8 +74,14 @@ export function PostProvider({ children }) {
     // 메모 추가
     // 메모 추가 (빈 메모를 기본으로 생성)
     const addPost = async (content = "", pinned = false) => {
+        if (!user?.id) {
+            alert("로그인이 필요합니다.");
+            throw new Error("로그인이 필요합니다.");
+        }
+        
         try {
-            const response = await createMemo(content, pinned);
+            // user.id를 직접 전달 (로그인한 사용자의 ID)
+            const response = await createMemo(user.id, content, pinned);
             const newMemo = response.data;
             const newContent = newMemo.content ?? content ?? "";
             const newPost = {
@@ -92,10 +106,16 @@ export function PostProvider({ children }) {
 
     // 메모 수정
     const updatePost = async (id, updated) => {
+        if (!user?.id) {
+            alert("로그인이 필요합니다.");
+            throw new Error("로그인이 필요합니다.");
+        }
+        
         try {
             const content = updated.content ?? "";
             const pinned = updated.pinned;
-            await updateMemo(id, content, pinned ?? null);
+            // user.id를 직접 전달 (로그인한 사용자의 ID)
+            await updateMemo(user.id, id, content, pinned ?? null);
             setPosts(prev => {
                 const next = prev.map(post =>
                     post.id === id
@@ -127,6 +147,11 @@ export function PostProvider({ children }) {
 
     // 메모 삭제
     const deletePost = async (id) => {
+        if (!user?.id) {
+            alert("로그인이 필요합니다.");
+            throw new Error("로그인이 필요합니다.");
+        }
+        
         try {
             const target = posts.find(p => p.id === id);
             const isEmpty = !target || (target.content ?? "").trim().length === 0 || (target.content ?? "").trim() === "새 메모";
@@ -135,7 +160,8 @@ export function PostProvider({ children }) {
                 if (!ok) return;
             }
 
-            await deleteMemo(id);
+            // user.id를 직접 전달 (로그인한 사용자의 ID)
+            await deleteMemo(user.id, id);
             setPosts(prev => prev.filter(p => p.id !== id));
             
             if (id === selectedPostId) {
