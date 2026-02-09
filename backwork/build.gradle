@@ -44,7 +44,8 @@ dependencies {
 	//redis 관련 의존성
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-
+	//websocket 관련 의존성
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
 
 
