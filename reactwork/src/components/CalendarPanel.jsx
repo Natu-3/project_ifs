@@ -2,6 +2,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import MiniCalendar from "./calendars/MiniCalendar";
 import { useTeamCalendar } from "./TeamCalendarContext";
 import { useCalendar } from "../context/CalendarContext";
+import { useAuth } from "../context/AuthContext";
+import { useEffect } from "react";
 import '../componentsCss/CalendarPanel.css'
 
 export default function CalendarPanel() {
