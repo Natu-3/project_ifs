@@ -42,7 +42,7 @@
     padding: 20px;
 
     display: flex;
-    align-items: flex-end;
+    align-items: flex-start;
     justify-content: center;
     gap: 10px;
 
@@ -151,4 +151,24 @@
 .delete-card-btn:focus {
     outline: 2px solid rgba(255, 0, 0, 0.5);
     outline-offset: 2px;
+}
+
+.memo-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.AImemo{
+    align-self: flex-start;
+    margin-top: 4px;
+    white-space: nowrap;
+
+}
+
+.save-btn {
+    margin-right: 10px;
+    margin-bottom: 4px;
+    align-self: flex-end;
 }
