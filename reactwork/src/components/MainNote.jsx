@@ -9,7 +9,8 @@ export default function MainNote() {
     const { posts, loading, hydrated, selectedPost, selectedPostId, updatePost, addPost, setSelectedPostId } = usePosts();
     const { user } = useAuth();
     const { getPostCalendarInfo } = useCalendar();
-    const { teams } = useTeamCalendar();
+    const teamCalendar = useTeamCalendar();
+    const teams = teamCalendar?.teams || [];
 
     const [isDragOver, setIsDragOver] = useState(false);
 

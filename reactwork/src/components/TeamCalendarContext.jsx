@@ -1,122 +1,102 @@
-import { createContext, useContext, useState, useEffect, useRef } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import { getTeamCalendars, createTeamCalendar, deleteTeamCalendar } from "../api/teamCalendar";
 
-const TeamCalendarContext = createContext();
+const TeamCalendarContext = createContext({
+    teams: [],
+    addTeam: async () => null,
+    removeTeam: async () => {},
+    loading: false,
+    loadTeams: async () => {}
+});
 
 export function TeamCalendarProvider({children}){
     const { user } = useAuth();
+    const [teams, setTeams] = useState([]);
+    const [loading, setLoading] = useState(false);
     
-    // localStorage 키 생성
-    const getStorageKey = (userId = null) => {
-        const id = userId || user?.id || localStorage.getItem('userId') || 'guest';
-        return `team_calendars:${id}`;
-    };
-    
-    // 초기 로드 시 localStorage에서 복원
-    const [teams, setTeams] = useState(() => {
-        try {
-            const storageKey = getStorageKey();
-            const saved = localStorage.getItem(storageKey);
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                return Array.isArray(parsed) ? parsed : [];
-            }
-        } catch (e) {
-            console.error('팀 캘린더 복원 실패:', e);
-        }
-        return [];
-    });
-    
-    // localStorage에 저장하는 ref (무한 루프 방지)
-    const isInitialMount = useRef(true);
-    const hydratedRef = useRef(false);
-    const migratedGuestToUserRef = useRef(false);
-    
-    // userId 변경 시 팀 목록 복원 및 guest -> user 마이그레이션
-    useEffect(() => {
-        if (hydratedRef.current) return;
-        
-        try {
-            const userId = user?.id || localStorage.getItem('userId');
-            const userStorageKey = userId ? `team_calendars:${userId}` : null;
-            const guestStorageKey = 'team_calendars:guest';
-            
-            // 로그인한 사용자의 경우 guest에서 마이그레이션
-            if (userId && !migratedGuestToUserRef.current) {
-                const userRaw = userStorageKey ? localStorage.getItem(userStorageKey) : null;
-                const guestRaw = localStorage.getItem(guestStorageKey);
-                
-                if ((!userRaw || userRaw === '[]') && guestRaw && guestRaw !== '[]') {
-                    // guest 데이터를 user로 복사
-                    localStorage.setItem(userStorageKey, guestRaw);
-                    const parsed = JSON.parse(guestRaw);
-                    if (Array.isArray(parsed)) {
-                        setTeams(parsed);
-                    }
-                    migratedGuestToUserRef.current = true;
-                    hydratedRef.current = true;
-                    return;
-                }
-                migratedGuestToUserRef.current = true;
-            }
-            
-            // user 데이터 복원
-            if (userStorageKey) {
-                const saved = localStorage.getItem(userStorageKey);
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    if (Array.isArray(parsed)) {
-                        setTeams(parsed);
-                    }
-                }
-            } else {
-                // guest 데이터 복원
-                const saved = localStorage.getItem(guestStorageKey);
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    if (Array.isArray(parsed)) {
-                        setTeams(parsed);
-                    }
-                }
-            }
-            
-            hydratedRef.current = true;
-        } catch (e) {
-            console.error('팀 캘린더 복원 실패:', e);
-            hydratedRef.current = true;
-        }
-    }, [user?.id]);
-    
-    // teams가 변경될 때마다 localStorage에 저장
-    useEffect(() => {
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
+    // 로그인한 사용자의 팀 캘린더 목록 불러오기
+    const loadTeams = async () => {
+        if (!user?.id) {
+            setTeams([]);
             return;
         }
         
-        if (!hydratedRef.current) return; // 복원 전에는 저장하지 않음
+        try {
+            setLoading(true);
+            // user.id를 직접 전달 (로그인한 사용자의 ID)
+            const response = await getTeamCalendars(user.id);
+            // 백엔드 응답 형식에 맞게 변환 (필요시 수정)
+            const teamList = response.data || [];
+            setTeams(Array.isArray(teamList) ? teamList : []);
+        } catch (error) {
+            console.error("팀 캘린더 불러오기 실패:", error);
+            setTeams([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    // 로그인 상태 변경 시 팀 목록 불러오기
+    useEffect(() => {
+        if (!user) {
+            // 로그아웃 시 빈 배열로 초기화
+            setTeams([]);
+            return;
+        }
+        
+        // 로그인 시 팀 목록 불러오기
+        loadTeams();
+    }, [user?.id]);
+    
+    // 팀 캘린더 추가
+    const addTeam = async (name) => {
+        if (!user?.id) {
+            alert("로그인이 필요합니다.");
+            return null;
+        }
         
         try {
-            const userId = user?.id || localStorage.getItem('userId') || 'guest';
-            const storageKey = `team_calendars:${userId}`;
-            localStorage.setItem(storageKey, JSON.stringify(teams));
-        } catch (e) {
-            console.error('팀 캘린더 저장 실패:', e);
+            // user.id를 직접 전달 (로그인한 사용자의 ID)
+            const response = await createTeamCalendar(user.id, name.trim());
+            const newTeam = response.data;
+            
+            // 서버에서 받은 팀 정보로 상태 업데이트
+            setTeams(prev => [...prev, newTeam]);
+            return newTeam;
+        } catch (error) {
+            console.error("팀 캘린더 생성 실패:", error);
+            alert("팀 캘린더 생성에 실패했습니다.");
+            throw error;
         }
-    }, [teams, user?.id]);
-
-    const addTeam = (name) => {
-        const newTeam = { id: Date.now().toString(), name };
-        setTeams(prev => [...prev, newTeam]);
-        return newTeam;
-    }
+    };
     
-    const removeTeam = (teamId) => {
-        setTeams(prev => prev.filter(team => team.id !== teamId));
-    }
+    // 팀 캘린더 삭제
+    const removeTeam = async (teamId) => {
+        if (!user?.id) {
+            alert("로그인이 필요합니다.");
+            return;
+        }
+        
+        try {
+            // teamId를 숫자로 변환 (백엔드에서 Long으로 받음)
+            const teamIdNum = typeof teamId === 'string' ? Number(teamId) : teamId;
+            // user.id를 직접 전달 (로그인한 사용자의 ID)
+            await deleteTeamCalendar(user.id, teamIdNum);
+            // 삭제 성공 시 상태에서 제거 (숫자로 비교)
+            setTeams(prev => prev.filter(team => {
+                const tId = typeof team.id === 'string' ? Number(team.id) : team.id;
+                return tId !== teamIdNum;
+            }));
+        } catch (error) {
+            console.error("팀 캘린더 삭제 실패:", error);
+            alert("팀 캘린더 삭제에 실패했습니다.");
+            throw error;
+        }
+    };
     
     return(
-        <TeamCalendarContext.Provider value={{ teams, addTeam, removeTeam }}>
+        <TeamCalendarContext.Provider value={{ teams, addTeam, removeTeam, loading, loadTeams }}>
             {children}
         </TeamCalendarContext.Provider>
     )

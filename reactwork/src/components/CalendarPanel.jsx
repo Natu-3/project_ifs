@@ -10,35 +10,56 @@ export default function CalendarPanel() {
     const { teams, addTeam, removeTeam } = useTeamCalendar();
     const { initializeTeamCalendar, removeTeamCalendar } = useCalendar();
 
-    const createTeam = () => {
+    const createTeam = async () => {
         const name = prompt("팀 이름을 입력하세요:");
         if (!name) return;
-        const newTeam = addTeam(name.trim());
-        if (!newTeam?.id) return;
-        initializeTeamCalendar(newTeam.id); // 새 팀 캘린더는 빈 상태로 시작
-        navigate(`/calendar/team/${newTeam.id}`);
+        
+        try {
+            const newTeam = await addTeam(name.trim());
+            if (!newTeam?.id) return;
+            // newTeam.id는 백엔드에서 Long으로 반환되므로 문자열로 변환
+            const teamIdStr = String(newTeam.id);
+            initializeTeamCalendar(teamIdStr); // 새 팀 캘린더는 빈 상태로 시작
+            navigate(`/calendar/team/${teamIdStr}`);
+        } catch (error) {
+            // 에러는 addTeam에서 이미 처리됨
+            console.error("팀 생성 실패:", error);
+        }
     }
 
     const isPersonalActive = location.pathname === "/calendar";
     const activeTeamId = location.pathname.startsWith("/calendar/team/")
         ? location.pathname.split("/calendar/team/")[1]
         : null;
+    
+    // teamId를 숫자로 변환하여 비교 (백엔드에서 Long으로 반환)
+    const activeTeamIdNum = activeTeamId ? Number(activeTeamId) : null;
 
-    const handleDeleteTeam = () => {
+    const handleDeleteTeam = async () => {
         if (!activeTeamId) return;
         
-        const team = teams.find(t => t.id === activeTeamId);
+        // activeTeamId를 숫자로 변환하여 team 찾기
+        const activeTeamIdNum = Number(activeTeamId);
+        const team = teams.find(t => {
+            const tId = typeof t.id === 'string' ? Number(t.id) : t.id;
+            return tId === activeTeamIdNum;
+        });
+        
         if (!team) return;
         
         const confirmMessage = `"${team.name}" 팀 캘린더를 삭제하시겠습니까?\n모든 일정이 삭제됩니다.`;
         if (!window.confirm(confirmMessage)) return;
         
-        // 팀 캘린더의 이벤트도 삭제
-        removeTeamCalendar(activeTeamId);
-        // 팀 목록에서 제거
-        removeTeam(activeTeamId);
-        // 개인 캘린더로 이동
-        navigate("/calendar");
+        try {
+            // 팀 캘린더의 이벤트도 삭제
+            removeTeamCalendar(activeTeamId);
+            // 팀 목록에서 제거 (숫자로 변환하여 전달)
+            await removeTeam(activeTeamIdNum);
+            // 개인 캘린더로 이동
+            navigate("/calendar");
+        } catch (error) {
+            console.error("팀 삭제 실패:", error);
+        }
     }
 
     return(
@@ -74,10 +95,15 @@ export default function CalendarPanel() {
                                 </div>
                             )}
 
-                            {teams.map(team => (
+                        {teams.map(team => {
+                            // team.id와 activeTeamId를 숫자로 비교
+                            const teamIdNum = typeof team.id === 'string' ? Number(team.id) : team.id;
+                            const isActive = activeTeamIdNum !== null && teamIdNum === activeTeamIdNum;
+                            
+                            return (
                                 <div
                                     key={team.id}
-                                    className={`calendar-nav-item ${activeTeamId === team.id ? "active" : ""}`}
+                                    className={`calendar-nav-item ${isActive ? "active" : ""}`}
                                     onClick={() => navigate(`/calendar/team/${team.id}`)}
                                     role="button"
                                     tabIndex={0}
@@ -86,7 +112,8 @@ export default function CalendarPanel() {
                                     <span className="calendar-nav-icon">👥</span>
                                     <span className="calendar-nav-label">{team.name}</span>
                                 </div>
-                            ))}
+                            );
+                        })}
                         </div>
                     </div>
                 </div>
