@@ -12,11 +12,11 @@ public class RedisSubscriber {
     private final ObjectMapper objectMapper;
 
     public void onMessage(String message, String pattern) throws Exception {
-        ScheduleEvent event = objectMapper.readValue(message, ScheduleEvent.class);
+        //ScheduleEvent event = objectMapper.readValue(message, ScheduleEvent.class);
 
-        messagingTemplate.convertAndSend(
-                "/topic/team/" + event.getTeamId(),
-                event
-        );
+//        messagingTemplate.convertAndSend(
+//                "/topic/team/" + event.getTeamId(),
+//                event
+//        );
     }
 }
