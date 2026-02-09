@@ -3,6 +3,7 @@ import { getHolidayNames } from "@hyunbinseo/holidays-kr";
 import { getMonthDays } from "../../utils/calendar";
 import { useCalendar } from "../../context/CalendarContext";
 import { usePosts } from "../../context/PostContext";
+import { getMonthSchedules } from "../../api/scheduleApi";
 
 export default function CalendarGrid({ currentDate, onDateClick, onEventClick, onDateRangeSelect }) {
   const year = currentDate.getFullYear();
@@ -13,8 +14,41 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
 
   const days = getMonthDays(year, month);
 
-  const { events, addEvent } = useCalendar();
+  const { events, addEvent, setEvents } = useCalendar();
   const { posts } = usePosts();
+
+  useEffect(() => {
+    const fetchSchedules = async () => {
+      try{
+        const res = await getMonthSchedules(year, month +1);
+
+        const mappedEvents = {};
+
+        res.data.forEach(s => {
+          const dateKey = s. startAt.slice(0,10);
+
+          if(!mappedEvents[dateKey]) {
+            mappedEvents[dateKey] = [];
+          }
+
+          mappedEvents[dateKey].push({
+            id: s.id,
+            title: s.title,
+            content: s.content,
+            startAt: s.startAt,
+            endAt: s.endAt,
+            ownerId: s.ownerId,
+            calendarId: s.calendarId,
+          });
+        });
+        setEvents(mappedEvents);
+      } catch (e) {
+        console.error("월 스캐줄 조회 실패", e);
+      }
+    }
+
+    fetchSchedules();
+  },[year, month, setEvents]);
   
   // 날짜 범위 선택 상태
   const [isSelectingRange, setIsSelectingRange] = useState(false);
