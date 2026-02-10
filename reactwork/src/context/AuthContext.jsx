@@ -23,6 +23,7 @@ export function AuthProvider({ children }) {
         throw new Error("unauthorized");
       }
       
+      
       const data = await res.json();
       setUser(data);
     } catch(e) {
