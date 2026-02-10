@@ -1,8 +1,168 @@
-.back-btn {
-  background: transparent;
-  border: none;
-  color: #555;
-  cursor: pointer;
-  margin-top: 8px;
-  font-size: 13px;
+.login-wrapper {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--color-bg-secondary);
+    padding: var(--spacing-2xl);
+}
+
+.signup-container {
+    width: 100%;
+    max-width: 500px;
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-2xl);
+    box-shadow: var(--shadow-lg);
+}
+
+.signup-container h2 {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+}
+
+.signup-home-btn {
+    position: absolute;
+    top: var(--spacing-xl);
+    left: var(--spacing-xl);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    font-weight: var(--font-weight-medium);
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.signup-home-btn:hover {
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-border-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.signup-home-btn:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.signup-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.signup-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.signup-input-group label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+}
+
+.signup-input-group input {
+    width: 100%;
+    padding: var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    background: var(--color-bg-primary);
+    transition: all var(--transition-base);
+    outline: none;
+    box-sizing: border-box;
+}
+
+.signup-input-group input:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(35, 131, 226, 0.1);
+}
+
+.signup-input-group input.error {
+    border-color: var(--color-danger);
+}
+
+.signup-input-group input.error:focus {
+    box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
+}
+
+.error-message {
+    font-size: var(--font-size-xs);
+    color: var(--color-danger);
+    margin-top: calc(var(--spacing-xs) * -1);
+}
+
+.signup-submit-btn {
+    width: 100%;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border: 1px solid var(--color-accent);
+    background-color: var(--color-accent);
+    color: white;
+    font-size: var(--font-size-base);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    font-weight: var(--font-weight-semibold);
+    margin-top: var(--spacing-md);
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.signup-submit-btn:hover:not(:disabled) {
+    background-color: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.signup-submit-btn:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+}
+
+.signup-submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.signup-login-btn {
+    width: 100%;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    font-weight: var(--font-weight-medium);
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.signup-login-btn:hover {
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-border-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.signup-login-btn:active {
+    transform: translateY(0) scale(0.98);
 }

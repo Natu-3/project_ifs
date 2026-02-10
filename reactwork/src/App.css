@@ -9,27 +9,32 @@ html, body, #root {
 }
 
 body {
-  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
-  background-color: #9e9e9e;
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  background-color: var(--color-bg-secondary);
+  overflow: hidden;
+  color: var(--color-text-primary);
 }
 
 /* 전체 여백 담당 */
 .app-wrapper {
   width: 100vw;
   height: 100vh;
-  padding: 30px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* 실제 인터페이스 영역 */
 .layout {
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: auto 1fr auto;
   overflow: hidden;
   position: relative;
-
-  border-radius: 30px;
+  transition: grid-template-columns var(--transition-slow);
 }
 
 /* 캘린더 페이지 레이아웃: 사이드바만 고정, 나머지 전체 공간 */

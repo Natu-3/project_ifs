@@ -1,8 +1,8 @@
 .mainnote {
-    height: 93vh;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    background: #fff5d2;
+    background: var(--color-bg-secondary);
     min-width: 0;
     overflow: hidden;
     padding-bottom: 20px;
@@ -19,22 +19,24 @@
 }
 
 .mainnote ul li {
-    margin: 10px;
-  padding: 60px 50px;
-  background: #f0f0f0;
-  border-radius: 20px;
-
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin: var(--spacing-md);
+    padding: var(--spacing-2xl) var(--spacing-xl);
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-base);
 }
 
 .mainnote ul li:hover {
-    transform: translateY(-4px);
-    box-sizing: 0 8px 18px rgba(0,0,0,0.15);
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-border-dark);
+    background: var(--color-bg-primary);
 }
 
 .mainnote.drag-over {
-  outline: 3px dashed #ffb703;
-  background: #fff1b8;
+  outline: 3px dashed var(--color-accent);
+  background: rgba(35, 131, 226, 0.05);
 }
 
 .memo-container {
@@ -55,22 +57,21 @@
     width: 60%;
     height: 100%;
     resize: none;
-
-    font-size: 14px;
+    font-size: var(--font-size-sm);
     line-height: 1.6;
-
-    border: none;
+    border: 1px solid var(--color-border);
     outline: none;
-    padding: 14px;
-    border-radius: 14px;
-    background: #ffdbab;
-
-    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-    animation: popIn 0.25s ease;
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-primary);
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-base);
+    color: var(--color-text-primary);
 }
 
 .memo-post-it:focus {
-    background: #ffe4bf;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(35, 131, 226, 0.1), var(--shadow-md);
 }
 
 .card-area {
@@ -88,12 +89,14 @@
     position: relative;
     width: 120px;
     height: 120px;
-    background: #fff3a0;
-    border-radius: 6px;
-    box-shadow: 2px 2px 6px rgba(0,0,0,0.15);
-    font-size: 11px;
-    padding: 8px 20px 8px 8px; /* 상단에 x 버튼 공간 확보 */
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-sm) var(--spacing-xl) var(--spacing-sm) var(--spacing-sm);
     cursor: pointer;
+    transition: all var(--transition-base);
 
     display: flex;
     align-items: center;
@@ -101,32 +104,31 @@
     text-align: center;
     word-wrap: break-word;
     overflow: hidden;
-
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .note-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 4px 4px 10px rgba(0,0,0,0.2);
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-border-dark);
+    background: var(--color-bg-primary);
 }
 
 .note-card.selected {
-    border: 3px solid #ff6b6b;
-    background: #fff8a0;
-    box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.3), 2px 2px 6px rgba(0,0,0,0.2);
+    border: 2px solid var(--color-accent);
+    background: var(--color-bg-primary);
+    box-shadow: 0 0 0 3px rgba(35, 131, 226, 0.1), var(--shadow-md);
 }
 
 .delete-card-btn {
     position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 18px;
-    height: 18px;
-    font-size: 12px;
-    font-weight: bold;
-    color: #666;
-    background: rgba(255, 255, 255, 0.7);
-    border: none;
+    top: var(--spacing-xs);
+    right: var(--spacing-xs);
+    width: 20px;
+    height: 20px;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-secondary);
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
     border-radius: 50%;
     cursor: pointer;
     display: flex;
@@ -134,14 +136,20 @@
     justify-content: center;
     padding: 0;
     line-height: 1;
-    transition: all 0.2s ease;
+    transition: all var(--transition-base);
     z-index: 10;
 }
 
 .delete-card-btn:hover {
-    background: rgba(255, 0, 0, 0.8);
+    background: var(--color-danger);
     color: white;
+    border-color: var(--color-danger);
     transform: scale(1.1);
+    box-shadow: var(--shadow-sm);
+}
+
+.delete-card-btn:active {
+    transform: scale(1.0);
 }
 
 .delete-card-btn:active {
@@ -156,17 +164,18 @@
 /* 캘린더 정보 배지 */
 .calendar-badge {
     position: absolute;
-    bottom: 4px;
+    bottom: var(--spacing-xs);
     left: 50%;
     transform: translateX(-50%);
-    background: #6584da;
+    background: var(--color-accent);
     color: white;
-    font-size: 9px;
-    padding: 2px 6px;
-    border-radius: 8px;
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
     white-space: nowrap;
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     z-index: 5;
+    box-shadow: var(--shadow-sm);
 }
 
 .memo-btn {

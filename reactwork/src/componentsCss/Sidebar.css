@@ -3,18 +3,22 @@
    ============================================ */
 
 .sidebar {
-    width: 300px;
-    height: 93vh;
-    background: #fff5d2;
+    width: var(--sidebar-width, 300px);
+    height: 100%;
+    background: var(--color-bg-primary);
+    border-right: 1px solid var(--color-border);
     display: flex;
     flex-direction: column;
     position: relative;
-    transition: width 0.3s ease;
+    transition: width var(--transition-slow);
+    box-shadow: 1px 0 0 rgba(55, 53, 47, 0.06);
 }
 
 /* Sidebar 닫힌 상태 */
 .sidebar.closed {
-    width: 50px;
+    width: 0;
+    overflow: hidden;
+    border-right: none;
 }
 
 /* Sidebar 헤더 */
@@ -23,7 +27,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-bottom: 2px solid gray;
+    border-bottom: 1px solid var(--color-border);
 }
 
 /* Sidebar 제목 */
@@ -50,49 +54,52 @@
 .sidebar-footer {
     display: flex;
     justify-content: center;
-    padding: 10px 0;
-    background: #fff5d2;
+    padding: var(--spacing-md) 0;
+    background: var(--color-bg-primary);
+    border-top: 1px solid var(--color-border-light);
 }
 
 /* 검색 */
 .sidebar-search {
-    padding: 10px 12px;
-    border-bottom: 1px solid rgba(0,0,0,0.15);
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border-light);
+    background: var(--color-bg-primary);
 }
 
 .sidebar-search-input {
     width: 100%;
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 1px solid rgba(0,0,0,0.2);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    border: none;
     outline: none;
-    background: rgba(255,255,255,0.9);
+    background: var(--color-bg-hover);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    transition: all var(--transition-base);
 }
 
 .sidebar-search-input:focus {
-    border-color: #6584da;
-    box-shadow: 0 0 0 3px rgba(101,132,218,0.2);
+    background: var(--color-bg-primary);
+    box-shadow: 0 0 0 1px var(--color-border);
 }
 
 /* Sidebar 메모 아이템 */
 .sidebar-item {
-    margin-bottom: 8px;
-    padding: 10px;
-    border-radius: 10px;
-    background: #ffffff;
+    margin-bottom: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    border: none;
     cursor: pointer;
     position: relative;
-
-    transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease;
+    transition: all var(--transition-base);
 }
 
 /* hover */
 .sidebar-item:hover {
-    background: #fff0c2;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+    background: var(--color-bg-hover);
+    border-color: transparent;
+    box-shadow: none;
 }
 
 /* 드래그 중 */
@@ -162,31 +169,34 @@
 
 /* Sidebar 추가 버튼 */
 .sidebar-add-btn {
-    margin-bottom: 8px;
-    padding: 10px;
-    border-radius: 10px;
-    background: #e0e0e0;
-    color: #333;
-    border: none;
+    margin-bottom: var(--spacing-sm);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
     cursor: pointer;
-
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-base);
     width: 85%;
     height: auto;
 
-    font-size: 18px;
-    font-weight: bold;
-
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
     display: flex;
     align-items: center;
     justify-content: center;
     align-content: center;
-
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .sidebar-add-btn:hover {
-    background: #adadad;
-    transform: translatey(-2px);
+    background: var(--color-bg-hover);
+    color: var(--color-text-primary);
+}
+
+.sidebar-add-btn:active {
+    transform: translateY(0) scale(0.98);
 }
 
 /* Toggle button */
@@ -198,19 +208,21 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: #6584da;
+    background: var(--color-accent);
     color: #fff;
-    border: none;
+    border: 1px solid var(--color-accent);
     cursor: pointer;
-
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.3s ease;
+    transition: all var(--transition-base);
+    box-shadow: var(--shadow-sm);
 }
 
 .toggle-note-btn:hover {
-    background: #946eff;
+    background: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+    box-shadow: var(--shadow-md);
 }
 
 /* 포커스 제거 */
@@ -237,24 +249,24 @@
 
 /* 선택된 Sidebar 메모 */
 .sidebar-item.selected {
-    background: #ffd966;
-    box-shadow: 0 0 0 2px #ffb703 inset;
-    font-weight: 600;
+    background: var(--color-bg-active);
+    border-left: 3px solid var(--color-accent);
+    font-weight: var(--font-weight-semibold);
 }
 
 /* hover 중 선택된 상태 유지 */
 .sidebar-item.selected:hover {
-    background: #ffd966;
+    background: var(--color-bg-active);
 }
 
 .sidebar-item.selected:active {
-    transform: scale(1.03);
+    transform: none;
 }
 
 /* 캘린더 이벤트가 있는 메모 아이템 */
 .sidebar-item.has-calendar-event {
     /* borderLeft와 backgroundColor는 인라인 스타일로 적용됨 */
-    /* 추가 스타일 조정이 필요한 경우 여기에 작성 */
+    box-shadow: var(--shadow-sm);
 }
 
 /* ============================================

@@ -33,7 +33,19 @@ const Login = () => {
       navigate("/");
     } catch (err) {
       console.error("login err", err);
-      alert("로그인 실패");
+      
+      let errorMessage = "로그인 실패";
+      if (err.response?.data) {
+        if (err.response.data.message) {
+          errorMessage = err.response.data.message;
+        } else if (typeof err.response.data === 'string') {
+          errorMessage = err.response.data;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }

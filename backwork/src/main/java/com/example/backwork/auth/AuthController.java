@@ -4,6 +4,7 @@ import com.example.backwork.member.CustomUserDetails;
 import com.example.backwork.member.SessionUser;
 import com.example.backwork.member.User;
 import com.example.backwork.member.dto.UserMeResponse;
+import com.example.backwork.auth.UpdateUserRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RequiredArgsConstructor
 public class AuthController {
     //private final AuthenticationConfiguration authenticationConfiguration;
@@ -28,47 +30,58 @@ public class AuthController {
    // private final AuthenticationManager authenticationManager;
     private final AuthService authService;
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(
+    public ResponseEntity<?> login(
             @RequestBody LoginRequest request,
             HttpServletRequest httpRequest
     ) {
-        User user = authService.login(request);
+        try {
+            User user = authService.login(request);
 
-        HttpSession session = httpRequest.getSession(true);
-        session.setAttribute("LOGIN_USER",
-                new SessionUser(
-                        user.getId(),
-                        user.getUserid(),
-                        user.getAuth()
-                )
+            // auth 필드가 null인 경우 기본값 설정
+            String auth = user.getAuth();
+            if (auth == null || auth.trim().isEmpty()) {
+                auth = "USER";
+                user.setAuth(auth);
+            }
 
-                );
+            HttpSession session = httpRequest.getSession(true);
+            session.setAttribute("LOGIN_USER",
+                    new SessionUser(
+                            user.getId(),
+                            user.getUserid(),
+                            auth
+                    )
+            );
 
-
-//        ResponseCookie cookie = ResponseCookie.from("ACCESS_TOKEN", result.getAccessToken())
-//                .httpOnly(true)
-//                .path("/")
-//                .maxAge(60 * 30)
-//                .sameSite("Lax")
-//                .build();
-
-       // response.addHeader("Set-Cookie", cookie.toString());
-
-        //User user = result.getUser();
-
-        return ResponseEntity.ok(
-                new LoginResponse(
-                        user.getId(),
-                        user.getUserid(),
-                        user.getAuth()
-                       // result.getDevToken()
-                )
-        );
+            return ResponseEntity.ok(
+                    new LoginResponse(
+                            user.getId(),
+                            user.getUserid(),
+                            auth
+                    )
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400)
+                    .body(new ErrorResponse(e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500)
+                    .body(new ErrorResponse("로그인 중 오류가 발생했습니다: " + e.getMessage()));
+        }
     }
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
-        return ResponseEntity.ok(authService.singup(request));
+        try {
+            return ResponseEntity.ok(authService.singup(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400)
+                    .body(new ErrorResponse(e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500)
+                    .body(new ErrorResponse("회원가입 중 오류가 발생했습니다: " + e.getMessage()));
+        }
     }
 //    jwt 기반 구현했던것
 //    @GetMapping("/me")
@@ -99,18 +112,31 @@ public class AuthController {
             return ResponseEntity.status(401).build();
         }
 
-        SessionUser user = (SessionUser) session.getAttribute("LOGIN_USER");
-        if (user == null) {
+        SessionUser sessionUser = (SessionUser) session.getAttribute("LOGIN_USER");
+        if (sessionUser == null) {
             return ResponseEntity.status(401).build();
         }
 
-        return ResponseEntity.ok(
-                new UserMeResponse(
-                        user.getId(),
-                        user.getUserid(),
-                        user.getAuth()
-                )
-        );
+        try {
+            // 실제 User 객체를 가져와서 name과 email 포함
+            User user = authService.getUserById(sessionUser.getId());
+            if (user == null) {
+                return ResponseEntity.status(401).build();
+            }
+
+            return ResponseEntity.ok(
+                    new UserMeResponse(
+                            user.getId(),
+                            user.getUserid(),
+                            user.getAuth(),
+                            user.getName() != null ? user.getName() : "",
+                            user.getEmail() != null ? user.getEmail() : ""
+                    )
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
     }
 
     @PostMapping("/logout")
@@ -121,5 +147,13 @@ public class AuthController {
         }
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(
+            @RequestParam Long userId,
+            @RequestBody UpdateUserRequest request
+    ) {
+        return ResponseEntity.ok(authService.updateUser(userId, request));
     }
 }

@@ -113,11 +113,16 @@ export default function MainNote() {
         setCards(prevCards => {
             // 최초 1회 posts 로드가 끝나기 전에는(=hydrated 전) 복원한 cards를 지우지 않음
             // 로딩 중에도 동일하게 보호
-            // posts가 비어있을 때도 복원된 카드를 지우지 않음
-            if (!hydrated || loading || posts.length === 0) return prevCards;
+            if (!hydrated || loading) return prevCards;
 
+            // 삭제된 메모의 카드는 항상 제거 (posts가 비어있어도)
             const updatedCards = prevCards
-                .filter(card => posts.some(post => post.id === card.postId))
+                .filter(card => {
+                    // posts가 비어있으면 모든 카드 제거
+                    if (posts.length === 0) return false;
+                    // posts에 해당 postId가 있으면 유지
+                    return posts.some(post => post.id === card.postId);
+                })
                 .map(card => {
                     const post = posts.find(p => p.id === card.postId);
                     return post ? {
@@ -128,7 +133,10 @@ export default function MainNote() {
             
             // 삭제된 카드 중에 현재 선택된 메모가 있다면 선택 해제
             const deletedCardIds = prevCards
-                .filter(card => !posts.some(post => post.id === card.postId))
+                .filter(card => {
+                    if (posts.length === 0) return true;
+                    return !posts.some(post => post.id === card.postId);
+                })
                 .map(card => card.postId);
             
             if (selectedPostId && deletedCardIds.includes(selectedPostId)) {
@@ -138,7 +146,7 @@ export default function MainNote() {
             return updatedCards;
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [posts]);
+    }, [posts, hydrated, loading]);
 
     const handleSave = async () => {
         const trimmedText = text.trim();

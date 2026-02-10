@@ -2,6 +2,7 @@ package com.example.backwork.member;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDateTime;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "user")
 @Getter
+@Setter
 public class User {
     protected User() {
         // JPA용 기본 생성자
@@ -27,6 +29,9 @@ public class User {
     @Column(nullable = true, unique = false)
     private String email;
 
+    @Column(nullable = true)
+    private String name;
+
     @Column(name = "password", nullable = false)
     private String password;
 
@@ -37,10 +42,18 @@ public class User {
     private LocalDateTime createdAt;
 
     public User(String userid, @Nullable String encode) {
-
         this.userid = userid;
         this.password = encode;
         this.auth = "USER";
         this.email = null;
+        this.name = null;
+    }
+
+    public User(String userid, @Nullable String encode, @Nullable String email, @Nullable String name) {
+        this.userid = userid;
+        this.password = encode;
+        this.auth = "USER";
+        this.email = email;
+        this.name = name;
     }
 }

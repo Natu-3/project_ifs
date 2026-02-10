@@ -1,7 +1,5 @@
 import { useMemo, useState } from "react";
 import { usePosts } from "../context/PostContext";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import { useCalendar } from "../context/CalendarContext";
 import '../componentsCss/Sidebar.css';
 
@@ -52,17 +50,10 @@ const matchesKoreanQuery = (text, rawQuery) => {
     return tChoseongLower.includes(qLower);
 };
 
-export default function Sidebar() {
-    const [isOpen, setIsOpen] = useState(true);
+export default function Sidebar({ isOpen, setIsOpen }) {
     const [query, setQuery] = useState("");
-    const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId, resetPosts } = usePosts();
-    const { user , logout} = useAuth();
+    const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId } = usePosts();
     const { usedPostIds, getPostColor, deleteEventsByPostId } = useCalendar();
-    const navigate = useNavigate();
-    
-    const handleToggle = () =>{
-        setIsOpen(prev => !prev);
-    };
 
     const handleDragStart = (e, postId) => {
         e.dataTransfer.setData("postId", postId);
@@ -86,37 +77,6 @@ export default function Sidebar() {
     
     return(
         <aside className={`sidebar ${isOpen?'open':'closed'}`}>
-            <div className="sidebar-header">
-    {!user ? (
-        <h2
-            className="sidebar-title"
-            onClick={() => navigate("/login")}
-        >
-                    {user ?`${user.userid} 님 환영합니다.`: 'Login'}
-        </h2>
-    ) : (
-            <div className="sidebar-user">
-                <span className="sidebar-title">
-                    {user.userid} 님 환영합니다.
-                </span>
-                <button
-                    className="logout-btn"
-                    onClick={() => {
-                        resetPosts();
-                        logout();
-                        navigate("/login");
-                    }}
-                >
-                    로그아웃
-                </button>
-            </div>
-        )}
-        </div>
-
-            <button className="toggle-note-btn" onClick={handleToggle}>
-                {'<'}
-            </button>
-
             <div className="sidebar-search">
                 <input
                     className="sidebar-search-input"

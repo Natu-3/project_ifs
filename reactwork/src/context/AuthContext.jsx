@@ -14,16 +14,22 @@ export function AuthProvider({ children }) {
         credentials: "include",
       });
       if (!res.ok) {
+        // 401은 로그인하지 않은 상태이므로 정상적인 상황
+        if (res.status === 401) {
+          setUser(null);
+          return;
+        }
         setUser(null);
         throw new Error("unauthorized");
-       // return;
       }
       
       const data = await res.json();
       setUser(data);
     } catch(e) {
-        console.error("fetchMe Err",e);
-        
+        // 네트워크 오류나 기타 오류만 콘솔에 출력
+        if (e.message !== "unauthorized") {
+          console.error("fetchMe Err", e);
+        }
       setUser(null);
     } 
     };

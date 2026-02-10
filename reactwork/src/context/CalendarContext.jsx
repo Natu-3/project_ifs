@@ -20,12 +20,10 @@ export function CalendarProvider({ children }) {
     // 현재 활성화된 캘린더 ID (null이면 개인 캘린더, 문자열이면 팀 캘린더)
     const [activeCalendarId, setActiveCalendarId] = useState(null);
 
-    // 캘린더 이벤트 상태: { personal: {...}, 'team-1': {...}, ... }
-    const [calendarEvents, setCalendarEvents] = useState({ personal: {} });
-
     // refs
     const isInitialMount = useRef(true);
     const hydratedRef = useRef(false);
+    const migratedGuestToUserRef = useRef(false);
 
     // 로그아웃 시 강제 초기화
     const resetCalendar = () => {

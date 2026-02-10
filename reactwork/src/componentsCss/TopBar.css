@@ -1,0 +1,335 @@
+.topbar {
+    width: 100%;
+    height: 45px;
+    background-color: var(--color-bg-primary);
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--spacing-lg);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 1px 0 rgba(55, 53, 47, 0.06);
+    flex-shrink: 0;
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex: 0 0 auto;
+}
+
+/* 햄버거 버튼 */
+.topbar-hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 24px;
+    height: 18px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 10;
+    transition: all var(--transition-base);
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.topbar-hamburger:focus {
+    outline: none;
+}
+
+.topbar-hamburger:active {
+    outline: none;
+    background: transparent;
+}
+
+.hamburger-line {
+    width: 100%;
+    height: 3px;
+    background-color: var(--color-text-primary);
+    border-radius: 2px;
+    transition: all var(--transition-base);
+    transform-origin: center;
+    display: block;
+}
+
+.topbar-hamburger:hover .hamburger-line {
+    background-color: var(--color-accent);
+}
+
+.topbar-hamburger:hover {
+    transform: scale(1.1);
+}
+
+/* 햄버거 버튼 열림 상태 (X 모양) */
+.hamburger-line.open:nth-child(1) {
+    transform: translateY(7.5px) rotate(45deg);
+}
+
+.hamburger-line.open:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+}
+
+.hamburger-line.open:nth-child(3) {
+    transform: translateY(-7.5px) rotate(-45deg);
+}
+
+.topbar-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    cursor: pointer;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    transition: background-color var(--transition-base);
+}
+
+.topbar-logo:hover {
+    background-color: var(--color-bg-hover);
+}
+
+.topbar-logo-icon {
+    font-size: 20px;
+}
+
+.topbar-logo-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.topbar-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.topbar-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.topbar-nav-item {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: none;
+    background: none;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-base);
+    font-weight: var(--font-weight-medium);
+}
+
+.topbar-nav-item:hover {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-primary);
+}
+
+.topbar-nav-item.active {
+    background-color: var(--color-bg-active);
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-semibold);
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 0 0 auto;
+}
+
+.topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.topbar-user-name {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-medium);
+}
+
+.topbar-mypage-btn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    font-weight: var(--font-weight-medium);
+    position: relative;
+    overflow: hidden;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.topbar-mypage-btn:focus,
+.topbar-mypage-btn:active {
+    outline: none;
+}
+
+.topbar-mypage-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(35, 131, 226, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.topbar-mypage-btn:hover {
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-accent);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.topbar-mypage-btn:active,
+.topbar-mypage-btn.clicked {
+    transform: translateY(0) scale(0.98);
+}
+
+.topbar-mypage-btn.clicked::before {
+    width: 300px;
+    height: 300px;
+}
+
+.topbar-logout-btn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    font-weight: var(--font-weight-medium);
+    position: relative;
+    overflow: hidden;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.topbar-logout-btn:focus {
+    outline: none;
+    border-color: var(--color-border);
+}
+
+.topbar-logout-btn:active {
+    outline: none;
+}
+
+.topbar-logout-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(211, 47, 47, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.topbar-logout-btn:hover {
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.topbar-logout-btn:active,
+.topbar-logout-btn.clicked {
+    transform: translateY(0) scale(0.98);
+}
+
+.topbar-logout-btn.clicked::before {
+    width: 300px;
+    height: 300px;
+}
+
+.topbar-login-btn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    font-weight: var(--font-weight-medium);
+    position: relative;
+    overflow: hidden;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.topbar-login-btn:focus,
+.topbar-login-btn:active {
+    outline: none;
+}
+
+.topbar-login-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(35, 131, 226, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.topbar-login-btn:hover {
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.topbar-login-btn:active,
+.topbar-login-btn.clicked {
+    transform: translateY(0) scale(0.98);
+}
+
+.topbar-login-btn.clicked::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .topbar {
+        padding: 0 12px;
+    }
+    
+    .topbar-logo-text {
+        display: none;
+    }
+    
+    .topbar-nav-item {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+}
+
