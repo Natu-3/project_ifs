@@ -53,7 +53,7 @@ const matchesKoreanQuery = (text, rawQuery) => {
 export default function Sidebar({ isOpen, setIsOpen }) {
     const [query, setQuery] = useState("");
     const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId } = usePosts();
-    const { usedPostIds, getPostColor, deleteEventsByPostId } = useCalendar();
+    const { usedPostIds, getPostColor } = useCalendar();
 
     const handleDragStart = (e, postId) => {
         e.dataTransfer.setData("postId", postId);
@@ -120,10 +120,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                             className="delete-btn"
                             onClick={(e) =>{
                                 e.stopPropagation();
-                                // 메모 삭제 전에 캘린더 이벤트도 삭제
-                                if (deleteEventsByPostId) {
-                                    deleteEventsByPostId(post.id);
-                                }
+                                // 이제는 메모를 삭제해도 캘린더 일정은 유지
                                 deletePost(post.id);
                             }}
                         >✕</button>

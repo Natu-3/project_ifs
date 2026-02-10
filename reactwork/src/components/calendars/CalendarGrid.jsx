@@ -14,8 +14,27 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
 
   const days = getMonthDays(year, month);
 
-  const { events, addEvent, setEvents } = useCalendar();
+  const { events, addEvent, setEvents, getScheduleColor } = useCalendar();
   const { posts } = usePosts();
+
+  const hexToRgba = (hex, alpha) => {
+    if (!hex || typeof hex !== 'string') return null;
+    const raw = hex.replace('#', '').trim();
+    if (raw.length !== 6) return null;
+    const r = parseInt(raw.slice(0, 2), 16);
+    const g = parseInt(raw.slice(2, 4), 16);
+    const b = parseInt(raw.slice(4, 6), 16);
+    if ([r, g, b].some(n => Number.isNaN(n))) return null;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
+  const getTint = (color, alpha) => {
+    // 우리가 쓰는 팔레트는 hex지만, 혹시 다른 포맷이 와도 "안 보임"을 막기 위해 fallback 처리
+    if (typeof color === 'string' && color.startsWith('#')) {
+      return hexToRgba(color, alpha) ?? color;
+    }
+    return color;
+  };
 
   useEffect(() => {
     const fetchSchedules = async () => {
@@ -112,10 +131,7 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
       });
   };
   
-  const getEventColor = (postId) => {
-    const colors = ["#FF5733", "#33FF57", "#3357FF", "#F333FF", "#33FFF5", "#FF6B6B"];
-    return colors[postId % colors.length];
-  };
+  // 색상은 CalendarContext의 단일 규칙(getScheduleColor) 사용
 
   // 날짜 범위 선택 시작
   const handleMouseDown = (dateKey) => {
@@ -320,18 +336,21 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
             <div className="memo-content">
               {events[dateKey]?.map(ev => {
                 const rangePos = getRangePosition(dateKey, ev);
-                const eventColor = getEventColor(ev.postId);
+                // 메모에서 온 일정(postId 있음)은 메모 색상, 직접 추가한 일정은 고정 파란색
+                const baseColor = ev.postId ? getScheduleColor(ev) : "#3b82f6";
                 // 범위 이벤트는 더 진한 배경색 사용 (투명도 40%로 증가)
                 // 노란색 계열 제거하고 더 명확한 색상 사용
-                const bgColor = rangePos ? `${eventColor}66` : '#fff';
+                // 직접 추가(단일) 일정도 "하얗게" 보이지 않게 틴트를 더 올림
+                const bgColor = rangePos ? getTint(baseColor, 0.22) : getTint(baseColor, 0.18);
                 
                 return (
                   <div 
                     key={ev.id}
                     className={`calendar-event ${rangePos ? `range-${rangePos}` : ''}`}
                     style={{
-                      borderLeft: `4px solid ${eventColor}`,
+                      borderLeft: `4px solid ${baseColor}`,
                       backgroundColor: bgColor,
+                      borderColor: getTint(baseColor, 0.35),
                     }}
                     onClick={(e) =>{
                       e.stopPropagation();

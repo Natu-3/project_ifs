@@ -77,6 +77,7 @@
 }
 
 .event-line {
+  display: inline-block;
   width: 8px;
   height: 2px;
   border-radius: 2px;

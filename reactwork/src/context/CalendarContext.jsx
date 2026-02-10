@@ -145,10 +145,26 @@ export function CalendarProvider({ children }) {
         return calendarEvents.personal || {};
     };
     
-    // postId로 색상 가져오기 (캘린더 이벤트 색상과 동일)
+    const EVENT_COLORS = ["#FF5733", "#33FF57", "#3357FF", "#F333FF", "#33FFF5", "#FF6B6B"];
+
+    // postId로 색상 가져오기 (메모 드래그 일정용)
     const getEventColor = (postId) => {
-        const colors = ["#FF5733", "#33FF57", "#3357FF", "#F333FF", "#33FFF5", "#FF6B6B"];
-        return colors[postId % colors.length];
+        const n = Number(postId);
+        if (!Number.isFinite(n)) return EVENT_COLORS[0];
+        return EVENT_COLORS[Math.abs(n) % EVENT_COLORS.length];
+    };
+
+    // 일정 객체(메모/직접추가 모두)를 위한 단일 색상 규칙
+    // - memo 드래그 일정: postId 기반
+    // - 캘린더에서 직접 추가한 일정: calendarId -> id 순으로 안정적인 색상 결정
+    const getScheduleColor = (event) => {
+        if (!event) return EVENT_COLORS[0];
+        if (event.postId != null) return getEventColor(event.postId);
+
+        const seed = event.calendarId ?? event.id;
+        const n = Number(seed);
+        if (!Number.isFinite(n)) return EVENT_COLORS[0];
+        return EVENT_COLORS[Math.abs(n) % EVENT_COLORS.length];
     };
     
     // 모든 캘린더에서 사용된 postId 목록 가져오기 (사이드바 색 표시용)
@@ -376,6 +392,7 @@ export function CalendarProvider({ children }) {
             replaceRangeEvent,
             getPersonalEvents,
             getEventColor,
+            getScheduleColor,
             getUsedPostIds,
             getPostColor,
             getPostCalendarInfo,

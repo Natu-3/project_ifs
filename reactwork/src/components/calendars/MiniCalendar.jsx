@@ -4,7 +4,7 @@ import { getMonthDays } from "../../utils/calendar";
 import '../../componentsCss/calendarsCss/MiniCalendar.css'
 
 export default function MiniCalendar() {
-    const { setCurrentDate, getPersonalEvents, getEventColor } = useCalendar();
+    const { setCurrentDate, getPersonalEvents, getScheduleColor } = useCalendar();
   
     const today = new Date();
     const year = today.getFullYear();
@@ -64,8 +64,8 @@ export default function MiniCalendar() {
               {dayEvents.length > 0 &&(
                 <div className="event-lines">
                   {dayEvents.slice(0, 3).map(ev => {
-                    // postId가 있으면 해당 색상 사용, 없으면 기본 색상
-                    const eventColor = ev.postId ? getEventColor(ev.postId) : "#4CAF50";
+                    // 메모 연동 일정은 메모 색, 직접 추가 일정은 고정 파란색
+                    const eventColor = ev.postId ? getScheduleColor(ev) : "#3b82f6";
                     return (
                       <span
                         key={ev.id}
