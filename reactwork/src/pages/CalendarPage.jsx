@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useCalendar } from "../context/CalendarContext";
 import { useTeamCalendar } from "../components/TeamCalendarContext";
 import CalendarHeader from "../components/calendars/CalendarHeader";
@@ -8,11 +8,17 @@ import CalendarPopup from "../components/calendars/CalendarPopup";
 import "./CalendarPage.css"
 
 export default function CalendarPage() {
-  const { currentDate, setCurrentDate, setActiveCalendarId, initializeTeamCalendar } = useCalendar();
+  const { currentDate, setCurrentDate, setActiveCalendarId, initializeTeamCalendar, removeTeamCalendar } = useCalendar();
   const { teamId } = useParams();
-  const { teams } = useTeamCalendar();
+  const { teams, removeTeam } = useTeamCalendar();
+  const navigate = useNavigate();
 
-  const team = teams.find(t => t.id === teamId);
+  // teamId를 숫자로 변환하여 비교 (백엔드에서 Long으로 반환)
+  const teamIdNum = teamId ? Number(teamId) : null;
+  const team = teams.find(t => {
+    const tId = typeof t.id === 'string' ? Number(t.id) : t.id;
+    return tId === teamIdNum;
+  });
   const title = team ? team.name : "개인 캘린더";
   
   // 팀 캘린더 ID 설정 및 초기화
@@ -51,6 +57,29 @@ export default function CalendarPage() {
     setSelectedEvent(null);
   }
 
+  // 팀 캘린더 삭제 핸들러
+  const handleDeleteTeam = async () => {
+    if (!teamId || !team) return;
+    
+    const confirmMessage = `"${team.name}" 팀 캘린더를 삭제하시겠습니까?\n모든 일정이 삭제됩니다.`;
+    if (!window.confirm(confirmMessage)) return;
+    
+    try {
+      // teamId를 숫자로 변환 (백엔드에서 Long으로 받음)
+      const teamIdToDelete = typeof team.id === 'string' ? Number(team.id) : team.id;
+      
+      // 팀 캘린더의 이벤트도 삭제
+      removeTeamCalendar(teamId);
+      // 팀 목록에서 제거 (DB에서도 삭제)
+      await removeTeam(teamIdToDelete);
+      // 개인 캘린더로 이동
+      navigate("/calendar");
+    } catch (error) {
+      // 에러는 removeTeam에서 이미 처리됨
+      console.error("팀 삭제 실패:", error);
+    }
+  }
+
   return (
     <section className="calendar-page">
       <CalendarHeader
@@ -58,6 +87,17 @@ export default function CalendarPage() {
         onChange={setCurrentDate}
         title={title}
       />
+      {teamId && (
+        <div className="calendar-delete-wrapper">
+          <button 
+            className="calendar-delete-team-btn" 
+            onClick={handleDeleteTeam}
+            title="팀 캘린더 삭제"
+          >
+            팀 캘린더 삭제
+          </button>
+        </div>
+      )}
       <CalendarGrid
         currentDate={currentDate}
         onDateClick={openPopup}
@@ -71,7 +111,6 @@ export default function CalendarPage() {
           onClose={closePopup}
         />
       )}
-
     </section>
   );
 }

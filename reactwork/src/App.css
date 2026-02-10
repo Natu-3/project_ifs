@@ -31,3 +31,8 @@ body {
 
   border-radius: 30px;
 }
+
+/* 캘린더 페이지 레이아웃: 사이드바만 고정, 나머지 전체 공간 */
+.layout.calendar-layout {
+  grid-template-columns: auto 1fr;
+}
