@@ -77,7 +77,7 @@ export default function CalendarPanel() {
                             role="button"
                             tabIndex={0}
                         >
-                            <span className="calendar-nav-icon">📅</span>
+                            <span className="calendar-nav-icon"></span>
                             <span className="calendar-nav-label">개인 캘린더</span>
                         </div>
                         <MiniCalendar />
@@ -111,7 +111,7 @@ export default function CalendarPanel() {
                                     tabIndex={0}
                                     title={team.name}
                                 >
-                                    <span className="calendar-nav-icon">👥</span>
+                                    <span className="calendar-nav-icon"></span>
                                     <span className="calendar-nav-label">{team.name}</span>
                                 </div>
                             );

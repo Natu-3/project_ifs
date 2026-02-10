@@ -113,7 +113,7 @@
 .topbar-nav {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--spacing-xs);
 }
 
 .topbar-nav-item {
@@ -142,14 +142,14 @@
 .topbar-right {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--spacing-md);
     flex: 0 0 auto;
 }
 
 .topbar-user {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--spacing-md);
 }
 
 .topbar-user-name {

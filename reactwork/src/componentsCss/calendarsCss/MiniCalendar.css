@@ -1,15 +1,17 @@
 .mini-calendar {
     width: 100%;
     max-width: 300px;
-    background: #fff5d2;
+    background: var(--color-bg-primary);
     padding: 10px;
     border-radius: 10px;
+    border: 1px solid var(--color-border);
 }
 
 .mini-header {
     text-align: center;
     font-weight: bold;
     margin-bottom: 10px;
+    color: var(--color-text-primary);
 }
 
 .mini-grid {
@@ -22,22 +24,34 @@
     text-align: center;
     padding: 5px;
     border-radius: 4px;
+    color: var(--color-text-primary);
 }
 
-.today {
-    background-color: #ffeb3b;
+.today .day-number {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white !important;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-weight: var(--font-weight-semibold);
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .holiday {
-    color: red;
+    color: var(--color-danger);
 }
 
 .sunday {
-    color: red;
+    color: var(--color-danger);
 }
 
 .saturday {
-    color: blue;
+    color: var(--color-accent);
 }
 
 .empty {
@@ -52,6 +66,7 @@
 .day-number {
   font-size: 12px;
   text-align: center;
+  color: var(--color-text-primary);
 }
 
 .event-lines {

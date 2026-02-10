@@ -48,7 +48,7 @@
 .sidebar-list-wrapper {
     flex-grow: 1;
     overflow-y: auto;
-    padding: 8px;
+    padding: var(--spacing-md);
 }
 
 .sidebar-footer {
@@ -111,8 +111,8 @@
 /* 삭제 버튼 */
 .sidebar-item .delete-btn {
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: var(--spacing-md);
+    right: var(--spacing-md);
     /* 전역 button 스타일(index.css) 덮어쓰기 */
     padding: 0;
     border: none;
@@ -126,6 +126,13 @@
     align-items: center;
     justify-content: center;
     line-height: 1;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.sidebar-item .delete-btn:focus,
+.sidebar-item .delete-btn:active {
+    outline: none;
 }
 
 .sidebar-item .delete-btn:hover {
@@ -135,8 +142,8 @@
 /* 고정 버튼 */
 .sidebar-item .pin-btn {
     position: absolute;
-    top: 8px;
-    left: 8px;
+    top: var(--spacing-md);
+    left: var(--spacing-md);
     /* 전역 button 스타일(index.css) 덮어쓰기 */
     padding: 0;
     border: none;
@@ -151,6 +158,13 @@
     align-items: center;
     justify-content: center;
     line-height: 1;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.sidebar-item .pin-btn:focus,
+.sidebar-item .pin-btn:active {
+    outline: none;
 }
 
 .sidebar-item .pin-btn.pinned {

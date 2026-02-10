@@ -16,10 +16,10 @@
 }
 
 .calendar-content{
-  padding: 16px 14px;
+  padding: var(--spacing-lg) var(--spacing-md);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: var(--spacing-xl);
   height: 100%;
   min-height: 0;
   overflow: hidden;
@@ -31,7 +31,7 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: var(--spacing-xl);
 }
 
 .calendar-section-title{
@@ -92,7 +92,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: var(--spacing-md);
 }
 
 .calendar-add-team-btn{
@@ -125,7 +125,7 @@
 .calendar-team-list{
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--spacing-md);
 }
 
 .calendar-empty-hint{
@@ -140,8 +140,8 @@
 /* 팀 캘린더 삭제 섹션 */
 .calendar-delete-section{
   flex-shrink: 0;
-  padding-top: 16px;
-  border-top: 1px solid rgba(0,0,0,0.1);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--color-border);
   margin-top: 0;
 }
 

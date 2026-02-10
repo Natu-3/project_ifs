@@ -75,7 +75,7 @@
     font-weight: var(--font-weight-medium);
     cursor: pointer;
     transition: all var(--transition-base);
-    outline: none;
+    outline: none !important;
     -webkit-tap-highlight-color: transparent;
     position: relative;
     overflow: hidden;
@@ -86,8 +86,10 @@
 }
 
 .btn:focus,
+.btn:focus-visible,
 .btn:active {
-    outline: none;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .btn:disabled {

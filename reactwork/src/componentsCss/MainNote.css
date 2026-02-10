@@ -5,17 +5,17 @@
     background: var(--color-bg-secondary);
     min-width: 0;
     overflow: hidden;
-    padding-bottom: 20px;
+    padding-bottom: var(--spacing-xl);
 }
 
 /*메모지 담당*/
 .mainnote ul {
   list-style: none;
   padding: 0;
-  margin: 0 0 16px 0;
+  margin: 0 0 var(--spacing-lg) 0;
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: var(--spacing-md);
 }
 
 .mainnote ul li {
@@ -41,12 +41,12 @@
 
 .memo-container {
     flex-shrink: 0;
-    padding: 20px;
+    padding: var(--spacing-xl);
 
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    gap: 10px;
+    gap: var(--spacing-md);
 
     width: auto;
     min-height: 250px;
@@ -78,8 +78,8 @@
     flex: 1;
     overflow-y: auto;
     display: flex;
-    gap: 10px;
-    padding: 10px;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
     flex-wrap: wrap;
     justify-content: center;
     align-content: flex-start;
@@ -138,6 +138,12 @@
     line-height: 1;
     transition: all var(--transition-base);
     z-index: 10;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.delete-card-btn:active {
+    outline: none;
 }
 
 .delete-card-btn:hover {
@@ -157,8 +163,7 @@
 }
 
 .delete-card-btn:focus {
-    outline: 2px solid rgba(255, 0, 0, 0.5);
-    outline-offset: 2px;
+    outline: none;
 }
 
 /* 캘린더 정보 배지 */
@@ -193,7 +198,7 @@
 }
 
 .save-btn {
-    margin-right: 10px;
-    margin-bottom: 4px;
+    margin-right: var(--spacing-md);
+    margin-bottom: var(--spacing-xs);
     align-self: flex-end;
 }
