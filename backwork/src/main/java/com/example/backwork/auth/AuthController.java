@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     //private final AuthenticationConfiguration authenticationConfiguration;
 
-   // private final AuthenticationManager authenticationManager;
+    // private final AuthenticationManager authenticationManager;
     private final AuthService authService;
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
@@ -42,7 +42,7 @@ public class AuthController {
                         user.getAuth()
                 )
 
-                );
+        );
 
 
 //        ResponseCookie cookie = ResponseCookie.from("ACCESS_TOKEN", result.getAccessToken())
@@ -52,7 +52,7 @@ public class AuthController {
 //                .sameSite("Lax")
 //                .build();
 
-       // response.addHeader("Set-Cookie", cookie.toString());
+        // response.addHeader("Set-Cookie", cookie.toString());
 
         //User user = result.getUser();
 
@@ -61,7 +61,7 @@ public class AuthController {
                         user.getId(),
                         user.getUserid(),
                         user.getAuth()
-                       // result.getDevToken()
+                        // result.getDevToken()
                 )
         );
     }
