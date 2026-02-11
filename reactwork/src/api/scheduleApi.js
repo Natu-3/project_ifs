@@ -8,19 +8,19 @@ export const getMonthSchedules = (year, month) => {
 }
 
 export const createSchedule = (scheduleData) => {
-    return api.post("/schedule", scheduleData, {
+    return api.post("/schedules", scheduleData, {
         withCredentials: true,
     });
 };
 
 export const updateSchedule = (scheduleId, scheduleData) => {
-    return api.put(`/schedule/${scheduleId}`, scheduleData, {
+    return api.put(`/schedules/${scheduleId}`, scheduleData, {
         withCredentials: true,
     });
 };
 
 export const deleteSchedule = (scheduleId) => {
-    return api.delete(`/schedule/${scheduleId}`, {
+    return api.delete(`/schedules/${scheduleId}`, {
         withCredentials: true,
     });
 };

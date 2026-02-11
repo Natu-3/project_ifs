@@ -4,12 +4,14 @@ import com.example.backwork.calendar.Calendar;
 import com.example.backwork.calendar.CalendarRepository;
 import com.example.backwork.member.User;
 import com.example.backwork.member.UserRepository;
+import com.example.backwork.memo.MemoPostRepository;
 import com.example.backwork.schedule.dto.ScheduleCreateRequest;
 import com.example.backwork.schedule.dto.ScheduleUpdateRequest;
 import com.example.backwork.schedule.entity.Schedule;
 import com.example.backwork.schedule.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,6 +22,7 @@ public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
     private final CalendarRepository calendarRepository;
     private final UserRepository userRepository;
+    private final MemoPostRepository memoPostRepository;
 
     //일정 생성
     public Schedule create(Long userId, ScheduleCreateRequest request){
@@ -40,7 +43,8 @@ public class ScheduleService {
                         request.getTitle(),
                         request.getContent(),
                         request.getStartAt(),
-                        request.getEndAt()
+                        request.getEndAt(),
+                        resolveMemoId(user, request.getMemoId())
                 )
         );
     }
@@ -56,6 +60,7 @@ public class ScheduleService {
     }
 
     //일정 수정
+    @Transactional
     public Schedule update(
             Long userId,
             Long scheduleId,
@@ -67,10 +72,23 @@ public class ScheduleService {
                 request.getTitle(),
                 request.getContent(),
                 request.getStartAt(),
-                request.getEndAt()
+                request.getEndAt(),
+                resolveMemoId(userRepository.findById(userId).orElseThrow(), request.getMemoId())
         );
 
         return schedule;
+    }
+
+    // memoid 인증과정
+    private Long resolveMemoId(User user, Long memoId) {
+        if (memoId == null) {
+            return null;
+        }
+
+        memoPostRepository.findByIdAndUser(memoId, user)
+                .orElseThrow(() -> new IllegalArgumentException("본인 메모가 아닙니다."));
+
+        return memoId;
     }
 
     //일정 삭제

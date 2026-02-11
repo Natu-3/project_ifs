@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef, useMemo } from "react";
+import { createContext, useContext, useState, useEffect, useRef, useMemo,useCallback } from "react";
 import { getMonthSchedules, createSchedule, updateSchedule as updateScheduleApi, deleteSchedule as deleteScheduleApi, } from "../api/scheduleApi";
 import { useAuth } from "./AuthContext";
 import { useCalendar } from "./CalendarContext";
@@ -125,7 +125,7 @@ export function ScheduleProvider({ children }) {
     };
 
         // 월별 스케줄 조회 (서버)
-    const mapScheduleToDateEvents = (schedule) => {
+    const mapScheduleToDateEvents = useCallback((schedule) => {
         const start = new Date(schedule.startAt);
         const end = new Date(schedule.endAt || schedule.startAt);
         const dates = [];
@@ -154,13 +154,15 @@ export function ScheduleProvider({ children }) {
                 isRangeEvent: dates.length > 1,
                 rangeId: schedule.id,
                 source: "server",
+                postId: schedule.memoId ?? null,
+                priority: schedule.priority ?? null,
             },
         }));
-    };
+    }, []);
 
 
     // 월별 스케줄 조회 (서버)
-    const fetchSchedules = async (year, month) => {
+    const fetchSchedules = useCallback(async (year, month) => {
         setIsScheduleLoading(true);
         try {
             const res = await getMonthSchedules(year, month);
@@ -182,13 +184,13 @@ export function ScheduleProvider({ children }) {
         } finally {
             setIsScheduleLoading(false);
         }
-    };
+    }, [mapScheduleToDateEvents]);
 
     // 특정 년/월의 스케줄 가져오기
-    const getSchedulesForMonth = (year, month) => {
+    const getSchedulesForMonth = useCallback((year, month) => {
         const key = `${year}-${month}`;
         return serverEvents[key] || {};
-    };
+    }, [serverEvents]);
 
     // 스케줄 색상 계산
     // 중요도별 색상 (MemoCreatePopup의 PRIORITY_COLORS와 동일)
@@ -379,24 +381,26 @@ export function ScheduleProvider({ children }) {
         });
     };
 
-    const createEvent = async ({ title, content, startDate, endDate }) => {
+    const createEvent = async ({ title, content, startDate, endDate, postId = null }) => {
         const payload = {
             title,
             content,
             startAt: `${startDate}T00:00:00`,
             endAt: `${(endDate || startDate)}T23:59:59`,
+            memoId: postId,
         };
 
         const res = await createSchedule(payload);
         return res.data;
     };
 
-    const editEvent = async (scheduleId, { title, content, startDate, endDate }) => {
+    const editEvent = async (scheduleId, { title, content, startDate, endDate, postId = null }) => {
         const payload = {
             title,
             content,
             startAt: `${startDate}T00:00:00`,
             endAt: `${(endDate || startDate)}T23:59:59`,
+            memoId: postId,
         };
 
         const res = await updateScheduleApi(scheduleId, payload);

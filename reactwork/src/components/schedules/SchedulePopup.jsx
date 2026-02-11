@@ -80,9 +80,9 @@ export default function SchedulePopup({ date, event, onClose}) {
         try {
             if (activeCalendarId === null) {
                 if (isEditMode && event?.id) {
-                    await editEvent(event.id, { title, content, startDate, endDate: finalEndDate });
+                    await editEvent(event.id, { title, content, startDate, endDate: finalEndDate, postId: event?.postId || null });
                 } else {
-                    await createEvent({ title, content, startDate, endDate: finalEndDate });
+                    await createEvent({ title, content, startDate, endDate: finalEndDate, postId: event?.postId || null });
                 }
             } else if (isEditMode) {
                 // 기존 이벤트 정보 확인

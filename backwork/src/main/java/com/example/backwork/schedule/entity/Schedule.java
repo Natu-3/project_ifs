@@ -55,7 +55,8 @@ public class Schedule {
             String title,
             String content,
             LocalDateTime startAt,
-            LocalDateTime endAt
+            LocalDateTime endAt,
+            Long memoId
     ) {
         this.calendar = calendar;
         this.owner = owner;
@@ -63,6 +64,7 @@ public class Schedule {
         this.content = content;
         this.startAt = startAt;
         this.endAt = endAt;
+        this.memoId = memoId;
         this.priority = 0;
     }
 
@@ -70,12 +72,14 @@ public class Schedule {
             String title,
             String content,
             LocalDateTime startAt,
-            LocalDateTime endAt
+            LocalDateTime endAt,
+            Long memoId
     ) {
         this.title = title;
         this.content = content;
         this.startAt = startAt;
         this.endAt = endAt;
+        this.memoId = memoId;
     }
 
     @PrePersist
