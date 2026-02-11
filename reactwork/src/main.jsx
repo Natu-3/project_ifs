@@ -6,6 +6,7 @@ import App from './App.jsx'
 import { PostProvider } from './context/PostContext.jsx'
 import { BrowserRouter } from 'react-router-dom'
 import { CalendarProvider } from './context/CalendarContext.jsx'
+import { ScheduleProvider } from './context/ScheduleContext.jsx'
 import { TeamCalendarProvider } from './components/TeamCalendarContext.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { SettingsProvider } from './context/SettingsContext.jsx'
@@ -18,7 +19,9 @@ createRoot(document.getElementById('root')).render(
           <PostProvider>
             <TeamCalendarProvider>
               <CalendarProvider>
-                <App />
+                <ScheduleProvider>
+                  <App />
+                </ScheduleProvider>
               </CalendarProvider>
             </TeamCalendarProvider>
           </PostProvider>

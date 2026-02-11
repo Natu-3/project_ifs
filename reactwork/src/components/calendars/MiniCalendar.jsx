@@ -1,10 +1,12 @@
 import { getHolidayNames } from "@hyunbinseo/holidays-kr";
 import { useCalendar } from "../../context/CalendarContext";
+import { useSchedule } from "../../context/ScheduleContext";
 import { getMonthDays } from "../../utils/calendar";
 import '../../componentsCss/calendarsCss/MiniCalendar.css'
 
 export default function MiniCalendar() {
-    const { setCurrentDate, getPersonalEvents, getScheduleColor } = useCalendar();
+    const { setCurrentDate } = useCalendar();
+    const { getPersonalEvents, getScheduleColor } = useSchedule();
   
     const today = new Date();
     const year = today.getFullYear();
