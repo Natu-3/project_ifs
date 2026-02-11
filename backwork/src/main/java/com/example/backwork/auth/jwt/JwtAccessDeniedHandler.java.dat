@@ -1,3 +1,5 @@
+// jwt 기반 작성된 설정들입니다
+
 // package com.example.backwork.auth.jwt;
 
 // import jakarta.servlet.http.HttpServletRequest;

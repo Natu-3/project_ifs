@@ -1,4 +1,4 @@
-spring:
+pring:
   data:
     redis:
       host: redis

@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
     // 내 정보 불러오기 위한 메소드화
     const fetchMe = async () => {
     try {
-      const res = await fetch("/api/auth/me", {
+      const res = await fetch("http://localhost:8080/api/auth/me", {
         credentials: "include",
       });
       if (!res.ok) {

@@ -1,4 +1,4 @@
-// 인증 JWT-토큰 발급 기준으로 작업했던 파일들 보존용
+// 인증 JWT-토큰 발급 기준으로 작업했던 인증 로직들 보존
 
 // package com.example.backwork.auth;
 //
