@@ -53,7 +53,8 @@ export function PostProvider({ children }) {
                     id: memo.id,
                     title,
                     content,
-                    pinned
+                    pinned,
+                    priority: memo.priority ?? 2
                 };
             });
 
@@ -73,7 +74,7 @@ export function PostProvider({ children }) {
 
     // 메모 추가
     // 메모 추가 (빈 메모를 기본으로 생성)
-    const addPost = async (content = "", pinned = false) => {
+    const addPost = async (content = "", pinned = false, priority = 2) => {
         if (!user?.id) {
             alert("로그인이 필요합니다.");
             throw new Error("로그인이 필요합니다.");
@@ -81,14 +82,15 @@ export function PostProvider({ children }) {
         
         try {
             // user.id를 직접 전달 (로그인한 사용자의 ID)
-            const response = await createMemo(user.id, content, pinned);
+            const response = await createMemo(user.id, content, pinned, priority);
             const newMemo = response.data;
             const newContent = newMemo.content ?? content ?? "";
             const newPost = {
                 id: newMemo.id,
                 title: newContent.trim().length > 0 ? newContent.substring(0, 10) : "새 메모",
                 content: newContent,
-                pinned: newMemo.pinned ?? pinned
+                pinned: newMemo.pinned ?? pinned,
+                priority: newMemo.priority ?? priority
             };
             
             setPosts(prev => {
@@ -114,8 +116,9 @@ export function PostProvider({ children }) {
         try {
             const content = updated.content ?? "";
             const pinned = updated.pinned;
+            const priority = updated.priority;
             // user.id를 직접 전달 (로그인한 사용자의 ID)
-            await updateMemo(user.id, id, content, pinned ?? null);
+            await updateMemo(user.id, id, content, pinned ?? null, priority ?? null);
             setPosts(prev => {
                 const next = prev.map(post =>
                     post.id === id
@@ -123,7 +126,8 @@ export function PostProvider({ children }) {
                             ...post,
                             ...updated,
                             content,
-                            title: content.trim().length > 0 ? content.substring(0, 10) : "새 메모"
+                            title: content.trim().length > 0 ? content.substring(0, 10) : "새 메모",
+                            priority: updated.priority ?? post.priority ?? 2
                         }
                         : post
                 );

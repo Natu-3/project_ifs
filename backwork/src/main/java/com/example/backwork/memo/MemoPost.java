@@ -31,6 +31,9 @@ public class MemoPost {
     @Column(nullable = false)
     private Boolean visible = true;
     
+    @Column(nullable = false)
+    private Integer priority = 2; // 0: 긴급, 1: 높음, 2: 보통, 3: 낮음, 4: 없음
+    
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     

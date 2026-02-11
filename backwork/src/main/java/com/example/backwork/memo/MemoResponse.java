@@ -12,6 +12,7 @@ public class MemoResponse {
     private String title;  // content의 앞 10자
     private Boolean pinned;
     private Boolean visible;
+    private Integer priority;
     private LocalDateTime createdAt;
     
     public static MemoResponse from(MemoPost memo) {
@@ -25,6 +26,7 @@ public class MemoResponse {
             title,
             memo.getPinned(),
             memo.getVisible(),
+            memo.getPriority(),
             memo.getCreatedAt()
         );
     }

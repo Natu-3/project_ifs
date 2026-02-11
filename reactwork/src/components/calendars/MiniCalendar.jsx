@@ -1,12 +1,14 @@
 import { getHolidayNames } from "@hyunbinseo/holidays-kr";
 import { useCalendar } from "../../context/CalendarContext";
 import { useSchedule } from "../../context/ScheduleContext";
+import { usePosts } from "../../context/PostContext";
 import { getMonthDays } from "../../utils/calendar";
 import '../../componentsCss/calendarsCss/MiniCalendar.css'
 
 export default function MiniCalendar() {
     const { setCurrentDate } = useCalendar();
     const { getPersonalEvents, getScheduleColor } = useSchedule();
+    const { posts } = usePosts();
   
     const today = new Date();
     const year = today.getFullYear();
@@ -66,8 +68,8 @@ export default function MiniCalendar() {
               {dayEvents.length > 0 &&(
                 <div className="event-lines">
                   {dayEvents.slice(0, 3).map(ev => {
-                    // 메모 연동 일정은 메모 색, 직접 추가 일정은 고정 파란색
-                    const eventColor = ev.postId ? getScheduleColor(ev) : "#3b82f6";
+                    // priority를 우선 확인 (메모에서 온 일정이든 직접 추가한 일정이든)
+                    const eventColor = getScheduleColor(ev, posts);
                     return (
                       <span
                         key={ev.id}

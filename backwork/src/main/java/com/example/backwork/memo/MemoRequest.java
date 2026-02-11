@@ -11,4 +11,5 @@ public class MemoRequest {
     private String content;
     private Boolean pinned;
     private Boolean visible;
+    private Integer priority;
 }
