@@ -63,3 +63,67 @@
     box-shadow: 0 0 0 2px rgba(101, 132, 218, 0.1);
 }
 
+.priority-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.priority-selector label {
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+}
+
+.priority-options {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.priority-btn {
+    flex: 1;
+    min-width: 70px;
+    padding: 6px 12px;
+    border: 2px solid;
+    border-radius: 6px;
+    background: transparent;
+    color: #333;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    outline: none;
+}
+
+.priority-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.priority-btn:active {
+    transform: translateY(0);
+    outline: none;
+}
+
+.priority-btn.selected {
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.priority-color-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.priority-btn.selected .priority-color-dot {
+    background-color: #fff !important;
+}
+

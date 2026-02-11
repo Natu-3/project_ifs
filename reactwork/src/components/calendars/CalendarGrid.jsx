@@ -4,7 +4,7 @@ import { getMonthDays } from "../../utils/calendar";
 import { useSchedule } from "../../context/ScheduleContext";
 import { usePosts } from "../../context/PostContext";
 
-export default function CalendarGrid({ currentDate, onDateClick, onEventClick, onDateRangeSelect }) {
+export default function CalendarGrid({ currentDate, onDateClick, onEventClick, onDateRangeSelect, onDrop }) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
@@ -112,14 +112,28 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
       const post = posts.find((p) => p.id === postId);
       if (!post) return;
 
-      addEvent(dateKey, {
-        id: Date.now(),
-        postId: post.id,
-        title: post.title,
-        content : post.content || "",
-        date: dateKey,
-        dateKey: dateKey,
-      });
+      // 드롭 시 팝업 열기 (부모 컴포넌트로 전달)
+      if (onDrop) {
+        onDrop(dateKey, {
+          postId: post.id,
+          title: post.title,
+          content: post.content || "",
+          priority: post.priority ?? 2,
+          date: dateKey,
+          dateKey: dateKey,
+        });
+      } else {
+        // fallback: 기존 방식 (즉시 추가)
+        addEvent(dateKey, {
+          id: Date.now(),
+          postId: post.id,
+          title: post.title,
+          content : post.content || "",
+          priority: post.priority ?? 2,
+          date: dateKey,
+          dateKey: dateKey,
+        });
+      }
   };
   
   // 색상은 CalendarContext의 단일 규칙(getScheduleColor) 사용
@@ -327,8 +341,8 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
             <div className="memo-content">
               {events[dateKey]?.map(ev => {
                 const rangePos = getRangePosition(dateKey, ev);
-                // 메모에서 온 일정(postId 있음)은 메모 색상, 직접 추가한 일정은 고정 파란색
-                const baseColor = ev.postId ? getScheduleColor(ev) : "#3b82f6";
+                // priority를 우선 확인 (메모에서 온 일정이든 직접 추가한 일정이든)
+                const baseColor = getScheduleColor(ev, posts);
                 // 범위 이벤트는 더 진한 배경색 사용 (투명도 40%로 증가)
                 // 노란색 계열 제거하고 더 명확한 색상 사용
                 // 직접 추가(단일) 일정도 "하얗게" 보이지 않게 틴트를 더 올림
