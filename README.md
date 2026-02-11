@@ -39,6 +39,24 @@ CI에서 Docker 이미지를 푸시할 때 아래 2개 태그를 동시에 입�
 - `docker compose logs -f backend`
 - `docker compose down -v` (초기화가 필요할 때 DB 볼륨까지 삭제)
 
+
+환경 변수로 DB 이름/비밀번호를 바꾸고 싶다면 실행 전에 지정할 수 있습니다.
+
+- `DB_NAME` (기본값: `ifscm`)
+- `DB_PASSWORD` (기본값: `1234`)
+
+예시:
+- `DB_NAME=mydb DB_PASSWORD=secret docker compose up --build -d`
+
+> 이미 생성된 `db_data` 볼륨에는 이전 스키마가 남아 있으므로, 스키마 불일치(예: `Table ... doesn't exist`)가 나면 `docker compose down -v` 후 다시 올리세요.
+
+
+
+
+
+
+
+
 구성 서비스:
 - `db`: MySQL 8.0 (`db_data` 볼륨에 데이터 영속화)
 - `backend`: `backwork` 이미지 빌드/실행, DB 연결 환경변수 사용
