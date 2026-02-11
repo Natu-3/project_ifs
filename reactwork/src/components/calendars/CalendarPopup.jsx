@@ -54,7 +54,7 @@ export default function CalendarPopup({ date, event, onClose}) {
     };
 
     //저장
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!title.trim()) return;
         if (!startDate) return;
 
@@ -88,12 +88,13 @@ export default function CalendarPopup({ date, event, onClose}) {
             
             // 기존 이벤트 삭제 및 새 이벤트 추가 (원자적 연산)
             // oldRangeId가 있으면 rangeId로 삭제, 없으면 postId로 삭제
-            replaceRangeEvent(oldRangeId, newEvents, oldPostId);
+            await replaceRangeEvent(oldRangeId, newEvents, oldPostId);
         } else {
             const rangeId = Date.now();
             // 날짜 범위의 각 날짜에 이벤트 추가
-            dateRange.forEach(dateKey => {
-                addEvent(dateKey, {
+            const newEvents = dateRange.map(dateKey => ({
+                dateKey,
+                event: {
                     id: rangeId + Math.random(), // 고유 ID
                     title,
                     content,
@@ -104,17 +105,19 @@ export default function CalendarPopup({ date, event, onClose}) {
                     endDate: finalEndDate,
                     isRangeEvent: true,
                     rangeId: rangeId, // 같은 범위 이벤트를 묶는 ID
-                });
-            });
+                },
+            }));
+            
+            await replaceRangeEvent(null, newEvents);
         }
         onClose();
     };
 
     //삭제
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (!isEditMode) return;
 
-        deleteEvent(event.dateKey, event.id);
+        await deleteEvent(event.dateKey, event.id);
         onClose();
     };
 

@@ -4,6 +4,7 @@ import { getMonthDays } from "../../utils/calendar";
 import { useCalendar } from "../../context/CalendarContext";
 import { usePosts } from "../../context/PostContext";
 import { getMonthSchedules } from "../../api/scheduleApi";
+import { createSchedule } from "../../api/scheduleApi";
 
 export default function CalendarGrid({ currentDate, onDateClick, onEventClick, onDateRangeSelect }) {
   const year = currentDate.getFullYear();
@@ -43,8 +44,10 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
 
         const mappedEvents = {};
 
-        res.data.forEach(s => {
-          const dateKey = s. startAt.slice(0,10);
+        (res.data || []).forEach(s => {
+          if(!s.startAt) return;
+
+          const dateKey = s.startAt.slice(0,10);
 
           if(!mappedEvents[dateKey]) {
             mappedEvents[dateKey] = [];
@@ -112,23 +115,43 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
     }
   }, [isSelectingRange, onDateRangeSelect]);
 
-  const handleDrop = (e, dateKey) => {
-      e.preventDefault();
+  const handleDrop = async (e, dateKey) => {
+    e.preventDefault();
 
-      const postId = Number(e.dataTransfer.getData("postId"));
-      if (!postId) return;
+    const postId = Number(e.dataTransfer.getData("postId"));
+    if (!postId) return;
 
-      const post = posts.find((p) => p.id === postId);
-      if (!post) return;
+    const post = posts.find((p) => p.id === postId);
+    if (!post) return;
 
+    try {
+      // 먼저 DB에 저장
+      const scheduleData = {
+        title: post.title || "제목 없음",
+        content: post.content || "",
+        startAt: `${dateKey}T00:00:00`,
+        endAt: `${dateKey}T23:59:59`,
+      };
+
+      const response = await createSchedule(scheduleData);
+      
+      // DB 저장 성공 후 로컬 상태 업데이트 (DB의 ID 사용)
       addEvent(dateKey, {
-        id: Date.now(),
+        id: response.data.id,
         postId: post.id,
         title: post.title,
-        content : post.content || "",
+        content: post.content || "",
         date: dateKey,
         dateKey: dateKey,
+        startAt: response.data.startAt,
+        endAt: response.data.endAt,
       });
+
+      console.log("일정 저장 성공:", response.data);
+    } catch (error) {
+      console.error("일정 저장 실패:", error);
+      alert("일정 저장에 실패했습니다.");
+    }
   };
   
   // 색상은 CalendarContext의 단일 규칙(getScheduleColor) 사용
