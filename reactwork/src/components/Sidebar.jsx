@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { usePosts } from "../context/PostContext";
-import { useCalendar } from "../context/CalendarContext";
+import { useSchedule } from "../context/ScheduleContext";
+import MemoCreatePopup from "./memos/MemoCreatePopup";
 import '../componentsCss/Sidebar.css';
 
 const CHOSEONG = [
@@ -53,15 +54,47 @@ const matchesKoreanQuery = (text, rawQuery) => {
 export default function Sidebar({ isOpen, setIsOpen }) {
     const [query, setQuery] = useState("");
     const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId } = usePosts();
-    const { usedPostIds, getPostColor } = useCalendar();
+    const { getUsedPostIds, getScheduleColor } = useSchedule();
+    const usedPostIds = getUsedPostIds();
+    
+    // 중요도 색상 정의 (MemoCreatePopup과 동일)
+    const PRIORITY_COLORS = {
+        0: "#FF3B30",   // 긴급 - 빨간색
+        1: "#FF9500",   // 높음 - 주황색
+        2: "#2383e2",   // 보통 - 파란색
+        3: "#4CAF50",   // 낮음 - 초록색
+        4: "#8E8E93"    // 없음 - 회색
+    };
+    
+    // 메모의 priority를 기반으로 색상 반환
+    const getPostColor = (postId) => {
+        if (!postId || !posts || posts.length === 0) return null;
+        try {
+            const post = posts.find(p => p.id === postId);
+            if (!post) return null;
+            
+            // 메모의 priority가 있으면 해당 색상 반환
+            if (post.priority !== null && post.priority !== undefined) {
+                return PRIORITY_COLORS[post.priority] || PRIORITY_COLORS[2];
+            }
+            
+            // priority가 없으면 null 반환 (색상 표시 안 함)
+            return null;
+        } catch (error) {
+            console.error("getPostColor error:", error);
+            return null;
+        }
+    };
 
     const handleDragStart = (e, postId) => {
         e.dataTransfer.setData("postId", postId);
     };
 
+    const [showCreatePopup, setShowCreatePopup] = useState(false);
+
     const handleAddnewPost = () => {
-        // 빈 메모 생성 (즉시 선택)
-        addPost("").then((newId) => setSelectedPostId(newId));
+        // 메모 생성 팝업 열기
+        setShowCreatePopup(true);
     };
 
     const filteredPosts = useMemo(() => {
@@ -89,7 +122,8 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             <ul className="sidebar-list">
                 {filteredPosts.map(post => {
                     const hasCalendarEvent = usedPostIds.has(post.id);
-                    const eventColor = hasCalendarEvent ? getPostColor(post.id) : null;
+                    // 메모의 priority 색상 가져오기 (캘린더 추가 여부와 관계없이)
+                    const priorityColor = getPostColor(post.id);
                     
                     return (
                     <li
@@ -98,9 +132,9 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                         draggable
                         onDragStart={(e) => handleDragStart(e, post.id)}
                         onClick={()=>setSelectedPostId(post.id)}
-                        style={hasCalendarEvent && eventColor ? {
-                            borderLeft: `4px solid ${eventColor}`,
-                            backgroundColor: `${eventColor}15`
+                        style={priorityColor ? {
+                            borderLeft: `4px solid ${priorityColor}`,
+                            backgroundColor: `${priorityColor}15`
                         } : {}}
                     >
                         <button
@@ -134,6 +168,14 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                     +
                 </button>
             </div>
+            {showCreatePopup && (
+                <MemoCreatePopup
+                    onClose={() => setShowCreatePopup(false)}
+                    onSuccess={(newId) => {
+                        if (newId) setSelectedPostId(newId);
+                    }}
+                />
+            )}
         </aside>
     )
 }

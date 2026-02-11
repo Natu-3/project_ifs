@@ -11,25 +11,28 @@ export const getMemos = (userId) => {
 };
 
 // 메모 생성
-export const createMemo = (userId, content, pinned = false) => {
+export const createMemo = (userId, content, pinned = false, priority = 2) => {
   if (!userId) {
     return Promise.reject(new Error("로그인이 필요합니다."));
   }
   return axios.post(
     `/api/memos?userId=${userId}`,
-    { content, pinned, visible: true },
+    { content, pinned, visible: true, priority },
     { withCredentials: true }
   );
 };
 
 // 메모 수정
-export const updateMemo = (userId, id, content, pinned = null) => {
+export const updateMemo = (userId, id, content, pinned = null, priority = null) => {
   if (!userId) {
     return Promise.reject(new Error("로그인이 필요합니다."));
   }
   const body = { content };
   if (pinned !== null) {
     body.pinned = pinned;
+  }
+  if (priority !== null) {
+    body.priority = priority;
   }
   return axios.put(
     `/api/memos/${id}?userId=${userId}`,

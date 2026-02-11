@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCalendar } from "../context/CalendarContext";
+import { useSchedule } from "../context/ScheduleContext";
 import { useTeamCalendar } from "../components/TeamCalendarContext";
 import CalendarHeader from "../components/calendars/CalendarHeader";
 import CalendarGrid from "../components/calendars/CalendarGrid";
-import CalendarPopup from "../components/calendars/CalendarPopup";
+import SchedulePopup from "../components/schedules/SchedulePopup";
 import "./CalendarPage.css"
 
 export default function CalendarPage() {
-  const { currentDate, setCurrentDate, setActiveCalendarId, initializeTeamCalendar, removeTeamCalendar } = useCalendar();
+  const { currentDate, setCurrentDate, setActiveCalendarId } = useCalendar();
+  const { initializeTeamCalendar, removeTeamCalendar } = useSchedule();
   const { teamId } = useParams();
   const { teams, removeTeam } = useTeamCalendar();
   const navigate = useNavigate();
@@ -47,6 +49,13 @@ export default function CalendarPage() {
   const handleDateRangeSelect = (startDate, endDate) => {
     setSelectedDate(startDate);
     setSelectedEvent({ startDate, endDate }); // 범위 정보 전달
+    setPopupOpen(true);
+  }
+
+  // 드래그 앤 드롭 핸들러
+  const handleDrop = (dateKey, eventData) => {
+    setSelectedDate(dateKey);
+    setSelectedEvent(eventData);
     setPopupOpen(true);
   }
 
@@ -103,9 +112,10 @@ export default function CalendarPage() {
         onDateClick={openPopup}
         onEventClick={openPopup}
         onDateRangeSelect={handleDateRangeSelect}
+        onDrop={handleDrop}
       />
       {popupOpen && (
-        <CalendarPopup
+        <SchedulePopup
           date={selectedDate}
           event={selectedEvent}
           onClose={closePopup}

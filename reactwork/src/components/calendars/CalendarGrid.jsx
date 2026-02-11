@@ -1,12 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { getHolidayNames } from "@hyunbinseo/holidays-kr";
 import { getMonthDays } from "../../utils/calendar";
-import { useCalendar } from "../../context/CalendarContext";
+import { useSchedule } from "../../context/ScheduleContext";
 import { usePosts } from "../../context/PostContext";
 import { getMonthSchedules } from "../../api/scheduleApi";
-import { createSchedule } from "../../api/scheduleApi";
 
-export default function CalendarGrid({ currentDate, onDateClick, onEventClick, onDateRangeSelect }) {
+export default function CalendarGrid({ currentDate, onDateClick, onEventClick, onDateRangeSelect, onDrop }) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
@@ -15,7 +14,7 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
 
   const days = getMonthDays(year, month);
 
-  const { events, addEvent, setEvents, getScheduleColor } = useCalendar();
+  const { events, addEvent, setEvents, fetchSchedules, getSchedulesForMonth, getScheduleColor } = useSchedule();
   const { posts } = usePosts();
 
   const hexToRgba = (hex, alpha) => {
@@ -37,6 +36,7 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
     return color;
   };
 
+  // 스케줄 조회 (서버에서 가져온 스케줄과 로컬 이벤트 병합)
   useEffect(() => {
     const fetchSchedules = async () => {
       try{
@@ -44,10 +44,8 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
 
         const mappedEvents = {};
 
-        (res.data || []).forEach(s => {
-          if(!s.startAt) return;
-
-          const dateKey = s.startAt.slice(0,10);
+        res.data.forEach(s => {
+          const dateKey = s. startAt.slice(0,10);
 
           if(!mappedEvents[dateKey]) {
             mappedEvents[dateKey] = [];
@@ -68,9 +66,7 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
         console.error("월 스캐줄 조회 실패", e);
       }
     }
-
-    fetchSchedules();
-  },[year, month, setEvents]);
+  }, [year, month, getSchedulesForMonth, setEvents]);
   
   // 날짜 범위 선택 상태
   const [isSelectingRange, setIsSelectingRange] = useState(false);
@@ -124,34 +120,14 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
     const post = posts.find((p) => p.id === postId);
     if (!post) return;
 
-    try {
-      // 먼저 DB에 저장
-      const scheduleData = {
-        title: post.title || "제목 없음",
-        content: post.content || "",
-        startAt: `${dateKey}T00:00:00`,
-        endAt: `${dateKey}T23:59:59`,
-      };
-
-      const response = await createSchedule(scheduleData);
-      
-      // DB 저장 성공 후 로컬 상태 업데이트 (DB의 ID 사용)
       addEvent(dateKey, {
-        id: response.data.id,
+        id: Date.now(),
         postId: post.id,
         title: post.title,
-        content: post.content || "",
+        content : post.content || "",
         date: dateKey,
         dateKey: dateKey,
-        startAt: response.data.startAt,
-        endAt: response.data.endAt,
       });
-
-      console.log("일정 저장 성공:", response.data);
-    } catch (error) {
-      console.error("일정 저장 실패:", error);
-      alert("일정 저장에 실패했습니다.");
-    }
   };
   
   // 색상은 CalendarContext의 단일 규칙(getScheduleColor) 사용
@@ -359,8 +335,8 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
             <div className="memo-content">
               {events[dateKey]?.map(ev => {
                 const rangePos = getRangePosition(dateKey, ev);
-                // 메모에서 온 일정(postId 있음)은 메모 색상, 직접 추가한 일정은 고정 파란색
-                const baseColor = ev.postId ? getScheduleColor(ev) : "#3b82f6";
+                // priority를 우선 확인 (메모에서 온 일정이든 직접 추가한 일정이든)
+                const baseColor = getScheduleColor(ev, posts);
                 // 범위 이벤트는 더 진한 배경색 사용 (투명도 40%로 증가)
                 // 노란색 계열 제거하고 더 명확한 색상 사용
                 // 직접 추가(단일) 일정도 "하얗게" 보이지 않게 틴트를 더 올림

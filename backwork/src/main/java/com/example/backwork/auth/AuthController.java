@@ -25,9 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RequiredArgsConstructor
 public class AuthController {
-    //private final AuthenticationConfiguration authenticationConfiguration;
-
-    // private final AuthenticationManager authenticationManager;
+    
     private final AuthService authService;
     @PostMapping("/login")
     public ResponseEntity<?> login(
