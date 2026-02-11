@@ -9,7 +9,7 @@ import Login from "./pages/Login";
 import Signup from './pages/Signup'
 import CalendarPage from './pages/CalendarPage'
 import MyPage from './pages/MyPage'
-
+import ProtectedRoute from './routes/ProtectedRoute'
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 

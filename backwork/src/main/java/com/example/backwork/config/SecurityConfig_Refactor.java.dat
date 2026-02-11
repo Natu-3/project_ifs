@@ -1,5 +1,10 @@
 //package com.example.backwork.config;
-//
+
+
+//jwt 관련 세팅들 보존용
+
+
+
 //import com.example.backwork.auth.jwt.JwtAccessDeniedHandler;
 //import com.example.backwork.auth.jwt.JwtAuthFilter;
 //import com.example.backwork.auth.jwt.JwtAuthenticationEntryPoint;
