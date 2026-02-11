@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { usePosts } from '../context/PostContext'
 import { useAuth } from '../context/AuthContext'
-import { useCalendar } from '../context/CalendarContext'
+import { useSchedule } from '../context/ScheduleContext'
 import { useTeamCalendar } from '../components/TeamCalendarContext'
 import '../componentsCss/MainNote.css'
 
 export default function MainNote() {
     const { posts, loading, hydrated, selectedPost, selectedPostId, updatePost, addPost, setSelectedPostId } = usePosts();
     const { user } = useAuth();
-    const { getPostCalendarInfo } = useCalendar();
+    const { getPostCalendarInfo } = useSchedule();
     const teamCalendar = useTeamCalendar();
     const teams = teamCalendar?.teams || [];
 

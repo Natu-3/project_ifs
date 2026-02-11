@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCalendar } from "../context/CalendarContext";
+import { useSchedule } from "../context/ScheduleContext";
 import { useTeamCalendar } from "../components/TeamCalendarContext";
 import CalendarHeader from "../components/calendars/CalendarHeader";
 import CalendarGrid from "../components/calendars/CalendarGrid";
-import CalendarPopup from "../components/calendars/CalendarPopup";
+import SchedulePopup from "../components/schedules/SchedulePopup";
 import "./CalendarPage.css"
 
 export default function CalendarPage() {
-  const { currentDate, setCurrentDate, setActiveCalendarId, initializeTeamCalendar, removeTeamCalendar } = useCalendar();
+  const { currentDate, setCurrentDate, setActiveCalendarId } = useCalendar();
+  const { initializeTeamCalendar, removeTeamCalendar } = useSchedule();
   const { teamId } = useParams();
   const { teams, removeTeam } = useTeamCalendar();
   const navigate = useNavigate();
@@ -105,7 +107,7 @@ export default function CalendarPage() {
         onDateRangeSelect={handleDateRangeSelect}
       />
       {popupOpen && (
-        <CalendarPopup
+        <SchedulePopup
           date={selectedDate}
           event={selectedEvent}
           onClose={closePopup}

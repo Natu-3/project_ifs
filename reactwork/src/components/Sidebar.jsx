@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { usePosts } from "../context/PostContext";
-import { useCalendar } from "../context/CalendarContext";
+import { useSchedule } from "../context/ScheduleContext";
 import '../componentsCss/Sidebar.css';
 
 const CHOSEONG = [
@@ -53,7 +53,14 @@ const matchesKoreanQuery = (text, rawQuery) => {
 export default function Sidebar({ isOpen, setIsOpen }) {
     const [query, setQuery] = useState("");
     const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId } = usePosts();
-    const { usedPostIds, getPostColor } = useCalendar();
+    const { getUsedPostIds, getEventColor } = useSchedule();
+    const usedPostIds = getUsedPostIds();
+    
+    // getPostColor는 getEventColor로 대체
+    const getPostColor = (postId) => {
+        if (!postId) return null;
+        return getEventColor(postId);
+    };
 
     const handleDragStart = (e, postId) => {
         e.dataTransfer.setData("postId", postId);

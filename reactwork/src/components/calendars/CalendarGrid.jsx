@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { getHolidayNames } from "@hyunbinseo/holidays-kr";
 import { getMonthDays } from "../../utils/calendar";
-import { useCalendar } from "../../context/CalendarContext";
+import { useSchedule } from "../../context/ScheduleContext";
 import { usePosts } from "../../context/PostContext";
-import { getMonthSchedules } from "../../api/scheduleApi";
 
 export default function CalendarGrid({ currentDate, onDateClick, onEventClick, onDateRangeSelect }) {
   const year = currentDate.getFullYear();
@@ -14,7 +13,7 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
 
   const days = getMonthDays(year, month);
 
-  const { events, addEvent, setEvents, getScheduleColor } = useCalendar();
+  const { events, addEvent, setEvents, fetchSchedules, getSchedulesForMonth, getScheduleColor } = useSchedule();
   const { posts } = usePosts();
 
   const hexToRgba = (hex, alpha) => {
@@ -36,38 +35,30 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
     return color;
   };
 
+  // 스케줄 조회 (서버에서 가져온 스케줄과 로컬 이벤트 병합)
   useEffect(() => {
-    const fetchSchedules = async () => {
-      try{
-        const res = await getMonthSchedules(year, month +1);
+    fetchSchedules(year, month + 1);
+  }, [year, month, fetchSchedules]);
 
-        const mappedEvents = {};
-
-        res.data.forEach(s => {
-          const dateKey = s. startAt.slice(0,10);
-
-          if(!mappedEvents[dateKey]) {
-            mappedEvents[dateKey] = [];
+  // 서버 스케줄을 로컬 events에 병합
+  useEffect(() => {
+    const serverSchedules = getSchedulesForMonth(year, month + 1);
+    if (Object.keys(serverSchedules).length > 0) {
+      setEvents(prev => {
+        const merged = { ...prev };
+        Object.keys(serverSchedules).forEach(dateKey => {
+          if (!merged[dateKey]) {
+            merged[dateKey] = [];
           }
-
-          mappedEvents[dateKey].push({
-            id: s.id,
-            title: s.title,
-            content: s.content,
-            startAt: s.startAt,
-            endAt: s.endAt,
-            ownerId: s.ownerId,
-            calendarId: s.calendarId,
-          });
+          // 서버 스케줄과 로컬 이벤트 병합 (중복 제거)
+          const serverIds = new Set(serverSchedules[dateKey].map(s => s.id));
+          const localEvents = (prev[dateKey] || []).filter(e => !serverIds.has(e.id));
+          merged[dateKey] = [...serverSchedules[dateKey], ...localEvents];
         });
-        setEvents(mappedEvents);
-      } catch (e) {
-        console.error("월 스캐줄 조회 실패", e);
-      }
+        return merged;
+      });
     }
-
-    fetchSchedules();
-  },[year, month, setEvents]);
+  }, [year, month, getSchedulesForMonth, setEvents]);
   
   // 날짜 범위 선택 상태
   const [isSelectingRange, setIsSelectingRange] = useState(false);

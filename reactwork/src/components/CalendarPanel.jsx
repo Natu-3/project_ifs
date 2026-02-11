@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import MiniCalendar from "./calendars/MiniCalendar";
 import { useTeamCalendar } from "./TeamCalendarContext";
-import { useCalendar } from "../context/CalendarContext";
+import { useSchedule } from "../context/ScheduleContext";
 import { useAuth } from "../context/AuthContext";
 import { useEffect } from "react";
 import '../componentsCss/CalendarPanel.css'
@@ -10,7 +10,7 @@ export default function CalendarPanel() {
     const navigate = useNavigate();
     const location = useLocation();
     const { teams, addTeam, removeTeam } = useTeamCalendar();
-    const { initializeTeamCalendar, removeTeamCalendar } = useCalendar();
+    const { initializeTeamCalendar, removeTeamCalendar } = useSchedule();
 
     const createTeam = async () => {
         const name = prompt("팀 이름을 입력하세요:");
