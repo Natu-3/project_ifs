@@ -9,11 +9,11 @@ export function ScheduleProvider({ children }) {
     const { user } = useAuth();
     const { activeCalendarId } = useCalendar();
     
-    // localStorage 키 생성
-    const getStorageKey = (userId = null) => {
-        const id = userId || user?.id || localStorage.getItem('userId') || 'guest';
-        return `calendar_events:${id}`;
-    };
+    // // localStorage 키 생성
+    // const getStorageKey = (userId = null) => {
+    //     const id = userId || user?.id || localStorage.getItem('userId') || 'guest';
+    //     return `calendar_events:${id}`;
+    // };
     
     // 캘린더별 일정 저장: { personal: {...}, 'team-1': {...}, 'team-2': {...} }
     const [calendarEvents, setCalendarEvents] = useState({ personal: {} });
@@ -37,7 +37,7 @@ export function ScheduleProvider({ children }) {
 
         // 로그인 → localStorage 복원
         try {
-            const userId = user?.id || localStorage.getItem('userId');
+            const userId = user?.id; //|| localStorage.getItem('userId');
             const userStorageKey = userId ? `calendar_events:${userId}` : null;
             const guestStorageKey = 'calendar_events:guest';
             
@@ -103,7 +103,7 @@ export function ScheduleProvider({ children }) {
         if (!hydratedRef.current) return;
 
         try {
-            const userId = user?.id || localStorage.getItem('userId') || 'guest';
+            const userId = user?.id || 'guest';
             const storageKey = `calendar_events:${userId}`;
             const dataToSave = JSON.stringify(calendarEvents);
             localStorage.setItem(storageKey, dataToSave);

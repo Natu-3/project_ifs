@@ -47,6 +47,7 @@ CREATE TABLE memopost (
     content TEXT NOT NULL,
     pinned BOOLEAN DEFAULT FALSE,
     visible BOOLEAN DEFAULT TRUE,
+    priority INT NOT NULL DEFAULT 2,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_memo_user
@@ -137,3 +138,9 @@ INSERT INTO calendar (name, type, owner_id)
 VALUES
   ('개인 캘린더', 'PERSONAL', 1),
   ('개인 캘린더', 'PERSONAL', 2);
+
+
+
+
+ALTER TABLE `memopost`
+ADD COLUMN `priority` INT NOT NULL DEFAULT 2 AFTER `visible`;

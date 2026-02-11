@@ -1,14 +1,15 @@
-import { createContext, use, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import {logout as logoutApi } from "../api/auth";
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
-    // const [loading, setLoading] = useState(true);
+    const [isAuthLoading, setIsAuthLoading] = useState(true);
 
 
     // 내 정보 불러오기 위한 메소드화
     const fetchMe = async () => {
+       setIsAuthLoading(true);
     try {
       const res = await fetch("/api/auth/me", {
         credentials: "include",
@@ -32,6 +33,8 @@ export function AuthProvider({ children }) {
           console.error("fetchMe Err", e);
         }
       setUser(null);
+     } finally {
+      setIsAuthLoading(false);
     } 
     };
 
@@ -54,7 +57,7 @@ export function AuthProvider({ children }) {
    
 
     return (
-        <AuthContext.Provider value={{ user, fetchMe, logout }}>
+        <AuthContext.Provider value={{ user, fetchMe, logout, isAuthLoading }}>
       {children}
     </AuthContext.Provider>
     );
