@@ -1,22 +1,23 @@
-version: "3.8"
+# version: "3.8"
 
-services:
-  app:
-    build: .
-    ports:
-      - "8080:8080"
-    depends_on:
-      - mysql
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/backwork
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 1234
+# services:
+#   app:
+#     build: .
+#     ports:
+#       - "${APP_PORT:-8081}:8080" #8080 점유중일 경우 8081로 변환용
+#     depends_on:
+#       - mysql
+#     environment:
+#       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/backwork
+#       SPRING_DATASOURCE_USERNAME: root
+#       SPRING_DATASOURCE_PASSWORD: 1234
 
-  mysql:
-    image: mysql:8
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: 1234
-      MYSQL_DATABASE: backwork
-    ports:
-      - "3306:3306"
+#   mysql:
+#     image: mysql:8
+#     restart: always
+#     environment:
+#       MYSQL_ROOT_PASSWORD: 1234
+#       MYSQL_DATABASE: backwork
+
+#   ports:
+#     -  "${MYSQL_PORT:-3307}:3306"

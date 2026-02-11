@@ -11,4 +11,5 @@ public class ScheduleCreateRequest {
     private LocalDateTime startAt;
     private LocalDateTime endAt;
     private Long memoId;
+    private Integer priority;
 }

@@ -44,7 +44,8 @@ public class ScheduleService {
                         request.getContent(),
                         request.getStartAt(),
                         request.getEndAt(),
-                        resolveMemoId(user, request.getMemoId())
+                        resolveMemoId(user, request.getMemoId()),
+                        resolvePriority(request.getPriority())
                 )
         );
     }
@@ -73,11 +74,27 @@ public class ScheduleService {
                 request.getContent(),
                 request.getStartAt(),
                 request.getEndAt(),
-                resolveMemoId(userRepository.findById(userId).orElseThrow(), request.getMemoId())
+                resolveMemoId(userRepository.findById(userId).orElseThrow(), request.getMemoId()),
+                resolvePriority(request.getPriority())
         );
 
         return schedule;
     }
+
+    // 메모 우선순위
+    private Integer resolvePriority(Integer priority) {
+        if (priority == null) {
+            return 2;
+        }
+
+        if (priority < 0 || priority > 4) {
+            throw new IllegalArgumentException("priority 범위는 0~4 입니다.");
+        }
+
+        return priority;
+    }
+
+
 
     // memoid 인증과정
     private Long resolveMemoId(User user, Long memoId) {

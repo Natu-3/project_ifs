@@ -35,6 +35,23 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
     return color;
   };
 
+  const sortByPriorityAndTime = (a, b) => {
+    // 시간과 우선순위 기반으로 전부 저장
+    const ap = Number.isFinite(Number(a?.priority)) ? Number(a.priority) : 2;
+    const bp = Number.isFinite(Number(b?.priority)) ? Number(b.priority) : 2;
+    if (ap !== bp) return ap - bp;
+
+    const as = a?.startAt || `${a?.dateKey || ''}T00:00:00`;
+    const bs = b?.startAt || `${b?.dateKey || ''}T00:00:00`;
+    return String(as).localeCompare(String(bs));
+  };
+
+
+
+
+
+
+
   // 스케줄 조회 (서버에서 가져온 스케줄과 로컬 이벤트 병합)
   useEffect(() => {
     fetchSchedules(year, month + 1);
@@ -314,7 +331,7 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
               {isHoliday && <span className="holiday-name">{holidayNames[0]}</span>}
             </div>
             <div className="memo-content">
-              {mergedEvents[dateKey]?.map(ev => {
+              {[...(mergedEvents[dateKey] || [])].sort(sortByPriorityAndTime).map(ev => {
                 const rangePos = getRangePosition(dateKey, ev);
                 // priority를 우선 확인 (메모에서 온 일정이든 직접 추가한 일정이든)
                 const baseColor = getScheduleColor(ev, posts);

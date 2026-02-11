@@ -381,26 +381,28 @@ export function ScheduleProvider({ children }) {
         });
     };
 
-    const createEvent = async ({ title, content, startDate, endDate, postId = null }) => {
+    const createEvent = async ({ title, content, startDate, endDate, postId = null, priority = 2 }) => {
         const payload = {
             title,
             content,
             startAt: `${startDate}T00:00:00`,
             endAt: `${(endDate || startDate)}T23:59:59`,
             memoId: postId,
+            priority,
         };
 
         const res = await createSchedule(payload);
         return res.data;
     };
 
-    const editEvent = async (scheduleId, { title, content, startDate, endDate, postId = null }) => {
+    const editEvent = async (scheduleId, { title, content, startDate, endDate, postId = null, priority = 2 }) => {
         const payload = {
             title,
             content,
             startAt: `${startDate}T00:00:00`,
             endAt: `${(endDate || startDate)}T23:59:59`,
             memoId: postId,
+            priority,
         };
 
         const res = await updateScheduleApi(scheduleId, payload);
