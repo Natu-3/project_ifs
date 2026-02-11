@@ -163,6 +163,15 @@ export function ScheduleProvider({ children }) {
     };
 
     // 스케줄 색상 계산
+    // 중요도별 색상 (MemoCreatePopup의 PRIORITY_COLORS와 동일)
+    const PRIORITY_COLORS = {
+        0: "#FF3B30",   // 긴급 - 빨간색
+        1: "#FF9500",   // 높음 - 주황색
+        2: "#2383e2",   // 보통 - 파란색
+        3: "#4CAF50",   // 낮음 - 초록색
+        4: "#8E8E93"    // 없음 - 회색
+    };
+
     const EVENT_COLORS = ["#FF5733", "#33FF57", "#3357FF", "#F333FF", "#33FFF5", "#FF6B6B"];
 
     const getEventColor = (postId) => {
@@ -171,14 +180,27 @@ export function ScheduleProvider({ children }) {
         return EVENT_COLORS[Math.abs(n) % EVENT_COLORS.length];
     };
 
-    const getScheduleColor = (event) => {
-        if (!event) return EVENT_COLORS[0];
-        if (event.postId != null) return getEventColor(event.postId);
+    const getScheduleColor = (event, posts = []) => {
+        if (!event) return PRIORITY_COLORS[2]; // 기본값: 보통
+        
+        // 이벤트 자체에 priority가 있으면 우선 사용 (메모가 삭제되어도 유지)
+        if (event.priority !== null && event.priority !== undefined) {
+            return PRIORITY_COLORS[event.priority] || PRIORITY_COLORS[2];
+        }
+        
+        // postId가 있고 메모가 존재하면 메모의 priority 확인
+        if (event.postId != null) {
+            const post = posts.find(p => p.id === event.postId);
+            if (post?.priority !== null && post?.priority !== undefined) {
+                // 메모의 priority 사용 (메모가 존재할 때만)
+                return PRIORITY_COLORS[post.priority] || PRIORITY_COLORS[2];
+            }
+            // 메모가 삭제되었거나 priority가 없는 경우 기존 방식 사용 (하위 호환성)
+            return getEventColor(event.postId);
+        }
 
-        const seed = event.calendarId ?? event.id;
-        const n = Number(seed);
-        if (!Number.isFinite(n)) return EVENT_COLORS[0];
-        return EVENT_COLORS[Math.abs(n) % EVENT_COLORS.length];
+        // 직접 추가한 일정의 경우 기본 색상 (보통)
+        return PRIORITY_COLORS[2];
     };
 
     // 일정 추가

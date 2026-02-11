@@ -39,6 +39,7 @@ public class MemoService {
         memo.setContent(request.getContent());
         memo.setPinned(request.getPinned() != null ? request.getPinned() : false);
         memo.setVisible(request.getVisible() != null ? request.getVisible() : true);
+        memo.setPriority(request.getPriority() != null ? request.getPriority() : 2);
         
         MemoPost saved = memoPostRepository.save(memo);
         return MemoResponse.from(saved);
@@ -60,6 +61,9 @@ public class MemoService {
         }
         if (request.getVisible() != null) {
             memo.setVisible(request.getVisible());
+        }
+        if (request.getPriority() != null) {
+            memo.setPriority(request.getPriority());
         }
         
         return MemoResponse.from(memo);

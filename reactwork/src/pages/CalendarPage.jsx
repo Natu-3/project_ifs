@@ -52,6 +52,13 @@ export default function CalendarPage() {
     setPopupOpen(true);
   }
 
+  // 드래그 앤 드롭 핸들러
+  const handleDrop = (dateKey, eventData) => {
+    setSelectedDate(dateKey);
+    setSelectedEvent(eventData);
+    setPopupOpen(true);
+  }
+
   //팝업 닫기
   const closePopup = () => {
     setPopupOpen(false);
@@ -105,6 +112,7 @@ export default function CalendarPage() {
         onDateClick={openPopup}
         onEventClick={openPopup}
         onDateRangeSelect={handleDateRangeSelect}
+        onDrop={handleDrop}
       />
       {popupOpen && (
         <SchedulePopup

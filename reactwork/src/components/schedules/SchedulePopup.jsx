@@ -1,21 +1,35 @@
 import { useState, useEffect } from "react";
 import { useSchedule } from "../../context/ScheduleContext";
+import { usePosts } from "../../context/PostContext";
+import { PRIORITY_LEVELS, PRIORITY_COLORS, PRIORITY_LABELS } from "../memos/MemoCreatePopup";
 import "../../componentsCss/schedulesCss/SchedulePopup.css";
 
 export default function SchedulePopup({ date, event, onClose}) {
     const { addEvent, updateEvent, deleteEvent, replaceRangeEvent } = useSchedule();
+    const { posts } = usePosts();
 
     //입력 상태
     const [ title, setTitle ] = useState("");
     const [ content, setContent ] = useState("");
     const [ startDate, setStartDate ] = useState("");
     const [ endDate, setEndDate ] = useState("");
+    const [ priority, setPriority ] = useState(PRIORITY_LEVELS.MEDIUM);
 
     const isEditMode = !!event;
 
     useEffect(() => {
         setTitle(event?.title || "");
         setContent(event?.content || "");
+        
+        // 메모에서 추가된 경우 메모의 priority를 우선 사용 (메모의 중요도가 최우선)
+        if (event?.postId) {
+            const post = posts.find(p => p.id === event.postId);
+            // 메모의 priority를 우선 사용, 없으면 이벤트의 priority, 그것도 없으면 기본값
+            setPriority(post?.priority ?? event?.priority ?? PRIORITY_LEVELS.MEDIUM);
+        } else {
+            // 직접 추가한 경우 이벤트의 priority 또는 기본값
+            setPriority(event?.priority ?? PRIORITY_LEVELS.MEDIUM);
+        }
         
         // 날짜 범위 처리 (드래그 선택으로 들어온 경우 포함)
         if (event?.startDate && event?.endDate && !event?.id) {
@@ -33,7 +47,7 @@ export default function SchedulePopup({ date, event, onClose}) {
             setStartDate(date);
             setEndDate(date);
         }
-    }, [date, event]);
+    }, [date, event, posts]);
 
     // 날짜 범위의 모든 날짜 생성
     const getDateRange = (start, end) => {
@@ -77,6 +91,7 @@ export default function SchedulePopup({ date, event, onClose}) {
                     title,
                     content,
                     postId: event?.postId || null,
+                    priority: priority,
                     date: dateKey,
                     dateKey: dateKey,
                     startDate: startDate,
@@ -98,6 +113,7 @@ export default function SchedulePopup({ date, event, onClose}) {
                     title,
                     content,
                     postId: event?.postId || null,
+                    priority: priority,
                     date: dateKey,
                     dateKey: dateKey,
                     startDate: startDate,
@@ -168,6 +184,35 @@ export default function SchedulePopup({ date, event, onClose}) {
                     onChange={e => setContent(e.target.value)}
                     placeholder="내용"
                 />
+                
+                <div className="priority-selector">
+                    <label>중요도</label>
+                    <div className="priority-options">
+                        {Object.entries(PRIORITY_LABELS).map(([level, label]) => {
+                            const levelNum = parseInt(level);
+                            const isSelected = priority === levelNum;
+                            return (
+                                <button
+                                    key={level}
+                                    type="button"
+                                    className={`priority-btn ${isSelected ? 'selected' : ''}`}
+                                    style={{
+                                        backgroundColor: isSelected ? PRIORITY_COLORS[levelNum] : 'transparent',
+                                        borderColor: PRIORITY_COLORS[levelNum],
+                                        color: isSelected ? '#fff' : PRIORITY_COLORS[levelNum]
+                                    }}
+                                    onClick={() => setPriority(levelNum)}
+                                >
+                                    <span 
+                                        className="priority-color-dot"
+                                        style={{ backgroundColor: PRIORITY_COLORS[levelNum] }}
+                                    />
+                                    {label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
                 
                 <button onClick={handleSave}>저장</button>
                 
