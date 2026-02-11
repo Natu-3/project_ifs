@@ -25,7 +25,7 @@ public class Schedule {
 
     // 일정 주인 = 로그인 유저
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "created_by", nullable = false)
     private User owner;
 
     @Column(nullable = false)
@@ -34,8 +34,20 @@ public class Schedule {
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    @Column(name = "start_datetime")
     private LocalDateTime startAt;
+
+    @Column(name = "end_datetime")
     private LocalDateTime endAt;
+
+    @Column(nullable = true)
+    private Integer priority;
+
+    @Column(name = "memo_id")
+    private Long memoId;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
     public Schedule(
             Calendar calendar,
@@ -51,6 +63,7 @@ public class Schedule {
         this.content = content;
         this.startAt = startAt;
         this.endAt = endAt;
+        this.priority = 0;
     }
 
     public void update(
@@ -63,5 +76,15 @@ public class Schedule {
         this.content = content;
         this.startAt = startAt;
         this.endAt = endAt;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt==null){
+            createdAt = LocalDateTime.now();
+        }
+        if (priority == null) {
+            priority = 0;
+        }
     }
 }

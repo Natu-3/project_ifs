@@ -42,6 +42,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/memos/**").permitAll()
                         .requestMatchers("/api/team-calendars/**").permitAll()
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers("/api/schedules/**").permitAll()
                         .anyRequest().authenticated()
                 );
 
