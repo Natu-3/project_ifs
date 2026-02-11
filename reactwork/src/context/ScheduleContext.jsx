@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useRef, useMemo } from "react";
-import { getMonthSchedules } from "../api/scheduleApi";
+import { getMonthSchedules, createSchedule, updateSchedule as updateScheduleApi, deleteSchedule as deleteScheduleApi, } from "../api/scheduleApi";
 import { useAuth } from "./AuthContext";
 import { useCalendar } from "./CalendarContext";
 
@@ -20,6 +20,7 @@ export function ScheduleProvider({ children }) {
     
     // 서버에서 가져온 스케줄 데이터 (월별 조회)
     const [serverEvents, setServerEvents] = useState({});
+    const [isScheduleLoading, setIsScheduleLoading] = useState(false);
     
     // refs
     const isInitialMount = useRef(true);
@@ -123,36 +124,63 @@ export function ScheduleProvider({ children }) {
         return calendarEvents.personal || {};
     };
 
+        // 월별 스케줄 조회 (서버)
+    const mapScheduleToDateEvents = (schedule) => {
+        const start = new Date(schedule.startAt);
+        const end = new Date(schedule.endAt || schedule.startAt);
+        const dates = [];
+        const cursor = new Date(start);
+
+        while (cursor <= end) {
+            const y = cursor.getFullYear();
+            const m = String(cursor.getMonth() + 1).padStart(2, "0");
+            const d = String(cursor.getDate()).padStart(2, "0");
+            dates.push(`${y}-${m}-${d}`);
+            cursor.setDate(cursor.getDate() + 1);
+        }
+
+        return dates.map((dateKey) => ({
+            dateKey,
+            event: {
+                id: schedule.id,
+                title: schedule.title,
+                content: schedule.content,
+                startAt: schedule.startAt,
+                endAt: schedule.endAt,
+                date: dateKey,
+                dateKey,
+                startDate: schedule.startAt?.slice(0, 10),
+                endDate: schedule.endAt?.slice(0, 10),
+                isRangeEvent: dates.length > 1,
+                rangeId: schedule.id,
+                source: "server",
+            },
+        }));
+    };
+
+
     // 월별 스케줄 조회 (서버)
     const fetchSchedules = async (year, month) => {
+        setIsScheduleLoading(true);
         try {
             const res = await getMonthSchedules(year, month);
             const mappedEvents = {};
 
-            res.data.forEach(s => {
-                const dateKey = s.startAt.slice(0, 10);
-
-                if (!mappedEvents[dateKey]) {
-                    mappedEvents[dateKey] = [];
-                }
-
-                mappedEvents[dateKey].push({
-                    id: s.id,
-                    title: s.title,
-                    content: s.content,
-                    startAt: s.startAt,
-                    endAt: s.endAt,
-                    ownerId: s.ownerId,
-                    calendarId: s.calendarId,
+            res.data.forEach((s) => {
+                mapScheduleToDateEvents(s).forEach(({ dateKey, event }) => {
+                    if (!mappedEvents[dateKey]) {
+                        mappedEvents[dateKey] = [];
+                    }
+                    mappedEvents[dateKey].push(event);
                 });
             });
 
-            setServerEvents(prev => ({
+            setServerEvents((prev) => ({
                 ...prev,
-                [`${year}-${month}`]: mappedEvents
+                [`${year}-${month}`]: mappedEvents,
             }));
-        } catch (e) {
-            console.error("월 스캐줄 조회 실패", e);
+        } finally {
+            setIsScheduleLoading(false);
         }
     };
 
@@ -351,6 +379,34 @@ export function ScheduleProvider({ children }) {
         });
     };
 
+    const createEvent = async ({ title, content, startDate, endDate }) => {
+        const payload = {
+            title,
+            content,
+            startAt: `${startDate}T00:00:00`,
+            endAt: `${(endDate || startDate)}T23:59:59`,
+        };
+
+        const res = await createSchedule(payload);
+        return res.data;
+    };
+
+    const editEvent = async (scheduleId, { title, content, startDate, endDate }) => {
+        const payload = {
+            title,
+            content,
+            startAt: `${startDate}T00:00:00`,
+            endAt: `${(endDate || startDate)}T23:59:59`,
+        };
+
+        const res = await updateScheduleApi(scheduleId, payload);
+        return res.data;
+    };
+
+    const removeEvent = async (scheduleId) => {
+        await deleteScheduleApi(scheduleId);
+    };
+
     // 모든 캘린더에서 사용된 postId 목록 가져오기 (사이드바 색 표시용)
     const usedPostIds = useMemo(() => {
         const usedPostIdsSet = new Set();
@@ -418,6 +474,10 @@ export function ScheduleProvider({ children }) {
                 serverEvents,
                 fetchSchedules,
                 getSchedulesForMonth,
+                isScheduleLoading,
+                createEvent,
+                editEvent,
+                removeEvent,
                 
                 // 색상 계산
                 getScheduleColor,

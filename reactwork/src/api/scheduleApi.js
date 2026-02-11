@@ -1,26 +1,26 @@
-import axios from "axios";
+import api from "./axios";
 
 export const getMonthSchedules = (year, month) => {
-    return axios.get("/schedule", {
+    return api.get("/schedules", {
         params: { year, month },
         withCredentials: true,
     })
 }
 
 export const createSchedule = (scheduleData) => {
-    return axios.post("/schedule", scheduleData, {
+    return api.post("/schedule", scheduleData, {
         withCredentials: true,
     });
 };
 
 export const updateSchedule = (scheduleId, scheduleData) => {
-    return axios.put(`/schedule/${scheduleId}`, scheduleData, {
+    return api.put(`/schedule/${scheduleId}`, scheduleData, {
         withCredentials: true,
     });
 };
 
 export const deleteSchedule = (scheduleId) => {
-    return axios.delete(`/schedule/${scheduleId}`, {
+    return api.delete(`/schedule/${scheduleId}`, {
         withCredentials: true,
     });
 };

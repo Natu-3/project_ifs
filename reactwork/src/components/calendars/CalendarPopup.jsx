@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { useCalendar } from "../../context/CalendarContext";
+import { useSchedule } from "../../context/ScheduleContext";
 import "../../componentsCss/calendarsCss/CalendarPopup.css";
 
 export default function CalendarPopup({ date, event, onClose}) {
-    const { addEvent, updateEvent, deleteEvent, replaceRangeEvent } = useCalendar();
+    const { addEvent, deleteEvent, replaceRangeEvent } = useSchedule();
 
     //입력 상태
     const [ title, setTitle ] = useState("");

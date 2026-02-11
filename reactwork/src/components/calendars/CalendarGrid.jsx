@@ -13,7 +13,7 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
 
   const days = getMonthDays(year, month);
 
-  const { events, addEvent, setEvents, fetchSchedules, getSchedulesForMonth, getScheduleColor } = useSchedule();
+  const { events, addEvent, fetchSchedules, getSchedulesForMonth, getScheduleColor } = useSchedule();
   const { posts } = usePosts();
 
   const hexToRgba = (hex, alpha) => {
@@ -40,25 +40,15 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
     fetchSchedules(year, month + 1);
   }, [year, month, fetchSchedules]);
 
-  // 서버 스케줄을 로컬 events에 병합
-  useEffect(() => {
-    const serverSchedules = getSchedulesForMonth(year, month + 1);
-    if (Object.keys(serverSchedules).length > 0) {
-      setEvents(prev => {
-        const merged = { ...prev };
-        Object.keys(serverSchedules).forEach(dateKey => {
-          if (!merged[dateKey]) {
-            merged[dateKey] = [];
-          }
-          // 서버 스케줄과 로컬 이벤트 병합 (중복 제거)
-          const serverIds = new Set(serverSchedules[dateKey].map(s => s.id));
-          const localEvents = (prev[dateKey] || []).filter(e => !serverIds.has(e.id));
-          merged[dateKey] = [...serverSchedules[dateKey], ...localEvents];
-        });
-        return merged;
-      });
-    }
-  }, [year, month, getSchedulesForMonth, setEvents]);
+  const monthServerEvents = getSchedulesForMonth(year, month + 1);
+  const mergedEvents = { ...events };
+
+  Object.keys(monthServerEvents).forEach((dateKey) => {
+    const localItems = events[dateKey] || [];
+    const serverItems = monthServerEvents[dateKey] || [];
+    const localOnly = localItems.filter((ev) => !serverItems.some((sv) => sv.id === ev.id));
+    mergedEvents[dateKey] = [...serverItems, ...localOnly];
+  });
   
   // 날짜 범위 선택 상태
   const [isSelectingRange, setIsSelectingRange] = useState(false);
@@ -138,26 +128,12 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
   
   // 색상은 CalendarContext의 단일 규칙(getScheduleColor) 사용
 
-  // 날짜 범위 선택 시작
-  const handleMouseDown = (dateKey) => {
-    if (selectingRef.current) return; // 이미 선택 중이면 무시
-    selectingRef.current = true;
-    setIsSelectingRange(true);
-    setRangeStart(dateKey);
-    setRangeEnd(dateKey);
-  };
-
   // 날짜 범위 선택 중
   const handleMouseEnter = (dateKey) => {
     if (!selectingRef.current) return;
     setRangeEnd(dateKey);
   };
 
-  // 날짜 범위 선택 종료
-  const handleMouseUp = (e) => {
-    if (!selectingRef.current) return;
-    e.stopPropagation();
-  };
 
   // 날짜가 선택 범위에 포함되는지 확인
   const isInSelectedRange = (dateKey) => {
@@ -172,8 +148,8 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
     // 1. rangeId가 있는 경우 (팝업으로 만든 범위 이벤트)
     if (event?.isRangeEvent && event?.rangeId) {
       const allRangeEvents = [];
-      Object.keys(events).forEach(key => {
-        events[key]?.forEach(ev => {
+      Object.keys(mergedEvents).forEach(key => {
+        mergedEvents[key]?.forEach(ev => {
           if (ev.rangeId === event.rangeId && ev.isRangeEvent) {
             allRangeEvents.push({ dateKey: key, event: ev });
           }
@@ -200,8 +176,8 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
     // 2. 같은 postId를 가진 연속된 날짜의 이벤트들 (드래그로 만든 이벤트)
     if (event?.postId) {
       const samePostEvents = [];
-      Object.keys(events).forEach(key => {
-        events[key]?.forEach(ev => {
+      Object.keys(mergedEvents).forEach(key => {
+        mergedEvents[key]?.forEach(ev => {
           if (ev.postId === event.postId && !ev.isRangeEvent) {
             samePostEvents.push({ dateKey: key, event: ev });
           }
@@ -222,7 +198,6 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
           const [currYear, currMonth, currDay] = currDateStr.split('-').map(Number);
           
           const prevDate = new Date(prevYear, prevMonth - 1, prevDay);
-          const currDate = new Date(currYear, currMonth - 1, currDay);
           prevDate.setDate(prevDate.getDate() + 1);
           
           // 날짜 문자열로 비교
@@ -339,7 +314,7 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
               {isHoliday && <span className="holiday-name">{holidayNames[0]}</span>}
             </div>
             <div className="memo-content">
-              {events[dateKey]?.map(ev => {
+              {mergedEvents[dateKey]?.map(ev => {
                 const rangePos = getRangePosition(dateKey, ev);
                 // priority를 우선 확인 (메모에서 온 일정이든 직접 추가한 일정이든)
                 const baseColor = getScheduleColor(ev, posts);
