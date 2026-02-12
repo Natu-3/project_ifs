@@ -151,7 +151,6 @@ export default function TeamMemberManageModal({
                 <li key={member.userId} className="member-item">
                   <div>
                     <p className="member-userid">{member.userIdentifier}</p>
-                    <p className="member-meta">userId: {member.userId}</p>
                   </div>
                   <div className="member-actions">
                     <select
