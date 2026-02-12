@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect, useRef, useMemo } from "react";
-import { getMonthSchedules } from "../api/scheduleApi";
+import { createContext, useContext, useState, useEffect, useRef, useMemo,useCallback } from "react";
+import { getMonthSchedules, createSchedule, updateSchedule as updateScheduleApi, deleteSchedule as deleteScheduleApi, } from "../api/scheduleApi";
 import { useAuth } from "./AuthContext";
 import { useCalendar } from "./CalendarContext";
 
@@ -9,17 +9,18 @@ export function ScheduleProvider({ children }) {
     const { user } = useAuth();
     const { activeCalendarId } = useCalendar();
     
-    // localStorage 키 생성
-    const getStorageKey = (userId = null) => {
-        const id = userId || user?.id || localStorage.getItem('userId') || 'guest';
-        return `calendar_events:${id}`;
-    };
+    // // localStorage 키 생성
+    // const getStorageKey = (userId = null) => {
+    //     const id = userId || user?.id || localStorage.getItem('userId') || 'guest';
+    //     return `calendar_events:${id}`;
+    // };
     
     // 캘린더별 일정 저장: { personal: {...}, 'team-1': {...}, 'team-2': {...} }
     const [calendarEvents, setCalendarEvents] = useState({ personal: {} });
     
     // 서버에서 가져온 스케줄 데이터 (월별 조회)
     const [serverEvents, setServerEvents] = useState({});
+    const [isScheduleLoading, setIsScheduleLoading] = useState(false);
     
     // refs
     const isInitialMount = useRef(true);
@@ -37,7 +38,7 @@ export function ScheduleProvider({ children }) {
 
         // 로그인 → localStorage 복원
         try {
-            const userId = user?.id;
+            const userId = user?.id; //|| localStorage.getItem('userId');
             const userStorageKey = userId ? `calendar_events:${userId}` : null;
             const guestStorageKey = 'calendar_events:guest';
             
@@ -112,9 +113,14 @@ export function ScheduleProvider({ children }) {
         }
     }, [calendarEvents, user?.id]);
 
+     const getCalendarStorageKey = useCallback((calendarId = activeCalendarId) => {
+        return calendarId === null ? "personal" : `team-${calendarId}`;
+    }, [activeCalendarId]);
+
+
     // 현재 활성 캘린더 이벤트 가져오기
     const getCurrentEvents = () => {
-        const key = activeCalendarId === null ? "personal" : `team-${activeCalendarId}`;
+        const key = getCalendarStorageKey();
         return calendarEvents[key] || {};
     };
     
@@ -123,44 +129,100 @@ export function ScheduleProvider({ children }) {
         return calendarEvents.personal || {};
     };
 
+    // MiniCalendar에서 사용할 월 기준 병합 이벤트
+    const getPersonalEventsForMonth = useCallback((year, month) => {
+        const personalEvents = calendarEvents.personal || {};
+        const monthServerEvents = serverEvents[`personal:${year}-${month}`] || {};
+        const merged = { ...personalEvents };
+
+        Object.keys(monthServerEvents).forEach((dateKey) => {
+            const localItems = personalEvents[dateKey] || [];
+            const serverItems = monthServerEvents[dateKey] || [];
+            const localOnly = localItems.filter((ev) => !serverItems.some((sv) => sv.id === ev.id));
+            merged[dateKey] = [...serverItems, ...localOnly];
+        });
+
+        return merged;
+    }, [calendarEvents.personal, serverEvents]);
+
+
     // 월별 스케줄 조회 (서버)
-    const fetchSchedules = async (year, month) => {
+    const mapScheduleToDateEvents = useCallback((schedule) => {
+        const start = new Date(schedule.startAt);
+        const end = new Date(schedule.endAt || schedule.startAt);
+        const dates = [];
+        const cursor = new Date(start);
+
+        while (cursor <= end) {
+            const y = cursor.getFullYear();
+            const m = String(cursor.getMonth() + 1).padStart(2, "0");
+            const d = String(cursor.getDate()).padStart(2, "0");
+            dates.push(`${y}-${m}-${d}`);
+            cursor.setDate(cursor.getDate() + 1);
+        }
+
+        return dates.map((dateKey) => ({
+            dateKey,
+            event: {
+                id: schedule.id,
+                title: schedule.title,
+                content: schedule.content,
+                startAt: schedule.startAt,
+                endAt: schedule.endAt,
+                date: dateKey,
+                dateKey,
+                startDate: schedule.startAt?.slice(0, 10),
+                endDate: schedule.endAt?.slice(0, 10),
+                isRangeEvent: dates.length > 1,
+                rangeId: schedule.id,
+                source: "server",
+                postId: schedule.memoId ?? null,
+                priority: schedule.priority ?? null,
+            },
+        }));
+    }, []);
+
+
+    // 월별 스케줄 조회 (서버)
+    const fetchSchedules = useCallback(async (year, month, calendarId = activeCalendarId) => {
+        const calendarKey = getCalendarStorageKey(calendarId);
+        const monthKey = `${calendarKey}:${year}-${month}`;
+
+        if (calendarKey !== "personal") {
+            setServerEvents((prev) => ({
+                ...prev,
+                [monthKey]: {},
+            }));
+            return;
+        }
+        setIsScheduleLoading(true);
         try {
             const res = await getMonthSchedules(year, month);
             const mappedEvents = {};
 
-            res.data.forEach(s => {
-                const dateKey = s.startAt.slice(0, 10);
-
-                if (!mappedEvents[dateKey]) {
-                    mappedEvents[dateKey] = [];
-                }
-
-                mappedEvents[dateKey].push({
-                    id: s.id,
-                    title: s.title,
-                    content: s.content,
-                    startAt: s.startAt,
-                    endAt: s.endAt,
-                    ownerId: s.ownerId,
-                    calendarId: s.calendarId,
+            res.data.forEach((s) => {
+                mapScheduleToDateEvents(s).forEach(({ dateKey, event }) => {
+                    if (!mappedEvents[dateKey]) {
+                        mappedEvents[dateKey] = [];
+                    }
+                    mappedEvents[dateKey].push(event);
                 });
             });
 
-            setServerEvents(prev => ({
+            setServerEvents((prev) => ({
                 ...prev,
-                [`${year}-${month}`]: mappedEvents
+                 [monthKey]: mappedEvents,
             }));
-        } catch (e) {
-            console.error("월 스캐줄 조회 실패", e);
+        } finally {
+            setIsScheduleLoading(false);
         }
-    };
+      }, [activeCalendarId, getCalendarStorageKey, mapScheduleToDateEvents]);
 
     // 특정 년/월의 스케줄 가져오기
-    const getSchedulesForMonth = (year, month) => {
-        const key = `${year}-${month}`;
+    const getSchedulesForMonth = useCallback((year, month, calendarId = activeCalendarId) => {
+        const key = `${getCalendarStorageKey(calendarId)}:${year}-${month}`;
         return serverEvents[key] || {};
-    };
+      }, [activeCalendarId, getCalendarStorageKey, serverEvents]);
 
     // 스케줄 색상 계산
     // 중요도별 색상 (MemoCreatePopup의 PRIORITY_COLORS와 동일)
@@ -351,6 +413,38 @@ export function ScheduleProvider({ children }) {
         });
     };
 
+    const createEvent = async ({ title, content, startDate, endDate, postId = null, priority = 2 }) => {
+        const payload = {
+            title,
+            content,
+            startAt: `${startDate}T00:00:00`,
+            endAt: `${(endDate || startDate)}T23:59:59`,
+            memoId: postId,
+            priority,
+        };
+
+        const res = await createSchedule(payload);
+        return res.data;
+    };
+
+    const editEvent = async (scheduleId, { title, content, startDate, endDate, postId = null, priority = 2 }) => {
+        const payload = {
+            title,
+            content,
+            startAt: `${startDate}T00:00:00`,
+            endAt: `${(endDate || startDate)}T23:59:59`,
+            memoId: postId,
+            priority,
+        };
+
+        const res = await updateScheduleApi(scheduleId, payload);
+        return res.data;
+    };
+
+    const removeEvent = async (scheduleId) => {
+        await deleteScheduleApi(scheduleId);
+    };
+
     // 모든 캘린더에서 사용된 postId 목록 가져오기 (사이드바 색 표시용)
     const usedPostIds = useMemo(() => {
         const usedPostIdsSet = new Set();
@@ -406,6 +500,7 @@ export function ScheduleProvider({ children }) {
                 deleteEvent,
                 replaceRangeEvent,
                 getPersonalEvents,
+                getPersonalEventsForMonth,
                 setEvents: (events) => {
                     const key = activeCalendarId === null ? "personal" : `team-${activeCalendarId}`;
                     setCalendarEvents(prev => ({
@@ -418,6 +513,10 @@ export function ScheduleProvider({ children }) {
                 serverEvents,
                 fetchSchedules,
                 getSchedulesForMonth,
+                isScheduleLoading,
+                createEvent,
+                editEvent,
+                removeEvent,
                 
                 // 색상 계산
                 getScheduleColor,

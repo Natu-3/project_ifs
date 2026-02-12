@@ -55,7 +55,9 @@ public class Schedule {
             String title,
             String content,
             LocalDateTime startAt,
-            LocalDateTime endAt
+            LocalDateTime endAt,
+            Long memoId,
+            Integer priority
     ) {
         this.calendar = calendar;
         this.owner = owner;
@@ -63,19 +65,24 @@ public class Schedule {
         this.content = content;
         this.startAt = startAt;
         this.endAt = endAt;
-        this.priority = 0;
+        this.memoId = memoId;
+        this.priority = priority;
     }
 
     public void update(
             String title,
             String content,
             LocalDateTime startAt,
-            LocalDateTime endAt
+            LocalDateTime endAt,
+            Long memoId,
+            Integer priority
     ) {
         this.title = title;
         this.content = content;
         this.startAt = startAt;
         this.endAt = endAt;
+        this.memoId = memoId;
+        this.priority = priority;
     }
 
     @PrePersist
@@ -84,7 +91,7 @@ public class Schedule {
             createdAt = LocalDateTime.now();
         }
         if (priority == null) {
-            priority = 0;
+            priority = 2;
         }
     }
 }

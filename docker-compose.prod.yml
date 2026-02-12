@@ -1,0 +1,34 @@
+# AWS에 올렸을 때 RDS로 데이터베이스 분리 적용하기 위한 별도 프로필
+ 
+
+services:
+  backend:
+    image: ${BACKEND_IMAGE:-backwork:latest}
+    container_name: ifs-backend-prod
+    restart: unless-stopped
+    environment:
+      DB_HOST: ${DB_HOST:?set DB_HOST to your RDS endpoint}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_NAME: ${DB_NAME:?set DB_NAME}
+      DB_USER: ${DB_USER:?set DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD}
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-validate}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+    ports:
+      - "8081:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  frontend:
+    image: ${FRONTEND_IMAGE:-reactwork:latest}
+    container_name: ifs-frontend-prod
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:80"

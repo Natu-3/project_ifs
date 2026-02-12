@@ -1,57 +1,50 @@
-version: "3.8"
-
 services:
-  frontend:
-    build: ./reactwork
-    container_name: frontend
-    ports:
-      - "3000:80"
-    depends_on:
-      - backend
-    restart: always
-
-  backend:
-    build: ./backwork
-    container_name: backend
-    ports:
-      - "8080:8080"
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_started
+  db:
+    image: mysql:8.0
+    container_name: ifs-db
+    restart: unless-stopped
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/backwork
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 1234
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_REDIS_HOST: redis
-      SPRING_REDIS_PORT: 6379
-    restart: always
-
-  mysql:
-    image: mysql:8
-    container_name: mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: 1234
-      MYSQL_DATABASE: backwork
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-1234}
+      MYSQL_DATABASE: ${DB_NAME:-ifscm}
+    volumes:
+      - db_data:/var/lib/mysql
     ports:
       - "3307:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_PASSWORD:-1234}"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
-  redis:
-    image: redis:7
-    container_name: redis
-    restart: always
+  backend:
+    build:
+      context: ./backwork
+    image: backwork
+    container_name: ifs-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-ifscm}
+      DB_USER: root
+      DB_PASSWORD: ${DB_PASSWORD:-1234}
+      JPA_DDL_AUTO: update
     ports:
-      - "6379:6379"
+      - "8081:8080"
+
+  frontend:
+    build:
+      context: ./reactwork
+    image: reactwork
+    container_name: ifs-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
 
 volumes:
-  mysql_data:
+  db_data:

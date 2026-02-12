@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useSchedule } from "../../context/ScheduleContext";
+import { useCalendar } from "../../context/CalendarContext";
 import { usePosts } from "../../context/PostContext";
 import { PRIORITY_LEVELS, PRIORITY_COLORS, PRIORITY_LABELS } from "../memos/MemoCreatePopup";
 import "../../componentsCss/schedulesCss/SchedulePopup.css";
 
 export default function SchedulePopup({ date, event, onClose}) {
-    const { addEvent, updateEvent, deleteEvent, replaceRangeEvent } = useSchedule();
+    const { addEvent, deleteEvent, replaceRangeEvent, createEvent, editEvent, removeEvent, fetchSchedules } = useSchedule();
+    const { activeCalendarId, currentDate } = useCalendar();
     const { posts } = usePosts();
 
     //입력 상태
@@ -68,70 +70,94 @@ export default function SchedulePopup({ date, event, onClose}) {
     };
 
     //저장
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!title.trim()) return;
         if (!startDate) return;
 
         const dateRange = getDateRange(startDate, endDate || startDate);
         const finalEndDate = endDate || startDate;
 
-        if (isEditMode) {
-            // 기존 이벤트 정보 확인
-            const oldRangeId = event.rangeId || null; // rangeId가 있으면 사용
-            const oldPostId = event.postId || null; // postId가 있고 rangeId가 없으면 postId로 삭제
-            
-            // 새로운 rangeId 생성
-            const newRangeId = Date.now();
-            
-            // 새 이벤트 배열 생성
-            const newEvents = dateRange.map(dateKey => ({
-                dateKey,
-                event: {
-                    id: newRangeId + Math.random(), // 고유 ID
-                    title,
-                    content,
-                    postId: event?.postId || null,
-                    priority: priority,
-                    date: dateKey,
-                    dateKey: dateKey,
-                    startDate: startDate,
-                    endDate: finalEndDate,
-                    isRangeEvent: true,
-                    rangeId: newRangeId, // 같은 범위 이벤트를 묶는 ID
-                },
-            }));
-            
-            // 기존 이벤트 삭제 및 새 이벤트 추가 (원자적 연산)
-            // oldRangeId가 있으면 rangeId로 삭제, 없으면 postId로 삭제
-            replaceRangeEvent(oldRangeId, newEvents, oldPostId);
-        } else {
-            const rangeId = Date.now();
-            // 날짜 범위의 각 날짜에 이벤트 추가
-            dateRange.forEach(dateKey => {
-                addEvent(dateKey, {
-                    id: rangeId + Math.random(), // 고유 ID
-                    title,
-                    content,
-                    postId: event?.postId || null,
-                    priority: priority,
-                    date: dateKey,
-                    dateKey: dateKey,
-                    startDate: startDate,
-                    endDate: finalEndDate,
-                    isRangeEvent: true,
-                    rangeId: rangeId, // 같은 범위 이벤트를 묶는 ID
+        try {
+            if (activeCalendarId === null) {
+                if (isEditMode && event?.id) {
+                    await editEvent(event.id, { title, content, startDate, endDate: finalEndDate, postId: event?.postId || null, priority });
+                } else {
+                    await createEvent({ title, content, startDate, endDate: finalEndDate, postId: event?.postId || null , priority});
+                }
+            } else if (isEditMode) {
+                // 기존 이벤트 정보 확인
+                const oldRangeId = event.rangeId || null; // rangeId가 있으면 사용
+                const oldPostId = event.postId || null; // postId가 있고 rangeId가 없으면 postId로 삭제
+                
+                // 새로운 rangeId 생성
+                const newRangeId = Date.now();
+                
+                // 새 이벤트 배열 생성
+                const newEvents = dateRange.map(dateKey => ({
+                    dateKey,
+                    event: {
+                        id: newRangeId + Math.random(), // 고유 ID
+                        title,
+                        content,
+                        postId: event?.postId || null,
+                        priority: priority,
+                        date: dateKey,
+                        dateKey: dateKey,
+                        startDate: startDate,
+                        endDate: finalEndDate,
+                        isRangeEvent: true,
+                        rangeId: newRangeId, // 같은 범위 이벤트를 묶는 ID
+                    },
+                }));
+                
+                // 기존 이벤트 삭제 및 새 이벤트 추가 (원자적 연산)
+                // oldRangeId가 있으면 rangeId로 삭제, 없으면 postId로 삭제
+                replaceRangeEvent(oldRangeId, newEvents, oldPostId);
+            } else {
+                const rangeId = Date.now();
+                // 날짜 범위의 각 날짜에 이벤트 추가
+                dateRange.forEach(dateKey => {
+                    addEvent(dateKey, {
+                        id: rangeId + Math.random(), // 고유 ID
+                        title,
+                        content,
+                        postId: event?.postId || null,
+                        priority: priority,
+                        date: dateKey,
+                        dateKey: dateKey,
+                        startDate: startDate,
+                        endDate: finalEndDate,
+                        isRangeEvent: true,
+                        rangeId: rangeId, // 같은 범위 이벤트를 묶는 ID
+                    });
                 });
-            });
+            }
+            await fetchSchedules(currentDate.getFullYear(), currentDate.getMonth() + 1);
+            onClose();
+        } catch (error) {
+            console.error("일정 저장 실패", error);
+            alert("일정 저장에 실패했습니다. 잠시 후 다시 시도해주세요.");
         }
         onClose();
     };
 
     //삭제
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (!isEditMode) return;
 
-        deleteEvent(event.dateKey, event.id);
-        onClose();
+        try {
+            if (activeCalendarId === null && event?.id) {
+                await removeEvent(event.id);
+            } else {
+                deleteEvent(event.dateKey, event.id);
+            }
+
+            await fetchSchedules(currentDate.getFullYear(), currentDate.getMonth() + 1);
+            onClose();
+        } catch (error) {
+            console.error("일정 삭제 실패", error);
+            alert("일정 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.");
+        }
     };
 
     return (
