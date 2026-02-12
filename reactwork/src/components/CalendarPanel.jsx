@@ -57,8 +57,9 @@ export default function CalendarPanel() {
             removeTeamCalendar(activeTeamId);
             // 팀 목록에서 제거 (숫자로 변환하여 전달)
             await removeTeam(activeTeamIdNum);
-            // 개인 캘린더로 이동
-            navigate("/calendar");
+            // 메인화면으로 이동
+            navigate("/",{replace: true});
+            
         } catch (error) {
             console.error("팀 삭제 실패:", error);
         }
