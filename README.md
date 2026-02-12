@@ -24,11 +24,11 @@ CI에서 Docker 이미지를 푸시할 때 아래 2개 태그를 동시에 입�
 - `latest`
 - `sha-<git short sha>` (예: `sha-a1b2c3d`)
 
-권장 규칙:
+<!-- 권장 규칙:  git을 통한 CI 빌드 구성중입니다
 
 1. 모든 기본 브랜치 빌드는 `sha-<git short sha>` 태그를 생성한다.
 2. 배포 기준 브랜치(예: `main`)에서만 `latest`를 함께 갱신한다.
-3. 배포/롤백 시에는 `sha-<git short sha>`를 우선 사용해 정확한 이미지 버전을 고정한다.
+3. 배포/롤백 시에는 `sha-<git short sha>`를 우선 사용해 정확한 이미지 버전을 고정한다. -->
 
 
 
@@ -51,16 +51,6 @@ CI에서 Docker 이미지를 푸시할 때 아래 2개 태그를 동시에 입�
 > 이미 생성된 `db_data` 볼륨에는 이전 스키마가 남아 있으므로, 스키마 불일치(예: `Table ... doesn't exist`)가 나면 `docker compose down -v` 후 다시 올리세요.
 
 
-
-환경 변수로 DB 이름/비밀번호를 바꾸고 싶다면 실행 전에 지정할 수 있습니다.
-
-- `DB_NAME` (기본값: `ifscm`)
-- `DB_PASSWORD` (기본값: `1234`)
-
-예시:
-- `DB_NAME=mydb DB_PASSWORD=secret docker compose up --build -d`
-
-> 이미 생성된 `db_data` 볼륨에는 이전 스키마가 남아 있으므로, 스키마 불일치(예: `Table ... doesn't exist`)가 나면 `docker compose down -v` 후 다시 올리세요.
 
 
 
@@ -85,9 +75,10 @@ CI에서 Docker 이미지를 푸시할 때 아래 2개 태그를 동시에 입�
 4. 운영 중지
    - `docker compose --env-file .env.prod -f docker-compose.prod.yml down`
 
-운영 기본값은 `JPA_DDL_AUTO=validate`이며, 스키마 변경은 마이그레이션 도구(Flyway/Liquibase) 사용을 권장합니다.
+운영 기본값은 `JPA_DDL_AUTO=validate`입니다.
 
 
+## 팀 캘린더 동기화 테스트
 
 1. 동일 계정 로그인
    - 세션 A/B 모두 같은 계정으로 로그인하고 팀 캘린더 화면으로 이동합니다.

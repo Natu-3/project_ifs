@@ -96,23 +96,42 @@ export default function MainNote() {
         // 과거에 "새 메모"를 실제 내용으로 저장해둔 경우도, 선택 시 바로 입력 가능하도록 비워줌
         const nextText = content === '새 메모' ? '' : content;
         setText(nextText);
-        if (selectedPost && isManualEditMode ) {
-            textAreaRef.current?.focus();
-            // "새 메모" 텍스트가 있으면 자동으로 선택 (삭제 가능하도록)
-            if (content === '새 메모' || content.trim() === '') {
-                setTimeout(() => {
-                    if (textAreaRef.current) {
-                        textAreaRef.current.select();
-                    }
-                }, 0);
-            }
-        }
-    },[selectedPost, isManualEditMode]);
+        }, [selectedPost]);
 
-    const clearSelectedPost = () => {
+    useEffect(() => {
+        if (!selectedPost || !isManualEditMode) return;
+
+        const content = selectedPost?.content || '';
+        textAreaRef.current?.focus();
+        // "새 메모" 텍스트가 있으면 자동으로 선택 (삭제 가능하도록)
+        if (content === '새 메모' || content.trim() === '') {
+            setTimeout(() => {
+                if (textAreaRef.current) {
+                    textAreaRef.current.select();
+                }
+            }, 0);
+        }
+     }, [selectedPost, isManualEditMode]);
+
+     const clearSelectedPost = () => {
         setSelectedPostId(null);
         setIsManualEditMode(false);
+        setText('');
+     }
+
+
+
+    const activateEditingForPost = (postId) => {
+        if (!postId) return;
+        setSelectedPostId(postId);
+        setIsManualEditMode(true);
     };
+
+    useEffect(() => {
+        if (selectedPostId && selectedPost) {
+            setIsManualEditMode(true);
+        }
+    }, [selectedPostId, selectedPost]);
 
     // posts가 변경될 때마다 cards를 동기화
     // 삭제된 메모의 카드는 제거하고, 메모 제목이 변경되면 카드 제목도 업데이트
@@ -229,11 +248,10 @@ export default function MainNote() {
                     title: trimmedText.substring(0,10),
                     priority: 2
                 });
-                setSelectedPostId(null);
-                setText('');
+                clearSelectedPost();
                 textAreaRef.current?.focus();
             }else {
-                const newPostId = await addPost(trimmedText, false, 2);
+                await addPost(trimmedText, false, 2);
                 // setCards(prev => {
                 //     if (prev.some(card => card.postId === newPostId)) {
                 //         return prev;
@@ -249,8 +267,7 @@ export default function MainNote() {
                 //         }
                 //     ];
                 // });
-                setSelectedPostId(null);
-                setText('');
+                clearSelectedPost();
                // textAreaRef.current.focus();
 
             }
@@ -275,13 +292,17 @@ export default function MainNote() {
         };
 
         setCards(prev => {
-            const exists = prev.some(card => card.postId === postId)
-            if (exists) return prev;
+              const exists = prev.some(card => card.postId === postId);
+            // 정책: 중복 드롭이든 신규 드롭이든 드롭 직후에는 항상 "선택 없음" 상태 유지
+            if (exists) {
+                clearSelectedPost();
+                setText('');
+                return prev;
+            }
             
             return [...prev, newCard];
         });
-        setIsManualEditMode(false);
-        setSelectedPostId(postId);
+         clearSelectedPost();
     }
 
     const handleDeleteCard = (cardId) => {
@@ -299,8 +320,8 @@ export default function MainNote() {
     const handleMainClick = (e) => {
             if (e.target === e.currentTarget) {
                 textAreaRef.current?.blur();
-                setSelectedPostId(null);
-                setText('');
+                flushPendingEdit();
+                clearSelectedPost();
             }
         }
 
@@ -309,7 +330,7 @@ export default function MainNote() {
 
 
     return(
-        <main className='mainnote'
+         <main className={`mainnote ${isDragOver ? 'drag-over' : ''}`}
             onClick={handleMainClick}
             onDragOver={(e) =>{e.preventDefault(); setIsDragOver(true); }}
             onDragLeave={()=> setIsDragOver(false)}
@@ -337,8 +358,7 @@ export default function MainNote() {
                             key={card.id}
                             className={`note-card ${card.postId === selectedPostId ? 'selected' : ''}`}
                              onClick={()=> {
-                                setSelectedPostId(card.postId);
-                                setIsManualEditMode(true);
+                                activateEditingForPost(card.postId);
                             }}
                         >
                             {displayTitle}
@@ -367,7 +387,7 @@ export default function MainNote() {
                     className='memo-post-it'
                     placeholder='메모를 입력하세요...'
                     value={text}
-                    readOnly={!isManualEditMode}
+                     readOnly={Boolean(selectedPost) && !isManualEditMode}
                     onFocus={() => {
                         if ((!isManualEditMode)) return;
                         // 값이 "새 메모"로 남아있는 경우, 클릭/탭하면 즉시 비우기
@@ -378,7 +398,7 @@ export default function MainNote() {
                 />
                 <div className='memo-btn'>
                     <button className='AImemo'> AI메모 </button>
-                    <button className='save-btn' onClick={handleSave}>{selectedPost ? '↑' : '↑'}</button>
+                    <button className='save-btn' onClick={handleSave}>{selectedPost ? '수정' : '생성'}</button>
                 </div>
             </div>
         </main>
