@@ -1,0 +1,82 @@
+.member-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.member-modal {
+  width: min(680px, 92vw);
+  max-height: 80vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.member-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.member-form {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 130px 110px;
+  gap: 8px;
+}
+
+.member-form input,
+.member-form select,
+.member-form button,
+.member-actions select,
+.member-actions button,
+.member-modal-close {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #d8d8d8;
+}
+
+.member-list {
+  margin-top: 16px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.member-item {
+  border: 1px solid #ececec;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.member-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.member-userid {
+  margin: 0;
+  font-weight: 700;
+}
+
+.member-meta,
+.member-modal-desc,
+.member-empty,
+.member-error {
+  margin: 4px 0;
+  color: #666;
+}
+
+.member-error {
+  color: #d64242;
+}
