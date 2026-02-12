@@ -52,8 +52,15 @@ CI에서 Docker 이미지를 푸시할 때 아래 2개 태그를 동시에 입�
 
 
 
+환경 변수로 DB 이름/비밀번호를 바꾸고 싶다면 실행 전에 지정할 수 있습니다.
 
+- `DB_NAME` (기본값: `ifscm`)
+- `DB_PASSWORD` (기본값: `1234`)
 
+예시:
+- `DB_NAME=mydb DB_PASSWORD=secret docker compose up --build -d`
+
+> 이미 생성된 `db_data` 볼륨에는 이전 스키마가 남아 있으므로, 스키마 불일치(예: `Table ... doesn't exist`)가 나면 `docker compose down -v` 후 다시 올리세요.
 
 
 
@@ -64,6 +71,23 @@ CI에서 Docker 이미지를 푸시할 때 아래 2개 태그를 동시에 입�
 
 ## 팀 캘린더 동기화 API 테스트 절차
 동일 계정으로 여러 브라우저 세션(예: Chrome 일반창 + 시크릿창, 또는 Chrome + Edge)에서 동기화를 점검합니다.
+
+## EC2 + RDS 운영 배포용 Compose 분리
+운영 환경에서는 로컬 개발용(`docker-compose.yml`)과 분리된 `docker-compose.prod.yml` 사용을 권장합니다.
+
+1. 예시 파일 복사
+   - `cp .env.prod.example .env.prod`
+2. `.env.prod`에 RDS 정보 입력
+   - `DB_HOST=<your-rds-endpoint>`
+   - `DB_NAME`, `DB_USER`, `DB_PASSWORD`
+3. 운영 실행
+   - `docker compose --env-file .env.prod -f docker-compose.prod.yml up -d`
+4. 운영 중지
+   - `docker compose --env-file .env.prod -f docker-compose.prod.yml down`
+
+운영 기본값은 `JPA_DDL_AUTO=validate`이며, 스키마 변경은 마이그레이션 도구(Flyway/Liquibase) 사용을 권장합니다.
+
+
 
 1. 동일 계정 로그인
    - 세션 A/B 모두 같은 계정으로 로그인하고 팀 캘린더 화면으로 이동합니다.
