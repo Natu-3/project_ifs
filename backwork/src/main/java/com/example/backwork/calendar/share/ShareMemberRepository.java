@@ -11,6 +11,8 @@ public interface ShareMemberRepository extends JpaRepository<ShareMember, ShareM
 
     List<ShareMember> findByCalendarId(Long calendarId);
 
+    List<ShareMember> findByUserId(Long userId);
+
     Optional<ShareMember> findByCalendarIdAndUserId(Long calendarId, Long userId);
 
     void deleteByCalendarIdAndUserId(Long calendarId, Long userId);

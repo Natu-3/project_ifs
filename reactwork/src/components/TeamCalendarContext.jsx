@@ -7,7 +7,8 @@ const TeamCalendarContext = createContext({
     addTeam: async () => null,
     removeTeam: async () => {},
     loading: false,
-    loadTeams: async () => {}
+    loadTeams: async () => {},
+    getTeamRole: () => null
 });
 
 export function TeamCalendarProvider({children}){
@@ -28,7 +29,13 @@ export function TeamCalendarProvider({children}){
             const response = await getTeamCalendars(user.id);
             // 백엔드 응답 형식에 맞게 변환 (필요시 수정)
             const teamList = response.data || [];
-            setTeams(Array.isArray(teamList) ? teamList : []);
+            const normalizedTeams = Array.isArray(teamList)
+                ? teamList.map(team => ({
+                    ...team,
+                    currentUserRole: team.currentUserRole || "OWNER"
+                }))
+                : [];
+            setTeams(normalizedTeams);
         } catch (error) {
             console.error("팀 캘린더 불러오기 실패:", error);
             setTeams([]);
@@ -62,7 +69,10 @@ export function TeamCalendarProvider({children}){
             const newTeam = response.data;
             
             // 서버에서 받은 팀 정보로 상태 업데이트
-            setTeams(prev => [...prev, newTeam]);
+              setTeams(prev => [...prev, {
+                ...newTeam,
+                currentUserRole: newTeam?.currentUserRole || "OWNER"
+            }]);
             return newTeam;
         } catch (error) {
             console.error("팀 캘린더 생성 실패:", error);
@@ -94,9 +104,23 @@ export function TeamCalendarProvider({children}){
             throw error;
         }
     };
+
+
+     const getTeamRole = (teamId) => {
+        const targetTeamId = typeof teamId === "string" ? Number(teamId) : teamId;
+        const target = teams.find(team => {
+            const tId = typeof team.id === "string" ? Number(team.id) : team.id;
+            return tId === targetTeamId;
+        });
+
+        return target?.currentUserRole || null;
+    };
+
+
+
     
     return(
-        <TeamCalendarContext.Provider value={{ teams, addTeam, removeTeam, loading, loadTeams }}>
+         <TeamCalendarContext.Provider value={{ teams, addTeam, removeTeam, loading, loadTeams, getTeamRole }}>
             {children}
         </TeamCalendarContext.Provider>
     )
