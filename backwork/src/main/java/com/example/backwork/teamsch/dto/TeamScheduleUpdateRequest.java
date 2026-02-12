@@ -13,4 +13,5 @@ public class TeamScheduleUpdateRequest {
     private LocalDateTime endAt;
     private Long memoId;
     private Integer priority;
+    private Long baseVersion;
 }

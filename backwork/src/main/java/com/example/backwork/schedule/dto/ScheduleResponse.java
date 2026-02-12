@@ -14,6 +14,8 @@ public class ScheduleResponse {
     private LocalDateTime endAt;
     private Integer priority;
     private Long memoId;
+    private Long version;
+
     public ScheduleResponse(Schedule schedule) {
         this.id = schedule.getId();
         this.title = schedule.getTitle();
@@ -22,5 +24,6 @@ public class ScheduleResponse {
         this.endAt = schedule.getEndAt();
         this.priority = schedule.getPriority();
         this.memoId = schedule.getMemoId();
+        this.version = schedule.getVersion();
     }
 }

@@ -12,7 +12,7 @@ export function AuthProvider({ children }) {
     const fetchMe = async () => {
        setIsAuthLoading(true);
     try {
-      const res = await fetch("http://localhost:8080/api/auth/me", {
+      const res = await fetch("/api/auth/me", {
         credentials: "include",
       });
       if (!res.ok) {

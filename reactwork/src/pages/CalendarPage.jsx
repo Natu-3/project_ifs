@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCalendar } from "../context/CalendarContext";
 import { useSchedule } from "../context/ScheduleContext";
@@ -8,11 +8,12 @@ import CalendarHeader from "../components/calendars/CalendarHeader";
 import CalendarGrid from "../components/calendars/CalendarGrid";
 import SchedulePopup from "../components/schedules/SchedulePopup";
 import TeamMemberManageModal from "../components/TeamMemberManageModal";
-import "./CalendarPage.css"
+import useTeamScheduleRealtime from "../hooks/useTeamScheduleRealtime";
+import "./CalendarPage.css";
 
 export default function CalendarPage() {
   const { currentDate, setCurrentDate, setActiveCalendarId } = useCalendar();
-  const { initializeTeamCalendar, removeTeamCalendar } = useSchedule();
+  const { initializeTeamCalendar, removeTeamCalendar, fetchSchedules } = useSchedule();
   const { teamId } = useParams();
   const { teams, removeTeam } = useTeamCalendar();
   const { user } = useAuth();
@@ -23,19 +24,15 @@ export default function CalendarPage() {
   const menuRef = useRef(null);
 
   const teamIdNum = teamId ? Number(teamId) : null;
-  const team = useMemo(
-    () =>
-      teams.find((t) => {
-        const tId = typeof t.id === "string" ? Number(t.id) : t.id;
-        return tId === teamIdNum;
-      }),
-    [teams, teamIdNum]
-  );
+  const team = useMemo(() => {
+    return teams.find((t) => {
+      const tId = typeof t.id === "string" ? Number(t.id) : t.id;
+      return tId === teamIdNum;
+    });
+  }, [teams, teamIdNum]);
 
   const canManageTeam = Boolean(team && user?.id && Number(team.ownerId) === Number(user.id));
   const title = team ? team.name : "개인 캘린더";
- 
-
 
   useEffect(() => {
     if (teamId) {
@@ -46,10 +43,21 @@ export default function CalendarPage() {
     }
   }, [teamId, setActiveCalendarId, initializeTeamCalendar]);
 
-
   const [popupOpen, setPopupOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [latestRealtimeEvent, setLatestRealtimeEvent] = useState(null);
+
+  const handleRealtimeUpdate = useCallback(async (payload) => {
+    setLatestRealtimeEvent(payload || null);
+    if (!teamIdNum) return;
+    await fetchSchedules(currentDate.getFullYear(), currentDate.getMonth() + 1, teamIdNum);
+  }, [teamIdNum, fetchSchedules, currentDate]);
+
+  useTeamScheduleRealtime({
+    calendarId: teamIdNum,
+    onUpdate: handleRealtimeUpdate,
+  });
 
   const openPopup = (date, event = null) => {
     setSelectedDate(date);
@@ -57,56 +65,50 @@ export default function CalendarPage() {
     setPopupOpen(true);
   };
 
-  // 날짜 범위 선택 핸들러
   const handleDateRangeSelect = (startDate, endDate) => {
     setSelectedDate(startDate);
-    setSelectedEvent({ startDate, endDate }); // 범위 정보 전달
+    setSelectedEvent({ startDate, endDate });
     setPopupOpen(true);
   };
 
-  // 드래그 앤 드롭 핸들러
   const handleDrop = (dateKey, eventData) => {
     setSelectedDate(dateKey);
     setSelectedEvent(eventData);
     setPopupOpen(true);
   };
 
-  //팝업 닫기
   const closePopup = () => {
     setPopupOpen(false);
     setSelectedDate(null);
     setSelectedEvent(null);
   };
 
-  // 팀 캘린더 삭제 핸들러
   const handleDeleteTeam = async () => {
     if (!teamId || !team || !canManageTeam) return;
-    
+
     const confirmMessage = `"${team.name}" 팀 캘린더를 삭제하시겠습니까?\n모든 일정이 삭제됩니다.`;
     if (!window.confirm(confirmMessage)) return;
-    
+
     try {
-       const teamIdToDelete = typeof team.id === "string" ? Number(team.id) : team.id;
+      const teamIdToDelete = typeof team.id === "string" ? Number(team.id) : team.id;
       removeTeamCalendar(teamId);
-      
       await removeTeam(teamIdToDelete);
       setIsMenuOpen(false);
       navigate("/");
     } catch (error) {
-      // 에러는 removeTeam에서 이미 처리됨
       console.error("팀 삭제 실패:", error);
     }
- };
+  };
 
   const openMemberModal = () => {
     setIsMenuOpen(false);
     setIsMemberModalOpen(true);
   };
 
-
   return (
     <section className="calendar-page">
       <CalendarHeader currentDate={currentDate} onChange={setCurrentDate} title={title} />
+
       {teamId && (
         <div className="calendar-action-wrapper">
           <div className="calendar-action-menu" ref={menuRef}>
@@ -116,7 +118,7 @@ export default function CalendarPage() {
               title="팀 캘린더 메뉴"
               aria-label="팀 캘린더 메뉴"
             >
-              ☰
+              ≡
             </button>
 
             {isMenuOpen && (
@@ -142,6 +144,7 @@ export default function CalendarPage() {
           </div>
         </div>
       )}
+
       <CalendarGrid
         currentDate={currentDate}
         onDateClick={openPopup}
@@ -149,7 +152,15 @@ export default function CalendarPage() {
         onDateRangeSelect={handleDateRangeSelect}
         onDrop={handleDrop}
       />
-     {popupOpen && <SchedulePopup date={selectedDate} event={selectedEvent} onClose={closePopup} />}
+
+      {popupOpen && (
+        <SchedulePopup
+          date={selectedDate}
+          event={selectedEvent}
+          realtimeEvent={latestRealtimeEvent}
+          onClose={closePopup}
+        />
+      )}
 
       <TeamMemberManageModal
         isOpen={isMemberModalOpen}

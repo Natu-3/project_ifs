@@ -8,10 +8,10 @@ import com.example.backwork.memo.MemoPostRepository;
 import com.example.backwork.redis.RedisPublisher;
 import com.example.backwork.schedule.entity.Schedule;
 import com.example.backwork.schedule.repository.ScheduleRepository;
-import com.example.backwork.teamsch.ScheduleTeamService;
 import com.example.backwork.teamsch.dto.TeamScheduleCreateRequest;
 import com.example.backwork.teamsch.dto.TeamScheduleUpdateRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +29,6 @@ public class TeamScheduleService {
     private final UserRepository userRepository;
     private final MemoPostRepository memoPostRepository;
     private final TeamCalendarAccessService teamCalendarAccessService;
-    private final ScheduleTeamService scheduleTeamService;
     private final RedisPublisher redisPublisher;
 
     public List<Schedule> findByMonth(Long userId, Long calendarId, LocalDateTime start, LocalDateTime end) {
@@ -69,11 +68,11 @@ public class TeamScheduleService {
     }
 
     @Transactional
-    public Schedule update(Long userId, String sessionId, Long scheduleId, TeamScheduleUpdateRequest request) {
+    public Schedule update(Long userId, Long scheduleId, TeamScheduleUpdateRequest request) {
         teamCalendarAccessService.requireWritable(request.getCalendarId(), userId);
-        scheduleTeamService.validateWritableWithLock(request.getCalendarId(), scheduleId, userId, sessionId);
 
         Schedule schedule = getTeamSchedule(scheduleId, request.getCalendarId());
+        requireMatchingVersion(request.getBaseVersion(), schedule.getVersion());
         User user = userRepository.findById(userId).orElseThrow();
 
         schedule.update(
@@ -85,16 +84,30 @@ public class TeamScheduleService {
                 resolvePriority(request.getPriority())
         );
 
+        try {
+            scheduleRepository.flush();
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw buildVersionConflict(scheduleId);
+        }
+
         publishEvent("UPDATED", request.getCalendarId(), schedule.getId(), userId);
         return schedule;
     }
 
-    public void delete(Long userId, String sessionId, Long calendarId, Long scheduleId) {
+    @Transactional
+    public void delete(Long userId, Long calendarId, Long scheduleId, Long baseVersion) {
         teamCalendarAccessService.requireWritable(calendarId, userId);
-        scheduleTeamService.validateWritableWithLock(calendarId, scheduleId, userId, sessionId);
 
         Schedule schedule = getTeamSchedule(scheduleId, calendarId);
+        requireMatchingVersion(baseVersion, schedule.getVersion());
         scheduleRepository.delete(schedule);
+
+        try {
+            scheduleRepository.flush();
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw buildVersionConflict(scheduleId);
+        }
+
         publishEvent("DELETED", calendarId, scheduleId, userId);
     }
 
@@ -121,6 +134,22 @@ public class TeamScheduleService {
         return priority;
     }
 
+    private void requireMatchingVersion(Long baseVersion, Long latestVersion) {
+        if (baseVersion == null) {
+            throw new IllegalArgumentException("baseVersion 값이 필요합니다.");
+        }
+        if (!baseVersion.equals(latestVersion)) {
+            throw new TeamScheduleVersionConflictException(latestVersion);
+        }
+    }
+
+
+    private TeamScheduleVersionConflictException buildVersionConflict(Long scheduleId) {
+        Long latestVersion = scheduleRepository.findById(scheduleId)
+                .map(Schedule::getVersion)
+                .orElse(null);
+        return new TeamScheduleVersionConflictException(latestVersion);
+    }
 
     private void publishEvent(String action, Long calendarId, Long scheduleId, Long userId) {
         try {

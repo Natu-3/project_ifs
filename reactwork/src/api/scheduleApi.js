@@ -8,7 +8,8 @@ export const getMonthSchedules = (year, month) => {
 };
 
 export const getTeamMonthSchedules = (calendarId, year, month) => {
-  return api.post("/schedules", scheduleData, {
+  return api.get("/team-schedules", {
+    params: { calendarId, year, month },
     withCredentials: true,
   });
 };
@@ -43,9 +44,9 @@ export const deleteSchedule = (scheduleId) => {
   });
 };
 
-export const deleteTeamSchedule = (scheduleId, calendarId) => {
+export const deleteTeamSchedule = (scheduleId, calendarId, baseVersion) => {
   return api.delete(`/team-schedules/${scheduleId}`, {
-    params: { calendarId },
+    params: { calendarId, baseVersion },
     withCredentials: true,
   });
 };

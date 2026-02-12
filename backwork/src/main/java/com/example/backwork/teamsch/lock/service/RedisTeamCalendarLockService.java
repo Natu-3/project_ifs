@@ -60,8 +60,15 @@ public class RedisTeamCalendarLockService implements TeamCalendarLockService {
             return new LockResult(true, new LockOwner(userId, sessionId), validTtl.toSeconds());
         }
 
-        LockOwner owner = getOwner(key).orElse(null);
-        return new LockResult(false, owner, getTtlSeconds(key));
+        Optional<LockOwner> owner = getOwner(key);
+        if (owner.isPresent()
+                && owner.get().getUserId().equals(userId)
+                && owner.get().getSessionId().equals(sessionId)) {
+            redisTemplate.expire(key, validTtl);
+            return new LockResult(true, owner.get(), validTtl.toSeconds());
+        }
+
+        return new LockResult(false, owner.orElse(null), getTtlSeconds(key));
     }
 
     @Override

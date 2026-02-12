@@ -46,6 +46,7 @@ CREATE TABLE schedule (
     priority INT DEFAULT 0,
     created_by BIGINT UNSIGNED NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    version BIGINT NOT NULL DEFAULT 0,
 
     CONSTRAINT fk_schedule_calendar
         FOREIGN KEY (calendar_id) REFERENCES calendar(id)

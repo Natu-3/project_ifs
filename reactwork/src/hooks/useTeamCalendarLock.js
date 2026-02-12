@@ -36,14 +36,24 @@ export default function useTeamCalendarLock({ calendarId, targetId, enabled = tr
       const res = await refreshTeamCalendarLock(calendarId, targetId);
       setLockState({
         status: "acquired",
-        message: res.data?.message || "락이 갱신되었습니다.",
+        message: res.data?.message || "Lock refreshed.",
         ttlSeconds: res.data?.ttlSeconds || 15,
       });
       return true;
     } catch (error) {
+      const status = error?.response?.status;
+      if (status === 503) {
+        setLockState((prev) => ({
+          status: "acquired",
+          message: "Redis unavailable. Continuing without sync lock.",
+          ttlSeconds: prev.ttlSeconds || 0,
+        }));
+        return true;
+      }
+
       setLockState({
         status: "lost",
-        message: "락이 만료되었거나 다른 사용자에게 이동되었습니다.",
+        message: "Lock expired or moved to another user.",
         ttlSeconds: 0,
       });
       stopHeartbeat();
@@ -65,7 +75,7 @@ export default function useTeamCalendarLock({ calendarId, targetId, enabled = tr
       const res = await acquireTeamCalendarLock(calendarId, targetId);
       setLockState({
         status: "acquired",
-        message: res.data?.message || "락 획득 완료",
+        message: res.data?.message || "Lock acquired.",
         ttlSeconds: res.data?.ttlSeconds || 15,
       });
       startHeartbeat();
@@ -75,16 +85,26 @@ export default function useTeamCalendarLock({ calendarId, targetId, enabled = tr
       if (status === 423) {
         setLockState({
           status: "blocked",
-          message: error?.response?.data?.message || "다른 사용자가 편집 중입니다.",
+          message: error?.response?.data?.message || "Another user is editing this schedule.",
           ttlSeconds: error?.response?.data?.ttlSeconds || 0,
         });
-      } else {
+        return false;
+      }
+
+      if (status === 503) {
         setLockState({
-          status: "error",
-          message: "락 획득에 실패했습니다.",
+          status: "acquired",
+          message: "Redis unavailable. Continuing without sync lock.",
           ttlSeconds: 0,
         });
+        return true;
       }
+
+      setLockState({
+        status: "error",
+        message: "Failed to acquire lock.",
+        ttlSeconds: 0,
+      });
       return false;
     }
   }, [usable, calendarId, targetId, startHeartbeat]);
@@ -100,22 +120,35 @@ export default function useTeamCalendarLock({ calendarId, targetId, enabled = tr
       if (status === 409) {
         setLockState({
           status: "lost",
-          message: "락이 없어 저장할 수 없습니다. 다시 열어서 편집해 주세요.",
+          message: "Lock is missing. Re-open edit to continue.",
           ttlSeconds: 0,
         });
-      } else if (status === 403) {
+        return false;
+      }
+
+      if (status === 403) {
         setLockState({
           status: "blocked",
-          message: "락 소유자가 아니어서 저장할 수 없습니다.",
+          message: "Not lock owner.",
           ttlSeconds: error?.response?.data?.ttlSeconds || 0,
         });
-      } else {
+        return false;
+      }
+
+      if (status === 503) {
         setLockState({
-          status: "error",
-          message: "저장 권한 확인에 실패했습니다.",
+          status: "acquired",
+          message: "Redis unavailable. Saving without sync lock.",
           ttlSeconds: 0,
         });
+        return true;
       }
+
+      setLockState({
+        status: "error",
+        message: "Failed to authorize write.",
+        ttlSeconds: 0,
+      });
       return false;
     }
   }, [usable, calendarId, targetId]);
@@ -124,7 +157,7 @@ export default function useTeamCalendarLock({ calendarId, targetId, enabled = tr
     if (!usable) return;
     try {
       await releaseTeamCalendarLock(calendarId, targetId);
-    } catch (error) {
+    } catch {
       // best-effort
     } finally {
       stopHeartbeat();

@@ -1,321 +1,272 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSchedule } from "../../context/ScheduleContext";
 import { useCalendar } from "../../context/CalendarContext";
 import { usePosts } from "../../context/PostContext";
-import useTeamCalendarLock from "../../hooks/useTeamCalendarLock";
+import { useAuth } from "../../context/AuthContext";
 import { PRIORITY_LEVELS, PRIORITY_COLORS, PRIORITY_LABELS } from "../memos/MemoCreatePopup";
 import "../../componentsCss/schedulesCss/SchedulePopup.css";
 
-export default function SchedulePopup({ date, event, onClose}) {
-    const { addEvent, deleteEvent, replaceRangeEvent, createEvent, editEvent, removeEvent, fetchSchedules } = useSchedule();
-    const { activeCalendarId, currentDate } = useCalendar();
-    const { posts } = usePosts();
+export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
+  const { createEvent, editEvent, removeEvent, fetchSchedules } = useSchedule();
+  const { activeCalendarId, currentDate } = useCalendar();
+  const { posts } = usePosts();
+  const { user } = useAuth();
 
-    //입력 상태
-    const [ title, setTitle ] = useState("");
-    const [ content, setContent ] = useState("");
-    const [ startDate, setStartDate ] = useState("");
-    const [ endDate, setEndDate ] = useState("");
-    const [ priority, setPriority ] = useState(PRIORITY_LEVELS.MEDIUM);
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [priority, setPriority] = useState(PRIORITY_LEVELS.MEDIUM);
+  const [baseVersion, setBaseVersion] = useState(null);
+  const [showRemoteUpdateBanner, setShowRemoteUpdateBanner] = useState(false);
 
-    const isEditMode = !!event;
-    const isTeamCalendar = activeCalendarId !== null;
-    const lockTargetId = useMemo(() => {
-        if (!isTeamCalendar) return null;
-        if (!isEditMode || !event?.id) return null;
-        return String(event.id);
-    }, [isTeamCalendar, isEditMode, event?.id]);
+  const isEditMode = !!event?.id;
+  const isTeamCalendar = activeCalendarId !== null;
 
-    const {
-        lockState,
-        acquireForEdit,
-        authorizeWriteBeforeSave,
-        releaseLock,
-    } = useTeamCalendarLock({
-        calendarId: activeCalendarId,
-        targetId: lockTargetId,
-        enabled: Boolean(lockTargetId),
-    });
+  const applyEventToForm = useCallback((targetEvent, fallbackDate) => {
+    setTitle(targetEvent?.title || "");
+    setContent(targetEvent?.content || "");
+    setBaseVersion(targetEvent?.version ?? null);
 
-    useEffect(() => {
-        if (!lockTargetId) return;
+    if (targetEvent?.postId) {
+      const post = posts.find((p) => p.id === targetEvent.postId);
+      setPriority(post?.priority ?? targetEvent?.priority ?? PRIORITY_LEVELS.MEDIUM);
+    } else {
+      setPriority(targetEvent?.priority ?? PRIORITY_LEVELS.MEDIUM);
+    }
 
-        acquireForEdit();
+    if (targetEvent?.startDate && targetEvent?.endDate) {
+      setStartDate(targetEvent.startDate);
+      setEndDate(targetEvent.endDate);
+    } else if (targetEvent?.date) {
+      setStartDate(targetEvent.date);
+      setEndDate(targetEvent.date);
+    } else if (fallbackDate) {
+      setStartDate(fallbackDate);
+      setEndDate(fallbackDate);
+    } else {
+      setStartDate("");
+      setEndDate("");
+    }
+  }, [posts]);
 
-        return () => {
-            releaseLock();
-        };
-    }, [lockTargetId, acquireForEdit, releaseLock]);
+  const fetchAndApplyLatest = useCallback(async () => {
+    const latestMonthEvents = await fetchSchedules(currentDate.getFullYear(), currentDate.getMonth() + 1);
 
-    useEffect(() => {
-        setTitle(event?.title || "");
-        setContent(event?.content || "");
-        
-        // 메모에서 추가된 경우 메모의 priority를 우선 사용 (메모의 중요도가 최우선)
-        if (event?.postId) {
-            const post = posts.find(p => p.id === event.postId);
-            // 메모의 priority를 우선 사용, 없으면 이벤트의 priority, 그것도 없으면 기본값
-            setPriority(post?.priority ?? event?.priority ?? PRIORITY_LEVELS.MEDIUM);
-        } else {
-            // 직접 추가한 경우 이벤트의 priority 또는 기본값
-            setPriority(event?.priority ?? PRIORITY_LEVELS.MEDIUM);
-        }
-        
-        // 날짜 범위 처리 (드래그 선택으로 들어온 경우 포함)
-        if (event?.startDate && event?.endDate && !event?.id) {
-            // 드래그로 선택한 범위
-            setStartDate(event.startDate);
-            setEndDate(event.endDate);
-        } else if (event?.startDate && event?.endDate) {
-            // 기존 범위 이벤트 수정
-            setStartDate(event.startDate);
-            setEndDate(event.endDate);
-        } else if (event?.date) {
-            setStartDate(event.date);
-            setEndDate(event.date);
-        } else if (date) {
-            setStartDate(date);
-            setEndDate(date);
-        }
-    }, [date, event, posts]);
+    if (!event?.id) return;
 
-    // 날짜 범위의 모든 날짜 생성
-    const getDateRange = (start, end) => {
-        if (!start || !end) return [];
-        const startDate = new Date(start);
-        const endDate = new Date(end);
-        const dates = [];
-        const current = new Date(startDate);
-        
-        while (current <= endDate) {
-            const year = current.getFullYear();
-            const month = String(current.getMonth() + 1).padStart(2, "0");
-            const day = String(current.getDate()).padStart(2, "0");
-            dates.push(`${year}-${month}-${day}`);
-            current.setDate(current.getDate() + 1);
-        }
-        return dates;
-    };
+    const latest = Object.values(latestMonthEvents || {})
+      .flat()
+      .find((ev) => Number(ev?.id) === Number(event.id));
 
-    //저장
-    const handleSave = async () => {
-        if (!title.trim()) return;
-        if (!startDate) return;
+    if (!latest) {
+      alert("해당 일정은 이미 삭제되었습니다.");
+      onClose();
+      return;
+    }
 
-        const dateRange = getDateRange(startDate, endDate || startDate);
-        const finalEndDate = endDate || startDate;
+    applyEventToForm(latest, date);
+    setShowRemoteUpdateBanner(false);
+  }, [
+    fetchSchedules,
+    currentDate,
+    event?.id,
+    applyEventToForm,
+    date,
+    onClose,
+  ]);
 
-        try {
-            if (lockTargetId) {
-                const authorized = await authorizeWriteBeforeSave();
-                if (!authorized) {
-                    alert(" 접근에 실패했습니다. 편집 화면을 다시 열어주세요.");
-                    return;
+  useEffect(() => {
+    applyEventToForm(event, date);
+    setShowRemoteUpdateBanner(false);
+  }, [date, event, applyEventToForm]);
+
+  useEffect(() => {
+    if (!isTeamCalendar || !isEditMode || !realtimeEvent) return;
+    if (Number(realtimeEvent?.scheduleId) !== Number(event?.id)) return;
+    if (Number(realtimeEvent?.actorUserId) === Number(user?.id)) return;
+    if (realtimeEvent?.action !== "UPDATED" && realtimeEvent?.action !== "DELETED") return;
+
+    setShowRemoteUpdateBanner(true);
+  }, [isTeamCalendar, isEditMode, realtimeEvent, event?.id, user?.id]);
+
+  const handleVersionConflict = useCallback(async () => {
+    await fetchAndApplyLatest();
+  }, [fetchAndApplyLatest]);
+
+  const handleSave = async () => {
+    if (!title.trim()) return;
+    if (!startDate) return;
+
+    const finalEndDate = endDate || startDate;
+
+    try {
+      if (isEditMode && event?.id) {
+        await editEvent(event.id, {
+          title,
+          content,
+          startDate,
+          endDate: finalEndDate,
+          postId: event?.postId || null,
+          priority,
+          baseVersion,
+        });
+      } else {
+        await createEvent({
+          title,
+          content,
+          startDate,
+          endDate: finalEndDate,
+          postId: event?.postId || null,
+          priority,
+        });
+      }
+
+      await fetchSchedules(currentDate.getFullYear(), currentDate.getMonth() + 1);
+      onClose();
+    } catch (error) {
+      const status = error?.response?.status;
+      const code = error?.response?.data?.code;
+      if (status === 409 && code === "VERSION_CONFLICT") {
+        alert("다른 사용자가 먼저 수정했습니다. 최신 일정으로 자동 갱신합니다.");
+        await handleVersionConflict();
+        return;
+      }
+
+      console.error("일정 저장 실패", error);
+      alert("일정 저장에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!isEditMode || !event?.id) return;
+
+    try {
+      await removeEvent(event.id, baseVersion);
+      await fetchSchedules(currentDate.getFullYear(), currentDate.getMonth() + 1);
+      onClose();
+    } catch (error) {
+      const status = error?.response?.status;
+      const code = error?.response?.data?.code;
+      if (status === 409 && code === "VERSION_CONFLICT") {
+        alert("다른 사용자가 먼저 수정했습니다. 최신 일정으로 자동 갱신합니다.");
+        await handleVersionConflict();
+        return;
+      }
+
+      console.error("일정 삭제 실패", error);
+      alert("일정 삭제에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+    }
+  };
+
+  return (
+    <div className="popup-overlay" onClick={onClose}>
+      <div className="popup" onClick={(e) => e.stopPropagation()}>
+        <h3>{event ? "일정 수정" : "일정 추가"}</h3>
+
+        {showRemoteUpdateBanner && (
+          <div
+            style={{
+              marginBottom: "8px",
+              padding: "8px 10px",
+              borderRadius: "6px",
+              background: "#fff3cd",
+              color: "#664d03",
+              border: "1px solid #ffecb5",
+              display: "flex",
+              gap: "8px",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <span>다른 사용자가 이 일정을 업데이트했습니다.</span>
+            <button type="button" onClick={fetchAndApplyLatest}>
+              최신본 불러오기
+            </button>
+          </div>
+        )}
+
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="제목"
+        />
+
+        <div className="date-range-inputs">
+          <div className="date-input-group">
+            <label>시작일</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => {
+                const newStart = e.target.value;
+                setStartDate(newStart);
+                if (endDate && newStart > endDate) {
+                  setEndDate(newStart);
                 }
-            }
-
-
-
-            if (activeCalendarId === null) {
-                if (isEditMode && event?.id) {
-                    await editEvent(event.id, { title, content, startDate, endDate: finalEndDate, postId: event?.postId || null, priority });
-                } else {
-                    await createEvent({ title, content, startDate, endDate: finalEndDate, postId: event?.postId || null , priority});
+              }}
+            />
+          </div>
+          <div className="date-input-group">
+            <label>종료일</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => {
+                const newEnd = e.target.value;
+                setEndDate(newEnd);
+                if (startDate && newEnd < startDate) {
+                  setStartDate(newEnd);
                 }
-            } else if (isEditMode) {
-                // 기존 이벤트 정보 확인
-                const oldRangeId = event.rangeId || null; // rangeId가 있으면 사용
-                const oldPostId = event.postId || null; // postId가 있고 rangeId가 없으면 postId로 삭제
-                
-                // 새로운 rangeId 생성
-                const newRangeId = Date.now();
-                
-                // 새 이벤트 배열 생성
-                const newEvents = dateRange.map(dateKey => ({
-                    dateKey,
-                    event: {
-                        id: newRangeId + Math.random(), // 고유 ID
-                        title,
-                        content,
-                        postId: event?.postId || null,
-                        priority: priority,
-                        date: dateKey,
-                        dateKey: dateKey,
-                        startDate: startDate,
-                        endDate: finalEndDate,
-                        isRangeEvent: true,
-                        rangeId: newRangeId, // 같은 범위 이벤트를 묶는 ID
-                    },
-                }));
-                
-                // 기존 이벤트 삭제 및 새 이벤트 추가 (원자적 연산)
-                // oldRangeId가 있으면 rangeId로 삭제, 없으면 postId로 삭제
-                replaceRangeEvent(oldRangeId, newEvents, oldPostId);
-            } else {
-                const rangeId = Date.now();
-                // 날짜 범위의 각 날짜에 이벤트 추가
-                dateRange.forEach(dateKey => {
-                    addEvent(dateKey, {
-                        id: rangeId + Math.random(), // 고유 ID
-                        title,
-                        content,
-                        postId: event?.postId || null,
-                        priority: priority,
-                        date: dateKey,
-                        dateKey: dateKey,
-                        startDate: startDate,
-                        endDate: finalEndDate,
-                        isRangeEvent: true,
-                        rangeId: rangeId, // 같은 범위 이벤트를 묶는 ID
-                    });
-                });
-            }
-            await fetchSchedules(currentDate.getFullYear(), currentDate.getMonth() + 1);
-            await releaseLock();
-            onClose();
-        } catch (error) {
-            console.error("일정 저장 실패", error);
-            alert("일정 저장에 실패했습니다. 잠시 후 다시 시도해주세요.");
-        }
-        //onClose();
-    };
-
-    //삭제
-    const handleDelete = async () => {
-        if (!isEditMode) return;
-
-        try {
-            if (lockTargetId) {
-                const authorized = await authorizeWriteBeforeSave();
-                if (!authorized) {
-                    alert("다른 사람이 편집중입니다. 다시 시도해주세요.");
-                    return;
-                }
-            }
-
-
-
-
-            if (activeCalendarId === null && event?.id) {
-                await removeEvent(event.id);
-            } else {
-                deleteEvent(event.dateKey, event.id);
-            }
-
-            await fetchSchedules(currentDate.getFullYear(), currentDate.getMonth() + 1);
-            await releaseLock();
-            onClose();
-        } catch (error) {
-            console.error("일정 삭제 실패", error);
-            alert("일정 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.");
-        }
-    };
-
-    const handleClose = useCallback(async () => {
-        await releaseLock();
-        onClose();
-    }, [releaseLock, onClose]);
-
-    const lockBlocked = lockTargetId && lockState.status !== "acquired";
-
-    return (
-        <div className="popup-overlay" onClick={handleClose}>
-            <div className="popup" onClick={e => e.stopPropagation()}>
-                <h3>{event ? "일정 수정" : "일정 추가"}</h3>
-                {lockTargetId && (
-                    <div className="lock-status-message" style={{ marginBottom: "8px", color: lockBlocked ? "#d32f2f" : "#2e7d32" }}>
-                        {lockState.message || "점유 상태 확인 중..."}
-                    </div>
-                )}
-                <input
-                    value={title}
-                    onChange={e => setTitle(e.target.value)}
-                    placeholder="제목"
-                    disabled={lockBlocked}
-                />
-                
-                <div className="date-range-inputs">
-                    <div className="date-input-group">
-                        <label>시작일</label>
-                        <input
-                            type="date"
-                            value={startDate}
-                            onChange={e => {
-                                const newStart = e.target.value;
-                                setStartDate(newStart);
-                                // 시작일이 종료일보다 늦으면 종료일도 같이 변경
-                                if (endDate && newStart > endDate) {
-                                    setEndDate(newStart);
-                                }
-                            }}
-                            disabled={lockBlocked}
-                        />
-                    </div>
-                    <div className="date-input-group">
-                        <label>종료일</label>
-                        <input
-                            type="date"
-                            value={endDate}
-                            onChange={e => {
-                                const newEnd = e.target.value;
-                                setEndDate(newEnd);
-                                // 종료일이 시작일보다 이르면 시작일도 같이 변경
-                                if (startDate && newEnd < startDate) {
-                                    setStartDate(newEnd);
-                                }
-                            }}
-                            min={startDate}
-                            disabled={lockBlocked}
-                        />
-                    </div>
-                </div>
-                
-                <textarea
-                    value={content}
-                    onChange={e => setContent(e.target.value)}
-                    placeholder="내용"
-                    disabled={lockBlocked}
-                />
-                
-                <div className="priority-selector">
-                    <label>중요도</label>
-                    <div className="priority-options">
-                        {Object.entries(PRIORITY_LABELS).map(([level, label]) => {
-                            const levelNum = parseInt(level);
-                            const isSelected = priority === levelNum;
-                            return (
-                                <button
-                                    key={level}
-                                    type="button"
-                                    className={`priority-btn ${isSelected ? 'selected' : ''}`}
-                                    style={{
-                                        backgroundColor: isSelected ? PRIORITY_COLORS[levelNum] : 'transparent',
-                                        borderColor: PRIORITY_COLORS[levelNum],
-                                        color: isSelected ? '#fff' : PRIORITY_COLORS[levelNum]
-                                    }}
-                                    onClick={() => setPriority(levelNum)}
-                                    disabled={lockBlocked}
-                                >
-                                    <span 
-                                        className="priority-color-dot"
-                                        style={{ backgroundColor: PRIORITY_COLORS[levelNum] }}
-                                    />
-                                    {label}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-                
-                <button onClick={handleSave} disabled={lockBlocked}>저장</button>
-                
-                {event && (
-                      <button className="delete" onClick={handleDelete} disabled={lockBlocked}>
-                        삭제
-                    </button>
-                )}
-            </div>
+              }}
+              min={startDate}
+            />
+          </div>
         </div>
-    )
 
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="내용"
+        />
+
+        <div className="priority-selector">
+          <label>중요도</label>
+          <div className="priority-options">
+            {Object.entries(PRIORITY_LABELS).map(([level, label]) => {
+              const levelNum = parseInt(level, 10);
+              const isSelected = priority === levelNum;
+              return (
+                <button
+                  key={level}
+                  type="button"
+                  className={`priority-btn ${isSelected ? "selected" : ""}`}
+                  style={{
+                    backgroundColor: isSelected ? PRIORITY_COLORS[levelNum] : "transparent",
+                    borderColor: PRIORITY_COLORS[levelNum],
+                    color: isSelected ? "#fff" : PRIORITY_COLORS[levelNum],
+                  }}
+                  onClick={() => setPriority(levelNum)}
+                >
+                  <span
+                    className="priority-color-dot"
+                    style={{ backgroundColor: PRIORITY_COLORS[levelNum] }}
+                  />
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <button onClick={handleSave}>저장</button>
+
+        {event && (
+          <button className="delete" onClick={handleDelete}>
+            삭제
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }

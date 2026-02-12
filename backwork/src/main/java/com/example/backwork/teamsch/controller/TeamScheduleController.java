@@ -3,9 +3,11 @@ package com.example.backwork.teamsch.controller;
 import com.example.backwork.member.SessionUser;
 import com.example.backwork.schedule.dto.ScheduleResponse;
 import com.example.backwork.schedule.entity.Schedule;
+import com.example.backwork.teamsch.dto.TeamScheduleConflictResponse;
 import com.example.backwork.teamsch.dto.TeamScheduleCreateRequest;
 import com.example.backwork.teamsch.dto.TeamScheduleUpdateRequest;
 import com.example.backwork.teamsch.service.TeamScheduleService;
+import com.example.backwork.teamsch.service.TeamScheduleVersionConflictException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -67,12 +69,8 @@ public class TeamScheduleController {
         SessionUser user = getLoginUser(httpRequest);
         if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-        HttpSession session = httpRequest.getSession(false);
-        if (session == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
         Schedule schedule = teamScheduleService.update(
                 user.getId(),
-                session.getId(),
                 scheduleId,
                 request
         );
@@ -84,16 +82,26 @@ public class TeamScheduleController {
     public ResponseEntity<?> delete(
             @PathVariable Long scheduleId,
             @RequestParam Long calendarId,
+            @RequestParam Long baseVersion,
             HttpServletRequest httpRequest
     ) {
         SessionUser user = getLoginUser(httpRequest);
         if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-        HttpSession session = httpRequest.getSession(false);
-        if (session == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
-        teamScheduleService.delete(user.getId(), session.getId(), calendarId, scheduleId);
+        teamScheduleService.delete(user.getId(), calendarId, scheduleId, baseVersion);
         return ResponseEntity.ok().build();
+    }
+
+    @ExceptionHandler(TeamScheduleVersionConflictException.class)
+    public ResponseEntity<TeamScheduleConflictResponse> handleVersionConflict(
+            TeamScheduleVersionConflictException e
+    ) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new TeamScheduleConflictResponse(
+                        "VERSION_CONFLICT",
+                        e.getLatestVersion(),
+                        e.getMessage()
+                ));
     }
 
     private SessionUser getLoginUser(HttpServletRequest request) {

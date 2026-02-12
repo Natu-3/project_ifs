@@ -187,6 +187,7 @@ export function ScheduleProvider({ children }) {
                 source: "server",
                 postId: schedule.memoId ?? null,
                 priority: schedule.priority ?? null,
+                version: schedule.version ?? 0,
             },
         }));
     }, []);
@@ -217,6 +218,7 @@ export function ScheduleProvider({ children }) {
                 ...prev,
                  [monthKey]: mappedEvents,
             }));
+            return mappedEvents;
         } finally {
             setIsScheduleLoading(false);
         }
@@ -439,7 +441,7 @@ export function ScheduleProvider({ children }) {
         return res.data;
     };
 
-    const editEvent = async (scheduleId, { title, content, startDate, endDate, postId = null, priority = 2 }) => {
+    const editEvent = async (scheduleId, { title, content, startDate, endDate, postId = null, priority = 2, baseVersion = null }) => {
         const payload = {
             title,
             content,
@@ -457,16 +459,17 @@ export function ScheduleProvider({ children }) {
         const res = await updateTeamSchedule(scheduleId, {
             ...payload,
             calendarId: activeCalendarId,
+            baseVersion,
         });
         return res.data;
     };
 
-    const removeEvent = async (scheduleId) => {
+    const removeEvent = async (scheduleId, baseVersion = null) => {
          if (activeCalendarId === null) {
             await deleteScheduleApi(scheduleId);
             return;
         }
-        await deleteTeamSchedule(scheduleId, activeCalendarId);
+        await deleteTeamSchedule(scheduleId, activeCalendarId, baseVersion);
     };
 
     // 모든 캘린더에서 사용된 postId 목록 가져오기 (사이드바 색 표시용)

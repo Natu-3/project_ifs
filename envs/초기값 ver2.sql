@@ -18,6 +18,7 @@ CREATE TABLE user (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     userid VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NULL,
+    name VARCHAR(100) NULL,
     password VARCHAR(255) NOT NULL,
     auth VARCHAR(10) NOT NULL CHECK (auth IN ('USER', 'ADMIN')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -69,6 +70,7 @@ CREATE TABLE schedule (
     priority INT DEFAULT 0,
     created_by BIGINT UNSIGNED NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    version BIGINT NOT NULL DEFAULT 0,
 
     CONSTRAINT fk_schedule_calendar
         FOREIGN KEY (calendar_id) REFERENCES calendar(id)
