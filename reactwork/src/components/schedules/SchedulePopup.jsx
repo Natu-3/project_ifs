@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSchedule } from "../../context/ScheduleContext";
 import { useCalendar } from "../../context/CalendarContext";
 import { usePosts } from "../../context/PostContext";
+import useTeamCalendarLock from "../../hooks/useTeamCalendarLock";
 import { PRIORITY_LEVELS, PRIORITY_COLORS, PRIORITY_LABELS } from "../memos/MemoCreatePopup";
 import "../../componentsCss/schedulesCss/SchedulePopup.css";
 
@@ -18,6 +19,33 @@ export default function SchedulePopup({ date, event, onClose}) {
     const [ priority, setPriority ] = useState(PRIORITY_LEVELS.MEDIUM);
 
     const isEditMode = !!event;
+    const isTeamCalendar = activeCalendarId !== null;
+    const lockTargetId = useMemo(() => {
+        if (!isTeamCalendar) return null;
+        if (!isEditMode || !event?.id) return null;
+        return String(event.id);
+    }, [isTeamCalendar, isEditMode, event?.id]);
+
+    const {
+        lockState,
+        acquireForEdit,
+        authorizeWriteBeforeSave,
+        releaseLock,
+    } = useTeamCalendarLock({
+        calendarId: activeCalendarId,
+        targetId: lockTargetId,
+        enabled: Boolean(lockTargetId),
+    });
+
+    useEffect(() => {
+        if (!lockTargetId) return;
+
+        acquireForEdit();
+
+        return () => {
+            releaseLock();
+        };
+    }, [lockTargetId, acquireForEdit, releaseLock]);
 
     useEffect(() => {
         setTitle(event?.title || "");
@@ -78,6 +106,16 @@ export default function SchedulePopup({ date, event, onClose}) {
         const finalEndDate = endDate || startDate;
 
         try {
+            if (lockTargetId) {
+                const authorized = await authorizeWriteBeforeSave();
+                if (!authorized) {
+                    alert(" 접근에 실패했습니다. 편집 화면을 다시 열어주세요.");
+                    return;
+                }
+            }
+
+
+
             if (activeCalendarId === null) {
                 if (isEditMode && event?.id) {
                     await editEvent(event.id, { title, content, startDate, endDate: finalEndDate, postId: event?.postId || null, priority });
@@ -133,12 +171,13 @@ export default function SchedulePopup({ date, event, onClose}) {
                 });
             }
             await fetchSchedules(currentDate.getFullYear(), currentDate.getMonth() + 1);
+            await releaseLock();
             onClose();
         } catch (error) {
             console.error("일정 저장 실패", error);
             alert("일정 저장에 실패했습니다. 잠시 후 다시 시도해주세요.");
         }
-        onClose();
+        //onClose();
     };
 
     //삭제
@@ -146,6 +185,17 @@ export default function SchedulePopup({ date, event, onClose}) {
         if (!isEditMode) return;
 
         try {
+            if (lockTargetId) {
+                const authorized = await authorizeWriteBeforeSave();
+                if (!authorized) {
+                    alert("다른 사람이 편집중입니다. 다시 시도해주세요.");
+                    return;
+                }
+            }
+
+
+
+
             if (activeCalendarId === null && event?.id) {
                 await removeEvent(event.id);
             } else {
@@ -153,6 +203,7 @@ export default function SchedulePopup({ date, event, onClose}) {
             }
 
             await fetchSchedules(currentDate.getFullYear(), currentDate.getMonth() + 1);
+            await releaseLock();
             onClose();
         } catch (error) {
             console.error("일정 삭제 실패", error);
@@ -160,15 +211,27 @@ export default function SchedulePopup({ date, event, onClose}) {
         }
     };
 
+    const handleClose = useCallback(async () => {
+        await releaseLock();
+        onClose();
+    }, [releaseLock, onClose]);
+
+    const lockBlocked = lockTargetId && lockState.status !== "acquired";
+
     return (
-        <div className="popup-overlay" onClick={onClose}>
+        <div className="popup-overlay" onClick={handleClose}>
             <div className="popup" onClick={e => e.stopPropagation()}>
                 <h3>{event ? "일정 수정" : "일정 추가"}</h3>
-                
+                {lockTargetId && (
+                    <div className="lock-status-message" style={{ marginBottom: "8px", color: lockBlocked ? "#d32f2f" : "#2e7d32" }}>
+                        {lockState.message || "점유 상태 확인 중..."}
+                    </div>
+                )}
                 <input
                     value={title}
                     onChange={e => setTitle(e.target.value)}
                     placeholder="제목"
+                    disabled={lockBlocked}
                 />
                 
                 <div className="date-range-inputs">
@@ -185,6 +248,7 @@ export default function SchedulePopup({ date, event, onClose}) {
                                     setEndDate(newStart);
                                 }
                             }}
+                            disabled={lockBlocked}
                         />
                     </div>
                     <div className="date-input-group">
@@ -201,6 +265,7 @@ export default function SchedulePopup({ date, event, onClose}) {
                                 }
                             }}
                             min={startDate}
+                            disabled={lockBlocked}
                         />
                     </div>
                 </div>
@@ -209,6 +274,7 @@ export default function SchedulePopup({ date, event, onClose}) {
                     value={content}
                     onChange={e => setContent(e.target.value)}
                     placeholder="내용"
+                    disabled={lockBlocked}
                 />
                 
                 <div className="priority-selector">
@@ -228,6 +294,7 @@ export default function SchedulePopup({ date, event, onClose}) {
                                         color: isSelected ? '#fff' : PRIORITY_COLORS[levelNum]
                                     }}
                                     onClick={() => setPriority(levelNum)}
+                                    disabled={lockBlocked}
                                 >
                                     <span 
                                         className="priority-color-dot"
@@ -240,10 +307,10 @@ export default function SchedulePopup({ date, event, onClose}) {
                     </div>
                 </div>
                 
-                <button onClick={handleSave}>저장</button>
+                <button onClick={handleSave} disabled={lockBlocked}>저장</button>
                 
                 {event && (
-                    <button className="delete" onClick={handleDelete}>
+                      <button className="delete" onClick={handleDelete} disabled={lockBlocked}>
                         삭제
                     </button>
                 )}
