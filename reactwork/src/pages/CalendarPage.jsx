@@ -13,7 +13,7 @@ import "./CalendarPage.css";
 
 export default function CalendarPage() {
   const { currentDate, setCurrentDate, setActiveCalendarId } = useCalendar();
-  const { initializeTeamCalendar, removeTeamCalendar, fetchSchedules } = useSchedule();
+  const { initializeTeamCalendar, removeTeamCalendar, fetchSchedules, createEvent } = useSchedule();
   const { teamId } = useParams();
   const { teams, removeTeam } = useTeamCalendar();
   const { user } = useAuth();
@@ -71,10 +71,31 @@ export default function CalendarPage() {
     setPopupOpen(true);
   };
 
-  const handleDrop = (dateKey, eventData) => {
-    setSelectedDate(dateKey);
-    setSelectedEvent(eventData);
-    setPopupOpen(true);
+  const handleDrop = async (dateKey, eventData) => {
+    if (!eventData?.title) return;
+
+    try {
+      await createEvent({
+        title: eventData.title,
+        content: eventData.content || "",
+        startDate: dateKey,
+        endDate: dateKey,
+        postId: eventData.postId || null,
+        priority: eventData.priority ?? 2,
+      });
+
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth() + 1;
+
+      if (teamIdNum) {
+        await fetchSchedules(year, month, teamIdNum);
+      } else {
+        await fetchSchedules(year, month);
+      }
+    } catch (error) {
+      console.error("드롭 일정 생성 실패:", error);
+      alert("일정 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+    }
   };
 
   const closePopup = () => {

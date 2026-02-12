@@ -80,7 +80,7 @@ public class TeamScheduleService {
                 request.getContent(),
                 request.getStartAt(),
                 request.getEndAt(),
-                resolveMemoId(user, request.getMemoId()),
+                resolveMemoIdForTeamUpdate(user, request.getMemoId(), schedule.getMemoId()),
                 resolvePriority(request.getPriority())
         );
 
@@ -174,5 +174,17 @@ public class TeamScheduleService {
                 .orElseThrow(() -> new IllegalArgumentException("본인 메모가 아닙니다."));
 
         return memoId;
+    }
+
+    private Long resolveMemoIdForTeamUpdate(User user, Long requestedMemoId, Long existingMemoId) {
+        if (requestedMemoId == null) {
+            return null;
+        }
+
+        if (requestedMemoId.equals(existingMemoId)) {
+            return existingMemoId;
+        }
+
+        return resolveMemoId(user, requestedMemoId);
     }
 }
