@@ -124,7 +124,24 @@ export function ScheduleProvider({ children }) {
         return calendarEvents.personal || {};
     };
 
-        // 월별 스케줄 조회 (서버)
+    // MiniCalendar에서 사용할 월 기준 병합 이벤트
+    const getPersonalEventsForMonth = useCallback((year, month) => {
+        const personalEvents = calendarEvents.personal || {};
+        const monthServerEvents = serverEvents[`${year}-${month}`] || {};
+        const merged = { ...personalEvents };
+
+        Object.keys(monthServerEvents).forEach((dateKey) => {
+            const localItems = personalEvents[dateKey] || [];
+            const serverItems = monthServerEvents[dateKey] || [];
+            const localOnly = localItems.filter((ev) => !serverItems.some((sv) => sv.id === ev.id));
+            merged[dateKey] = [...serverItems, ...localOnly];
+        });
+
+        return merged;
+    }, [calendarEvents.personal, serverEvents]);
+
+
+    // 월별 스케줄 조회 (서버)
     const mapScheduleToDateEvents = useCallback((schedule) => {
         const start = new Date(schedule.startAt);
         const end = new Date(schedule.endAt || schedule.startAt);
@@ -468,6 +485,7 @@ export function ScheduleProvider({ children }) {
                 deleteEvent,
                 replaceRangeEvent,
                 getPersonalEvents,
+                getPersonalEventsForMonth,
                 setEvents: (events) => {
                     const key = activeCalendarId === null ? "personal" : `team-${activeCalendarId}`;
                     setCalendarEvents(prev => ({

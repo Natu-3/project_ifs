@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { getHolidayNames } from "@hyunbinseo/holidays-kr";
 import { useCalendar } from "../../context/CalendarContext";
 import { useSchedule } from "../../context/ScheduleContext";
@@ -7,7 +8,7 @@ import '../../componentsCss/calendarsCss/MiniCalendar.css'
 
 export default function MiniCalendar() {
     const { setCurrentDate } = useCalendar();
-    const { getPersonalEvents, getScheduleColor } = useSchedule();
+    const { fetchSchedules, getPersonalEventsForMonth, getScheduleColor } = useSchedule();
     const { posts } = usePosts();
   
     const today = new Date();
@@ -18,7 +19,12 @@ export default function MiniCalendar() {
     const week = ["일","월","화","수","목","금","토"];
     
     // 개인 캘린더의 이벤트 가져오기
-      const personalEvents = getPersonalEvents();
+    useEffect(() => {
+      fetchSchedules(year, month + 1);
+    }, [year, month, fetchSchedules]);
+
+    // 개인 캘린더 로컬 + 서버 이벤트 병합
+    const personalEvents = getPersonalEventsForMonth(year, month + 1);
 
     const sortByPriorityAndTime = (a, b) => {
         const ap = Number.isFinite(Number(a?.priority)) ? Number(a.priority) : 2;

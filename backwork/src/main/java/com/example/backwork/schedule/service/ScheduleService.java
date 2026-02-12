@@ -14,7 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -56,8 +59,17 @@ public class ScheduleService {
             LocalDateTime start,
             LocalDateTime end
     ) {
-        return scheduleRepository
-                .findByOwnerIdAndStartAtBetween(userId, start, end);
+        List<Schedule> rangedSchedules = scheduleRepository
+                .findByOwnerIdAndStartAtLessThanEqualAndEndAtGreaterThanEqual(userId, end, start);
+
+        List<Schedule> singleDaySchedules = scheduleRepository
+                .findByOwnerIdAndEndAtIsNullAndStartAtBetween(userId, start, end);
+
+        Map<Long, Schedule> uniqueSchedules = new LinkedHashMap<>();
+        rangedSchedules.forEach(schedule -> uniqueSchedules.put(schedule.getId(), schedule));
+        singleDaySchedules.forEach(schedule -> uniqueSchedules.put(schedule.getId(), schedule));
+
+        return new ArrayList<>(uniqueSchedules.values());
     }
 
     //일정 수정

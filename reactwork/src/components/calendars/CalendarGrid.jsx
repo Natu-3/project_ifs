@@ -46,12 +46,6 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
     return String(as).localeCompare(String(bs));
   };
 
-
-
-
-
-
-
   // 스케줄 조회 (서버에서 가져온 스케줄과 로컬 이벤트 병합)
   useEffect(() => {
     fetchSchedules(year, month + 1);
