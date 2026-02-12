@@ -7,7 +7,9 @@ WORKDIR /workspace
 COPY gradlew gradlew
 COPY gradle gradle
 COPY build.gradle settings.gradle ./
-RUN chmod +x gradlew
+
+RUN chmod +x gradlew \
+ && sed -i 's/\r$//' gradlew
 
 # Pre-fetch dependencies for better layer caching
 RUN ./gradlew --no-daemon dependencies || true
