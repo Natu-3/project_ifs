@@ -82,7 +82,7 @@ export default function CalendarPage() {
       // 팀 목록에서 제거 (DB에서도 삭제)
       await removeTeam(teamIdToDelete);
       // 개인 캘린더로 이동
-      navigate("/calendar");
+      navigate("/");
     } catch (error) {
       // 에러는 removeTeam에서 이미 처리됨
       console.error("팀 삭제 실패:", error);
