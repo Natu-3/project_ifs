@@ -33,7 +33,7 @@ export default function TeamMemberManageModal({
     try {
       setLoading(true);
       setErrorMessage("");
-      const response = await getTeamCalendarMembers(calendarId, actorUserId);
+      const response = await getTeamCalendarMembers(calendarId);
       const list = response.data || [];
       setMembers(Array.isArray(list) ? list : []);
     } catch (error) {
@@ -59,7 +59,7 @@ export default function TeamMemberManageModal({
 
     try {
       setErrorMessage("");
-      await addTeamCalendarMember(calendarId, actorUserId, trimmed, newMemberRole);
+      await addTeamCalendarMember(calendarId, trimmed, newMemberRole);
       setUserIdentifier("");
       setNewMemberRole("READ");
       await loadMembers();
@@ -74,7 +74,7 @@ export default function TeamMemberManageModal({
 
     try {
       setErrorMessage("");
-      await updateTeamCalendarMemberRole(calendarId, actorUserId, memberUserId, nextRole);
+        await updateTeamCalendarMemberRole(calendarId, memberUserId, nextRole);
       setMembers((prev) =>
         prev.map((member) =>
           member.userId === memberUserId ? { ...member, roleRw: nextRole } : member
@@ -92,7 +92,7 @@ export default function TeamMemberManageModal({
 
     try {
       setErrorMessage("");
-      await deleteTeamCalendarMember(calendarId, actorUserId, memberUserId);
+      await deleteTeamCalendarMember(calendarId, memberUserId);
       setMembers((prev) => prev.filter((member) => member.userId !== memberUserId));
     } catch (error) {
       console.error("멤버 삭제 실패:", error);

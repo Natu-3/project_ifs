@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { getMonthSchedules } from "../../api/scheduleApi";
+import { getMonthSchedules, getTeamMonthSchedules } from "../../api/scheduleApi";
 
 // 월별 스케줄 조회 + serverEvents 관리만 담당
 export function useScheduleServer({ getCalendarStorageKey, activeCalendarId }) {
@@ -46,15 +46,12 @@ export function useScheduleServer({ getCalendarStorageKey, activeCalendarId }) {
       const calendarKey = getCalendarStorageKey(calendarId);
       const monthKey = `${calendarKey}:${year}-${month}`;
 
-      // 너 코드 로직: personal만 서버 조회, 팀은 빈 객체 세팅
-      if (calendarKey !== "personal") {
-        setServerEvents((prev) => ({ ...prev, [monthKey]: {} }));
-        return;
-      }
-
-      setIsScheduleLoading(true);
+       setIsScheduleLoading(true);      
       try {
-        const res = await getMonthSchedules(year, month);
+        const res =
+          calendarKey === "personal"
+            ? await getMonthSchedules(year, month)
+            : await getTeamMonthSchedules(calendarId, year, month);
         const mappedEvents = {};
 
         res.data.forEach((s) => {

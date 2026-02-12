@@ -26,7 +26,7 @@ export function TeamCalendarProvider({children}){
         try {
             setLoading(true);
             // user.id를 직접 전달 (로그인한 사용자의 ID)
-            const response = await getTeamCalendars(user.id);
+            const response = await getTeamCalendars();
             // 백엔드 응답 형식에 맞게 변환 (필요시 수정)
             const teamList = response.data || [];
             const normalizedTeams = Array.isArray(teamList)
@@ -64,8 +64,8 @@ export function TeamCalendarProvider({children}){
         }
         
         try {
-            // user.id를 직접 전달 (로그인한 사용자의 ID)
-            const response = await createTeamCalendar(user.id, name.trim());
+            
+            const response = await createTeamCalendar(name.trim());
             const newTeam = response.data;
             
             // 서버에서 받은 팀 정보로 상태 업데이트
@@ -115,8 +115,6 @@ export function TeamCalendarProvider({children}){
 
         return target?.currentUserRole || null;
     };
-
-
 
     
     return(

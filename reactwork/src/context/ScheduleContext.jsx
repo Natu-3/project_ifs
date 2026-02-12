@@ -1,5 +1,14 @@
 import { createContext, useContext, useState, useEffect, useRef, useMemo,useCallback } from "react";
-import { getMonthSchedules, createSchedule, updateSchedule as updateScheduleApi, deleteSchedule as deleteScheduleApi, } from "../api/scheduleApi";
+import {
+    getMonthSchedules,
+    getTeamMonthSchedules,
+    createSchedule,
+    createTeamSchedule,
+    updateSchedule as updateScheduleApi,
+    updateTeamSchedule,
+    deleteSchedule as deleteScheduleApi,
+    deleteTeamSchedule,
+} from "../api/scheduleApi";
 import { useAuth } from "./AuthContext";
 import { useCalendar } from "./CalendarContext";
 
@@ -188,16 +197,11 @@ export function ScheduleProvider({ children }) {
         const calendarKey = getCalendarStorageKey(calendarId);
         const monthKey = `${calendarKey}:${year}-${month}`;
 
-        if (calendarKey !== "personal") {
-            setServerEvents((prev) => ({
-                ...prev,
-                [monthKey]: {},
-            }));
-            return;
-        }
         setIsScheduleLoading(true);
         try {
-            const res = await getMonthSchedules(year, month);
+            const res = calendarKey === "personal"
+                ? await getMonthSchedules(year, month)
+                : await getTeamMonthSchedules(calendarId, year, month);
             const mappedEvents = {};
 
             res.data.forEach((s) => {
@@ -423,7 +427,15 @@ export function ScheduleProvider({ children }) {
             priority,
         };
 
-        const res = await createSchedule(payload);
+        if (activeCalendarId === null) {
+            const res = await createSchedule(payload);
+            return res.data;
+        }
+
+        const res = await createTeamSchedule({
+            ...payload,
+            calendarId: activeCalendarId,
+        });
         return res.data;
     };
 
@@ -437,12 +449,24 @@ export function ScheduleProvider({ children }) {
             priority,
         };
 
-        const res = await updateScheduleApi(scheduleId, payload);
+        if (activeCalendarId === null) {
+            const res = await updateScheduleApi(scheduleId, payload);
+            return res.data;
+        }
+
+        const res = await updateTeamSchedule(scheduleId, {
+            ...payload,
+            calendarId: activeCalendarId,
+        });
         return res.data;
     };
 
     const removeEvent = async (scheduleId) => {
-        await deleteScheduleApi(scheduleId);
+         if (activeCalendarId === null) {
+            await deleteScheduleApi(scheduleId);
+            return;
+        }
+        await deleteTeamSchedule(scheduleId, activeCalendarId);
     };
 
     // 모든 캘린더에서 사용된 postId 목록 가져오기 (사이드바 색 표시용)

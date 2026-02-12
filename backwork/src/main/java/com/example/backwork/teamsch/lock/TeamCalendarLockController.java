@@ -1,5 +1,6 @@
 package com.example.backwork.teamsch.lock;
 
+import com.example.backwork.calendar.share.TeamCalendarAccessService;
 import com.example.backwork.member.SessionUser;
 import com.example.backwork.teamsch.lock.dto.LockCommandRequest;
 import com.example.backwork.teamsch.lock.dto.LockCommandResponse;
@@ -23,7 +24,7 @@ import java.time.Duration;
 public class TeamCalendarLockController {
 
     private final TeamCalendarLockService lockService;
-
+    private final TeamCalendarAccessService accessService;
     @PostMapping("/acquire")
     public ResponseEntity<LockCommandResponse> acquire(
             @PathVariable Long calendarId,
@@ -34,6 +35,7 @@ public class TeamCalendarLockController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+        accessService.requireWritable(calendarId, user.getId());
 
         String sessionId = httpRequest.getSession(false).getId();
         String lockKey = TeamCalendarLockKeyFactory.create(calendarId, request.getTargetType(), request.getTargetId());
@@ -63,6 +65,7 @@ public class TeamCalendarLockController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+        accessService.requireWritable(calendarId, user.getId());
 
         String sessionId = httpRequest.getSession(false).getId();
         String lockKey = TeamCalendarLockKeyFactory.create(calendarId, request.getTargetType(), request.getTargetId());
@@ -92,6 +95,7 @@ public class TeamCalendarLockController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+        accessService.requireWritable(calendarId, user.getId());
 
         String sessionId = httpRequest.getSession(false).getId();
         String lockKey = TeamCalendarLockKeyFactory.create(calendarId, request.getTargetType(), request.getTargetId());
@@ -119,6 +123,7 @@ public class TeamCalendarLockController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+        accessService.requireWritable(calendarId, user.getId());
 
         String sessionId = httpRequest.getSession(false).getId();
         String lockKey = TeamCalendarLockKeyFactory.create(
@@ -155,6 +160,7 @@ public class TeamCalendarLockController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+        accessService.requireWritable(calendarId, user.getId());
 
         String sessionId = httpRequest.getSession(false).getId();
         String lockKey = TeamCalendarLockKeyFactory.create(calendarId, request.getTargetType(), request.getTargetId());

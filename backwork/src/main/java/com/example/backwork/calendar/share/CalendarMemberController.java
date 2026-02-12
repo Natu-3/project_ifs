@@ -1,6 +1,10 @@
 package com.example.backwork.calendar.share;
 
+import com.example.backwork.member.SessionUser;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,20 +20,27 @@ public class CalendarMemberController {
     @GetMapping
     public ResponseEntity<List<CalendarMemberResponse>> getMembers(
             @PathVariable Long calendarId,
-            @RequestParam Long userId
+            HttpServletRequest httpRequest
     ) {
-        return ResponseEntity.ok(calendarMemberService.getMembers(calendarId, userId));
+        SessionUser user = getLoginUser(httpRequest);
+        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        return ResponseEntity.ok(calendarMemberService.getMembers(calendarId, user.getId()));
     }
 
     @PostMapping
     public ResponseEntity<CalendarMemberResponse> addMember(
             @PathVariable Long calendarId,
-            @RequestParam Long userId,
-            @RequestBody CalendarMemberCreateRequest request
+            @RequestBody CalendarMemberCreateRequest request,
+            HttpServletRequest httpRequest
     ) {
+        SessionUser user = getLoginUser(httpRequest);
+        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+
         CalendarMemberResponse response = calendarMemberService.addMember(
                 calendarId,
-                userId,
+                user.getId(),
                 request.getUserIdentifier(),
                 request.getRoleRw()
         );
@@ -40,12 +51,15 @@ public class CalendarMemberController {
     public ResponseEntity<CalendarMemberResponse> updateRole(
             @PathVariable Long calendarId,
             @PathVariable Long memberUserId,
-            @RequestParam Long userId,
-            @RequestBody CalendarMemberRoleUpdateRequest request
+            @RequestBody CalendarMemberRoleUpdateRequest request,
+            HttpServletRequest httpRequest
     ) {
+        SessionUser user = getLoginUser(httpRequest);
+        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
         CalendarMemberResponse response = calendarMemberService.updateMemberRole(
                 calendarId,
-                userId,
+                user.getId(),
                 memberUserId,
                 request.getRoleRw()
         );
@@ -57,9 +71,17 @@ public class CalendarMemberController {
     public ResponseEntity<Void> removeMember(
             @PathVariable Long calendarId,
             @PathVariable Long memberUserId,
-            @RequestParam Long userId
+            HttpServletRequest httpRequest
     ) {
-        calendarMemberService.removeMember(calendarId, userId, memberUserId);
+        SessionUser user = getLoginUser(httpRequest);
+        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        calendarMemberService.removeMember(calendarId, user.getId(), memberUserId);
         return ResponseEntity.ok().build();
+    }
+    private SessionUser getLoginUser(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) return null;
+        return (SessionUser) session.getAttribute("LOGIN_USER");
     }
 }

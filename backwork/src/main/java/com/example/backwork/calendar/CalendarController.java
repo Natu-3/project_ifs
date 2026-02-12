@@ -1,7 +1,10 @@
 package com.example.backwork.calendar;
 
-
+import com.example.backwork.member.SessionUser;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,30 +18,50 @@ public class CalendarController {
     private final CalendarService calendarService;
     
     // 팀 캘린더 목록 조회
+
     @GetMapping
-    public ResponseEntity<List<CalendarResponse>> getTeamCalendars(
-        @RequestParam Long userId
-    ) {
-        return ResponseEntity.ok(calendarService.getTeamCalendars(userId));
+
+    public ResponseEntity<List<CalendarResponse>> getTeamCalendars(HttpServletRequest httpRequest) {
+        SessionUser user = getLoginUser(httpRequest);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return ResponseEntity.ok(calendarService.getTeamCalendars(user.getId()));
     }
     
     // 팀 캘린더 생성
     @PostMapping
     public ResponseEntity<CalendarResponse> createTeamCalendar(
-        @RequestParam Long userId,
-        @RequestBody CalendarRequest request
+            @RequestBody CalendarRequest request,
+            HttpServletRequest httpRequest
     ) {
-        return ResponseEntity.ok(calendarService.createTeamCalendar(userId, request));
+        SessionUser user = getLoginUser(httpRequest);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return ResponseEntity.ok(calendarService.createTeamCalendar(user.getId(), request));
     }
-    
-    // 팀 캘린더 삭제
+
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTeamCalendar(
-        @PathVariable Long id,
-        @RequestParam Long userId
+            @PathVariable Long id,
+            HttpServletRequest httpRequest
     ) {
-        calendarService.deleteTeamCalendar(id, userId);
+        SessionUser user = getLoginUser(httpRequest);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        calendarService.deleteTeamCalendar(id, user.getId());
         return ResponseEntity.ok().build();
     }
-}
 
+    private SessionUser getLoginUser(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) return null;
+        return (SessionUser) session.getAttribute("LOGIN_USER");
+    }
+}

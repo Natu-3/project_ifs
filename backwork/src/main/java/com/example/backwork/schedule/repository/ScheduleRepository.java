@@ -20,4 +20,15 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
             LocalDateTime monthStart,
             LocalDateTime monthEnd
     );
+    List<Schedule> findByCalendarIdAndStartAtLessThanEqualAndEndAtGreaterThanEqual(
+            Long calendarId,
+            LocalDateTime monthEnd,
+            LocalDateTime monthStart
+    );
+
+    List<Schedule> findByCalendarIdAndEndAtIsNullAndStartAtBetween(
+            Long calendarId,
+            LocalDateTime monthStart,
+            LocalDateTime monthEnd
+    );
 }

@@ -1,6 +1,6 @@
 //package com.example.backwork.config;
 //
-//import com.example.backwork.schedule.ScheduleUpdateListener;
+//import com.example.backwork.redis.RedisSubscriber;
 //import org.springframework.context.annotation.Bean;
 //import org.springframework.context.annotation.Configuration;
 //import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -9,7 +9,7 @@
 //import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 //
 //@Configuration
-//public RedisPubSubConfig {
+//public class RedisPubSubconfig {
 //
 //    @Bean
 //    public ChannelTopic scheduleUpdateTopic() {
@@ -19,16 +19,17 @@
 //    @Bean
 //    public RedisMessageListenerContainer redisMessageListenerContainer(
 //            RedisConnectionFactory connectionFactory,
-//            MessageListenerAdapter listenerAdapter
+//            MessageListenerAdapter listenerAdapter,
+//            ChannelTopic scheduleUpdateTopic
 //    ) {
 //        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 //        container.setConnectionFactory(connectionFactory);
-//        container.addMessageListener(listenerAdapter, scheduleUpdateTopic());
+//        container.addMessageListener(listenerAdapter, scheduleUpdateTopic);
 //        return container;
 //    }
 //
 //    @Bean
-//    public MessageListenerAdapter listenerAdapter(ScheduleUpdateListener listener) {
-//        return new MessageListenerAdapter(listener, "onMessage");
+//    public MessageListenerAdapter listenerAdapter(RedisSubscriber subscriber) {
+//        return new MessageListenerAdapter(subscriber, "onMessage");
 //    }
 //}
