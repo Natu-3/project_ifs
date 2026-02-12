@@ -113,9 +113,14 @@ export function ScheduleProvider({ children }) {
         }
     }, [calendarEvents, user?.id]);
 
+     const getCalendarStorageKey = useCallback((calendarId = activeCalendarId) => {
+        return calendarId === null ? "personal" : `team-${calendarId}`;
+    }, [activeCalendarId]);
+
+
     // 현재 활성 캘린더 이벤트 가져오기
     const getCurrentEvents = () => {
-        const key = activeCalendarId === null ? "personal" : `team-${activeCalendarId}`;
+        const key = getCalendarStorageKey();
         return calendarEvents[key] || {};
     };
     
@@ -127,7 +132,7 @@ export function ScheduleProvider({ children }) {
     // MiniCalendar에서 사용할 월 기준 병합 이벤트
     const getPersonalEventsForMonth = useCallback((year, month) => {
         const personalEvents = calendarEvents.personal || {};
-        const monthServerEvents = serverEvents[`${year}-${month}`] || {};
+        const monthServerEvents = serverEvents[`personal:${year}-${month}`] || {};
         const merged = { ...personalEvents };
 
         Object.keys(monthServerEvents).forEach((dateKey) => {
@@ -179,7 +184,17 @@ export function ScheduleProvider({ children }) {
 
 
     // 월별 스케줄 조회 (서버)
-    const fetchSchedules = useCallback(async (year, month) => {
+    const fetchSchedules = useCallback(async (year, month, calendarId = activeCalendarId) => {
+        const calendarKey = getCalendarStorageKey(calendarId);
+        const monthKey = `${calendarKey}:${year}-${month}`;
+
+        if (calendarKey !== "personal") {
+            setServerEvents((prev) => ({
+                ...prev,
+                [monthKey]: {},
+            }));
+            return;
+        }
         setIsScheduleLoading(true);
         try {
             const res = await getMonthSchedules(year, month);
@@ -196,18 +211,18 @@ export function ScheduleProvider({ children }) {
 
             setServerEvents((prev) => ({
                 ...prev,
-                [`${year}-${month}`]: mappedEvents,
+                 [monthKey]: mappedEvents,
             }));
         } finally {
             setIsScheduleLoading(false);
         }
-    }, [mapScheduleToDateEvents]);
+      }, [activeCalendarId, getCalendarStorageKey, mapScheduleToDateEvents]);
 
     // 특정 년/월의 스케줄 가져오기
-    const getSchedulesForMonth = useCallback((year, month) => {
-        const key = `${year}-${month}`;
+    const getSchedulesForMonth = useCallback((year, month, calendarId = activeCalendarId) => {
+        const key = `${getCalendarStorageKey(calendarId)}:${year}-${month}`;
         return serverEvents[key] || {};
-    }, [serverEvents]);
+      }, [activeCalendarId, getCalendarStorageKey, serverEvents]);
 
     // 스케줄 색상 계산
     // 중요도별 색상 (MemoCreatePopup의 PRIORITY_COLORS와 동일)
