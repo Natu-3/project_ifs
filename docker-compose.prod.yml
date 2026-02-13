@@ -1,34 +1,57 @@
-# AWS에 올렸을 때 RDS로 데이터베이스 분리 적용하기 위한 별도 프로필
- 
-
 services:
-  backend:
-    image: ${BACKEND_IMAGE:-backwork:latest}
-    container_name: ifs-backend-prod
+  redis:
+    image: redis:7-alpine
+    container_name: ifs-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  db:
+    image: mysql:8.0
+    container_name: ifs-db
     restart: unless-stopped
     environment:
-      DB_HOST: ${DB_HOST:?set DB_HOST to your RDS endpoint}
-      DB_PORT: ${DB_PORT:-3306}
-      DB_NAME: ${DB_NAME:?set DB_NAME}
-      DB_USER: ${DB_USER:?set DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD}
-      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-validate}
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-1234}
+      MYSQL_DATABASE: ${DB_NAME:-ifscm}
+    volumes:
+      - db_data:/var/lib/mysql
     ports:
-      - "8081:8080"
+      - "3307:3306"
     healthcheck:
-      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/actuator/health"]
-      interval: 30s
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_PASSWORD:-1234}"]
+      interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 40s
+      retries: 10
 
-  frontend:
-    image: ${FRONTEND_IMAGE:-reactwork:latest}
-    container_name: ifs-frontend-prod
+  backend:
+    image: ghcr.io/natu-3/project_ifs-backend:latest
+    container_name: ifs-backend
     restart: unless-stopped
     depends_on:
-      backend:
+      db:
         condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-ifscm}
+      DB_USER: root
+      DB_PASSWORD: ${DB_PASSWORD:-1234}
+      JPA_DDL_AUTO: update
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+    ports:
+      - "8081:8080"
+
+  frontend:
+    image: ghcr.io/natu-3/project_ifs-frontend:latest
+    container_name: ifs-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
     ports:
       - "3000:80"
+
+volumes:
+  db_data:
