@@ -13,28 +13,45 @@ const sendFrame = (socket, command, headers = {}, body = "") => {
 
 export default function useTeamScheduleRealtime({ calendarId, onUpdate }) {
   const wsRef = useRef(null);
+  const reconnectTimerRef = useRef(null);
+  const retryCountRef = useRef(0);
+  const connectedRef = useRef(false);
+  const disposedRef = useRef(false);
 
   useEffect(() => {
     if (!calendarId) return undefined;
 
-    let connected = false;
-    const socket = new WebSocket(buildWsUrl());
-    wsRef.current = socket;
+    disposedRef.current = false;
+    let socket = null;
 
-    socket.onopen = () => {
-      sendFrame(socket, "CONNECT", {
-        "accept-version": "1.2",
-        host: window.location.host,
-      });
+    const clearReconnectTimer = () => {
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
     };
 
-    socket.onmessage = (event) => {
-      const raw = String(event.data || "");
+    const scheduleReconnect = () => {
+      if (disposedRef.current) return;
+      clearReconnectTimer();
+
+      const delay = Math.min(1000 * (2 ** retryCountRef.current), 10000);
+      retryCountRef.current = Math.min(retryCountRef.current + 1, 10);
+      reconnectTimerRef.current = setTimeout(() => {
+        if (disposedRef.current) return;
+        connect();
+      }, delay);
+    };
+
+    const handleFrames = (raw) => {
       const frames = raw.split("\0").filter(Boolean);
 
       frames.forEach((frame) => {
         if (frame.startsWith("CONNECTED")) {
-          connected = true;
+          connectedRef.current = true;
+          retryCountRef.current = 0;
+          clearReconnectTimer();
+
           sendFrame(socket, "SUBSCRIBE", {
             id: `team-${calendarId}`,
             destination: `/topic/team/${calendarId}`,
@@ -56,23 +73,56 @@ export default function useTeamScheduleRealtime({ calendarId, onUpdate }) {
       });
     };
 
-    socket.onerror = () => {
-      // Keep silent for test flow; schedule APIs still work without realtime push.
+    const connect = () => {
+      connectedRef.current = false;
+      socket = new WebSocket(buildWsUrl());
+      wsRef.current = socket;
+
+      socket.onopen = () => {
+        sendFrame(socket, "CONNECT", {
+          "accept-version": "1.2",
+          host: window.location.host,
+        });
+      };
+
+      socket.onmessage = (event) => {
+        handleFrames(String(event.data || ""));
+      };
+
+      socket.onerror = () => {
+        // no-op: reconnection is handled by onclose.
+      };
+
+      socket.onclose = () => {
+        connectedRef.current = false;
+        if (wsRef.current === socket) {
+          wsRef.current = null;
+        }
+        scheduleReconnect();
+      };
     };
 
+    connect();
+
     return () => {
+      disposedRef.current = true;
+      clearReconnectTimer();
+
+      const activeSocket = wsRef.current || socket;
       try {
-        if (connected && socket.readyState === WebSocket.OPEN) {
-          sendFrame(socket, "DISCONNECT");
+        if (connectedRef.current && activeSocket?.readyState === WebSocket.OPEN) {
+          sendFrame(activeSocket, "DISCONNECT");
         }
       } catch {
         // no-op
       }
       try {
-        socket.close();
+        activeSocket?.close();
       } catch {
         // no-op
       }
+      connectedRef.current = false;
+      wsRef.current = null;
     };
   }, [calendarId, onUpdate]);
 

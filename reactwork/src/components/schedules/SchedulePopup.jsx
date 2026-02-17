@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSchedule } from "../../context/ScheduleContext";
 import { useCalendar } from "../../context/CalendarContext";
 import { usePosts } from "../../context/PostContext";
@@ -19,6 +19,8 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
   const [priority, setPriority] = useState(PRIORITY_LEVELS.MEDIUM);
   const [baseVersion, setBaseVersion] = useState(null);
   const [showRemoteUpdateBanner, setShowRemoteUpdateBanner] = useState(false);
+  const autoRefreshInFlightRef = useRef(false);
+  const autoRefreshBannerTimerRef = useRef(null);
 
   const isEditMode = !!event?.id;
   const isTeamCalendar = activeCalendarId !== null;
@@ -50,7 +52,7 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
     }
   }, [posts]);
 
-  const fetchAndApplyLatest = useCallback(async () => {
+  const fetchAndApplyLatest = useCallback(async ({ keepBanner = false } = {}) => {
     const latestMonthEvents = await fetchSchedules(currentDate.getFullYear(), currentDate.getMonth() + 1);
 
     if (!event?.id) return;
@@ -66,7 +68,9 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
     }
 
     applyEventToForm(latest, date);
-    setShowRemoteUpdateBanner(false);
+    if (!keepBanner) {
+      setShowRemoteUpdateBanner(false);
+    }
   }, [
     fetchSchedules,
     currentDate,
@@ -82,13 +86,39 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
   }, [date, event, applyEventToForm]);
 
   useEffect(() => {
+    return () => {
+      if (autoRefreshBannerTimerRef.current) {
+        clearTimeout(autoRefreshBannerTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (!isTeamCalendar || !isEditMode || !realtimeEvent) return;
     if (Number(realtimeEvent?.scheduleId) !== Number(event?.id)) return;
     if (Number(realtimeEvent?.actorUserId) === Number(user?.id)) return;
     if (realtimeEvent?.action !== "UPDATED" && realtimeEvent?.action !== "DELETED") return;
 
     setShowRemoteUpdateBanner(true);
-  }, [isTeamCalendar, isEditMode, realtimeEvent, event?.id, user?.id]);
+    if (autoRefreshInFlightRef.current) return;
+
+    autoRefreshInFlightRef.current = true;
+    (async () => {
+      try {
+        await fetchAndApplyLatest({ keepBanner: true });
+      } catch {
+        // Keep banner for manual retry button when auto refresh fails.
+      } finally {
+        autoRefreshInFlightRef.current = false;
+        if (autoRefreshBannerTimerRef.current) {
+          clearTimeout(autoRefreshBannerTimerRef.current);
+        }
+        autoRefreshBannerTimerRef.current = setTimeout(() => {
+          setShowRemoteUpdateBanner(false);
+        }, 2500);
+      }
+    })();
+  }, [isTeamCalendar, isEditMode, realtimeEvent, event?.id, user?.id, fetchAndApplyLatest]);
 
   const handleVersionConflict = useCallback(async () => {
     await fetchAndApplyLatest();

@@ -47,12 +47,32 @@ export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [latestRealtimeEvent, setLatestRealtimeEvent] = useState(null);
+  const realtimeFetchTimerRef = useRef(null);
 
-  const handleRealtimeUpdate = useCallback(async (payload) => {
+  const handleRealtimeUpdate = useCallback((payload) => {
     setLatestRealtimeEvent(payload || null);
     if (!teamIdNum) return;
-    await fetchSchedules(currentDate.getFullYear(), currentDate.getMonth() + 1, teamIdNum);
+
+    if (realtimeFetchTimerRef.current) {
+      clearTimeout(realtimeFetchTimerRef.current);
+    }
+
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth() + 1;
+    realtimeFetchTimerRef.current = setTimeout(() => {
+      fetchSchedules(year, month, teamIdNum).catch(() => {
+        // Ignore background refresh errors to avoid noisy UX.
+      });
+    }, 300);
   }, [teamIdNum, fetchSchedules, currentDate]);
+
+  useEffect(() => {
+    return () => {
+      if (realtimeFetchTimerRef.current) {
+        clearTimeout(realtimeFetchTimerRef.current);
+      }
+    };
+  }, []);
 
   useTeamScheduleRealtime({
     calendarId: teamIdNum,
