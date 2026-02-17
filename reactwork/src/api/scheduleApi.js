@@ -8,8 +8,7 @@ export const getMonthSchedules = (year, month) => {
 };
 
 export const getTeamMonthSchedules = (calendarId, year, month) => {
-  return api.get("/team-schedules", {
-    params: { calendarId, year, month },
+  return api.post("/schedules", scheduleData, {
     withCredentials: true,
   });
 };
