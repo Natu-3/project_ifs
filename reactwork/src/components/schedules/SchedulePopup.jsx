@@ -22,6 +22,7 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
   const autoRefreshInFlightRef = useRef(false);
   const autoRefreshBannerTimerRef = useRef(null);
 
+<<<<<<< ours
   const isEditMode = !!event?.id;
   const isTeamCalendar = activeCalendarId !== null;
 
@@ -54,6 +55,47 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
 
   const fetchAndApplyLatest = useCallback(async ({ keepBanner = false } = {}) => {
     const latestMonthEvents = await fetchSchedules(currentDate.getFullYear(), currentDate.getMonth() + 1);
+=======
+        const finalEndDate = endDate || startDate;
+
+        try {
+            if (lockTargetId) {
+                const authorized = await authorizeWriteBeforeSave();
+                if (!authorized) {
+                    alert(" 접근에 실패했습니다. 편집 화면을 다시 열어주세요.");
+                    return;
+                }
+            }
+            if (isEditMode && event?.id) {
+                await editEvent(event.id, {
+                    title,
+                    content,
+                    startDate,
+                    endDate: finalEndDate,
+                    postId: event?.postId || null,
+                    priority,
+                });
+            } else {
+                await createEvent({
+                    title,
+                    content,
+                    startDate,
+                    endDate: finalEndDate,
+                    postId: event?.postId || null,
+                    priority,
+                });
+            }
+
+            await fetchSchedules(currentDate.getFullYear(), currentDate.getMonth() + 1);
+            await releaseLock();
+            onClose();
+        } catch (error) {
+            console.error("일정 저장 실패", error);
+            alert("일정 저장에 실패했습니다. 잠시 후 다시 시도해주세요.");
+        }
+        //onClose();
+    };
+>>>>>>> theirs
 
     if (!event?.id) return;
 
