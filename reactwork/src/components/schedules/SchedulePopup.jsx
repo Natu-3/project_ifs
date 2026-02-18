@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+﻿import { useState, useEffect, useCallback, useRef } from "react";
 import { useSchedule } from "../../context/ScheduleContext";
 import { useCalendar } from "../../context/CalendarContext";
 import { usePosts } from "../../context/PostContext";
@@ -22,7 +22,6 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
   const autoRefreshInFlightRef = useRef(false);
   const autoRefreshBannerTimerRef = useRef(null);
 
-<<<<<<< ours
   const isEditMode = !!event?.id;
   const isTeamCalendar = activeCalendarId !== null;
 
@@ -55,47 +54,6 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
 
   const fetchAndApplyLatest = useCallback(async ({ keepBanner = false } = {}) => {
     const latestMonthEvents = await fetchSchedules(currentDate.getFullYear(), currentDate.getMonth() + 1);
-=======
-        const finalEndDate = endDate || startDate;
-
-        try {
-            if (lockTargetId) {
-                const authorized = await authorizeWriteBeforeSave();
-                if (!authorized) {
-                    alert(" 접근에 실패했습니다. 편집 화면을 다시 열어주세요.");
-                    return;
-                }
-            }
-            if (isEditMode && event?.id) {
-                await editEvent(event.id, {
-                    title,
-                    content,
-                    startDate,
-                    endDate: finalEndDate,
-                    postId: event?.postId || null,
-                    priority,
-                });
-            } else {
-                await createEvent({
-                    title,
-                    content,
-                    startDate,
-                    endDate: finalEndDate,
-                    postId: event?.postId || null,
-                    priority,
-                });
-            }
-
-            await fetchSchedules(currentDate.getFullYear(), currentDate.getMonth() + 1);
-            await releaseLock();
-            onClose();
-        } catch (error) {
-            console.error("일정 저장 실패", error);
-            alert("일정 저장에 실패했습니다. 잠시 후 다시 시도해주세요.");
-        }
-        //onClose();
-    };
->>>>>>> theirs
 
     if (!event?.id) return;
 
@@ -104,7 +62,7 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
       .find((ev) => Number(ev?.id) === Number(event.id));
 
     if (!latest) {
-      alert("해당 일정은 이미 삭제되었습니다.");
+      alert("?대떦 ?쇱젙? ?대? ??젣?섏뿀?듬땲??");
       onClose();
       return;
     }
@@ -166,6 +124,14 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
     await fetchAndApplyLatest();
   }, [fetchAndApplyLatest]);
 
+  const getApiErrorMessage = (error, fallback) => {
+    const message = error?.response?.data?.message;
+    if (typeof message === "string" && message.trim()) {
+      return message;
+    }
+    return fallback;
+  };
+
   const handleSave = async () => {
     if (!title.trim()) return;
     if (!startDate) return;
@@ -200,13 +166,21 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
       const status = error?.response?.status;
       const code = error?.response?.data?.code;
       if (status === 409 && code === "VERSION_CONFLICT") {
-        alert("다른 사용자가 먼저 수정했습니다. 최신 일정으로 자동 갱신합니다.");
+        alert("?ㅻⅨ ?ъ슜?먭? 癒쇱? ?섏젙?덉뒿?덈떎. 理쒖떊 ?쇱젙?쇰줈 ?먮룞 媛깆떊?⑸땲??");
         await handleVersionConflict();
         return;
       }
 
-      console.error("일정 저장 실패", error);
-      alert("일정 저장에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+      console.error("?쇱젙 ????ㅽ뙣", error);
+      if (status === 403) {
+        alert(getApiErrorMessage(error, "No write permission for this team calendar."));
+        return;
+      }
+      if (status === 400) {
+        alert(getApiErrorMessage(error, "Invalid schedule update request."));
+        return;
+      }
+      alert(getApiErrorMessage(error, "?쇱젙 ??μ뿉 ?ㅽ뙣?덉뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??"));
     }
   };
 
@@ -221,20 +195,28 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
       const status = error?.response?.status;
       const code = error?.response?.data?.code;
       if (status === 409 && code === "VERSION_CONFLICT") {
-        alert("다른 사용자가 먼저 수정했습니다. 최신 일정으로 자동 갱신합니다.");
+        alert("?ㅻⅨ ?ъ슜?먭? 癒쇱? ?섏젙?덉뒿?덈떎. 理쒖떊 ?쇱젙?쇰줈 ?먮룞 媛깆떊?⑸땲??");
         await handleVersionConflict();
         return;
       }
 
-      console.error("일정 삭제 실패", error);
-      alert("일정 삭제에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+      console.error("?쇱젙 ??젣 ?ㅽ뙣", error);
+      if (status === 403) {
+        alert(getApiErrorMessage(error, "No write permission for this team calendar."));
+        return;
+      }
+      if (status === 400) {
+        alert(getApiErrorMessage(error, "Invalid schedule delete request."));
+        return;
+      }
+      alert(getApiErrorMessage(error, "?쇱젙 ??젣???ㅽ뙣?덉뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??"));
     }
   };
 
   return (
     <div className="popup-overlay" onClick={onClose}>
       <div className="popup" onClick={(e) => e.stopPropagation()}>
-        <h3>{event ? "일정 수정" : "일정 추가"}</h3>
+        <h3>{event ? "?쇱젙 ?섏젙" : "?쇱젙 異붽?"}</h3>
 
         {showRemoteUpdateBanner && (
           <div
@@ -251,9 +233,9 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
               justifyContent: "space-between",
             }}
           >
-            <span>다른 사용자가 이 일정을 업데이트했습니다.</span>
+            <span>?ㅻⅨ ?ъ슜?먭? ???쇱젙???낅뜲?댄듃?덉뒿?덈떎.</span>
             <button type="button" onClick={fetchAndApplyLatest}>
-              최신본 불러오기
+              理쒖떊蹂?遺덈윭?ㅺ린
             </button>
           </div>
         )}
@@ -261,12 +243,12 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="제목"
+          placeholder="?쒕ぉ"
         />
 
         <div className="date-range-inputs">
           <div className="date-input-group">
-            <label>시작일</label>
+            <label>Start</label>
             <input
               type="date"
               value={startDate}
@@ -280,7 +262,7 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
             />
           </div>
           <div className="date-input-group">
-            <label>종료일</label>
+            <label>End</label>
             <input
               type="date"
               value={endDate}
@@ -299,11 +281,11 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="내용"
+          placeholder="?댁슜"
         />
 
         <div className="priority-selector">
-          <label>중요도</label>
+          <label>Priority</label>
           <div className="priority-options">
             {Object.entries(PRIORITY_LABELS).map(([level, label]) => {
               const levelNum = parseInt(level, 10);
@@ -331,11 +313,11 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
           </div>
         </div>
 
-        <button onClick={handleSave}>저장</button>
+        <button onClick={handleSave}>Save</button>
 
         {event && (
           <button className="delete" onClick={handleDelete}>
-            삭제
+            ??젣
           </button>
         )}
       </div>

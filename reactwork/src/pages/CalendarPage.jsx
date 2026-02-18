@@ -32,7 +32,7 @@ export default function CalendarPage() {
   }, [teams, teamIdNum]);
 
   const canManageTeam = Boolean(team && user?.id && Number(team.ownerId) === Number(user.id));
-  const title = team ? team.name : "개인 캘린더";
+  const title = team ? team.name : "Personal Calendar";
 
   useEffect(() => {
     if (teamId) {
@@ -113,7 +113,12 @@ export default function CalendarPage() {
         await fetchSchedules(year, month);
       }
     } catch (error) {
-      console.error("드롭 일정 생성 실패:", error);
+      console.error("Drop schedule creation failed:", error);
+      const serverMessage = error?.response?.data?.message;
+      if (typeof serverMessage === "string" && serverMessage.trim()) {
+        alert(serverMessage);
+        return;
+      }
       alert("일정 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.");
     }
   };

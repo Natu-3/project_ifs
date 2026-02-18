@@ -92,6 +92,23 @@ public class TeamScheduleController {
         return ResponseEntity.ok().build();
     }
 
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<java.util.Map<String, Object>> handleSecurityException(SecurityException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(java.util.Map.of(
+                        "code", "FORBIDDEN",
+                        "message", e.getMessage()
+                ));
+    }
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<java.util.Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException e) {
+        return ResponseEntity.badRequest()
+                .body(java.util.Map.of(
+                        "code", "BAD_REQUEST",
+                        "message", e.getMessage()
+                ));
+    }
+
     @ExceptionHandler(TeamScheduleVersionConflictException.class)
     public ResponseEntity<TeamScheduleConflictResponse> handleVersionConflict(
             TeamScheduleVersionConflictException e
@@ -110,3 +127,4 @@ public class TeamScheduleController {
         return (SessionUser) session.getAttribute("LOGIN_USER");
     }
 }
+
