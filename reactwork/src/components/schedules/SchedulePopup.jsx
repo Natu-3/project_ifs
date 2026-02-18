@@ -25,60 +25,58 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
   const isEditMode = !!event?.id;
   const isTeamCalendar = activeCalendarId !== null;
 
-  const applyEventToForm = useCallback((targetEvent, fallbackDate) => {
-    setTitle(targetEvent?.title || "");
-    setContent(targetEvent?.content || "");
-    setBaseVersion(targetEvent?.version ?? null);
+  const applyEventToForm = useCallback(
+    (targetEvent, fallbackDate) => {
+      setTitle(targetEvent?.title || "");
+      setContent(targetEvent?.content || "");
+      setBaseVersion(targetEvent?.version ?? null);
 
-    if (targetEvent?.postId) {
-      const post = posts.find((p) => p.id === targetEvent.postId);
-      setPriority(post?.priority ?? targetEvent?.priority ?? PRIORITY_LEVELS.MEDIUM);
-    } else {
-      setPriority(targetEvent?.priority ?? PRIORITY_LEVELS.MEDIUM);
-    }
+      if (targetEvent?.postId) {
+        const post = posts.find((p) => p.id === targetEvent.postId);
+        setPriority(post?.priority ?? targetEvent?.priority ?? PRIORITY_LEVELS.MEDIUM);
+      } else {
+        setPriority(targetEvent?.priority ?? PRIORITY_LEVELS.MEDIUM);
+      }
 
-    if (targetEvent?.startDate && targetEvent?.endDate) {
-      setStartDate(targetEvent.startDate);
-      setEndDate(targetEvent.endDate);
-    } else if (targetEvent?.date) {
-      setStartDate(targetEvent.date);
-      setEndDate(targetEvent.date);
-    } else if (fallbackDate) {
-      setStartDate(fallbackDate);
-      setEndDate(fallbackDate);
-    } else {
-      setStartDate("");
-      setEndDate("");
-    }
-  }, [posts]);
+      if (targetEvent?.startDate && targetEvent?.endDate) {
+        setStartDate(targetEvent.startDate);
+        setEndDate(targetEvent.endDate);
+      } else if (targetEvent?.date) {
+        setStartDate(targetEvent.date);
+        setEndDate(targetEvent.date);
+      } else if (fallbackDate) 
+        setStartDate(fallbackDate);
+        setEndDate(fallbackDate);
+      } else {
+        setStartDate("");
+        setEndDate("");
+      }
+    },
+    [posts]
+  );
 
-  const fetchAndApplyLatest = useCallback(async ({ keepBanner = false } = {}) => {
-    const latestMonthEvents = await fetchSchedules(currentDate.getFullYear(), currentDate.getMonth() + 1);
+  const fetchAndApplyLatest = useCallback(
+    async ({ keepBanner = false } = {}) => {
+      const latestMonthEvents = await fetchSchedules(currentDate.getFullYear(), currentDate.getMonth() + 1);
+      if (!event?.id) return;
 
-    if (!event?.id) return;
+      const latest = Object.values(latestMonthEvents || {})
+        .flat()
+        .find((ev) => Number(ev?.id) === Number(event.id));
 
-    const latest = Object.values(latestMonthEvents || {})
-      .flat()
-      .find((ev) => Number(ev?.id) === Number(event.id));
+      if (!latest) {
+        alert("해당 일정은 이미 삭제되었습니다.");
+        onClose();
+        return;
+      }
 
-    if (!latest) {
-      alert("?대떦 ?쇱젙? ?대? ??젣?섏뿀?듬땲??");
-      onClose();
-      return;
-    }
-
-    applyEventToForm(latest, date);
-    if (!keepBanner) {
-      setShowRemoteUpdateBanner(false);
-    }
-  }, [
-    fetchSchedules,
-    currentDate,
-    event?.id,
-    applyEventToForm,
-    date,
-    onClose,
-  ]);
+      applyEventToForm(latest, date);
+      if (!keepBanner) {
+        setShowRemoteUpdateBanner(false);
+      }
+    },
+    [fetchSchedules, currentDate, event?.id, applyEventToForm, date, onClose]
+  );
 
   useEffect(() => {
     applyEventToForm(event, date);
@@ -166,21 +164,21 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
       const status = error?.response?.status;
       const code = error?.response?.data?.code;
       if (status === 409 && code === "VERSION_CONFLICT") {
-        alert("?ㅻⅨ ?ъ슜?먭? 癒쇱? ?섏젙?덉뒿?덈떎. 理쒖떊 ?쇱젙?쇰줈 ?먮룞 媛깆떊?⑸땲??");
+        alert("다른 사용자가 먼저 수정했습니다. 최신 일정으로 자동 갱신합니다.");
         await handleVersionConflict();
         return;
       }
 
-      console.error("?쇱젙 ????ㅽ뙣", error);
+      console.error("일정 저장 실패", error);
       if (status === 403) {
-        alert(getApiErrorMessage(error, "No write permission for this team calendar."));
+        alert(getApiErrorMessage(error, "이 팀 캘린더의 쓰기 권한이 없습니다."));
         return;
       }
       if (status === 400) {
-        alert(getApiErrorMessage(error, "Invalid schedule update request."));
+        alert(getApiErrorMessage(error, "일정 수정 요청 값이 올바르지 않습니다."));
         return;
       }
-      alert(getApiErrorMessage(error, "?쇱젙 ??μ뿉 ?ㅽ뙣?덉뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??"));
+      alert(getApiErrorMessage(error, "일정 저장에 실패했습니다. 잠시 후 다시 시도해 주세요."));
     }
   };
 
@@ -195,28 +193,28 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
       const status = error?.response?.status;
       const code = error?.response?.data?.code;
       if (status === 409 && code === "VERSION_CONFLICT") {
-        alert("?ㅻⅨ ?ъ슜?먭? 癒쇱? ?섏젙?덉뒿?덈떎. 理쒖떊 ?쇱젙?쇰줈 ?먮룞 媛깆떊?⑸땲??");
+        alert("다른 사용자가 먼저 수정했습니다. 최신 일정으로 자동 갱신합니다.");
         await handleVersionConflict();
         return;
       }
 
-      console.error("?쇱젙 ??젣 ?ㅽ뙣", error);
+      console.error("일정 삭제 실패", error);
       if (status === 403) {
-        alert(getApiErrorMessage(error, "No write permission for this team calendar."));
+        alert(getApiErrorMessage(error, "이 팀 캘린더의 쓰기 권한이 없습니다."));
         return;
       }
       if (status === 400) {
-        alert(getApiErrorMessage(error, "Invalid schedule delete request."));
+        alert(getApiErrorMessage(error, "일정 삭제 요청 값이 올바르지 않습니다."));
         return;
       }
-      alert(getApiErrorMessage(error, "?쇱젙 ??젣???ㅽ뙣?덉뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??"));
+      alert(getApiErrorMessage(error, "일정 삭제에 실패했습니다. 잠시 후 다시 시도해 주세요."));
     }
   };
 
   return (
     <div className="popup-overlay" onClick={onClose}>
       <div className="popup" onClick={(e) => e.stopPropagation()}>
-        <h3>{event ? "?쇱젙 ?섏젙" : "?쇱젙 異붽?"}</h3>
+        <h3>{event ? "일정 수정" : "일정 추가"}</h3>
 
         {showRemoteUpdateBanner && (
           <div
@@ -233,18 +231,14 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
               justifyContent: "space-between",
             }}
           >
-            <span>?ㅻⅨ ?ъ슜?먭? ???쇱젙???낅뜲?댄듃?덉뒿?덈떎.</span>
+            <span>다른 사용자가 이 일정을 업데이트했습니다.</span>
             <button type="button" onClick={fetchAndApplyLatest}>
-              理쒖떊蹂?遺덈윭?ㅺ린
+              최신본 불러오기
             </button>
           </div>
         )}
 
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="?쒕ぉ"
-        />
+        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="제목" />
 
         <div className="date-range-inputs">
           <div className="date-input-group">
@@ -278,11 +272,7 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
           </div>
         </div>
 
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="?댁슜"
-        />
+        <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="내용" />
 
         <div className="priority-selector">
           <label>Priority</label>
@@ -302,10 +292,7 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
                   }}
                   onClick={() => setPriority(levelNum)}
                 >
-                  <span
-                    className="priority-color-dot"
-                    style={{ backgroundColor: PRIORITY_COLORS[levelNum] }}
-                  />
+                  <span className="priority-color-dot" style={{ backgroundColor: PRIORITY_COLORS[levelNum] }} />
                   {label}
                 </button>
               );
@@ -317,7 +304,7 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
 
         {event && (
           <button className="delete" onClick={handleDelete}>
-            ??젣
+            삭제
           </button>
         )}
       </div>
