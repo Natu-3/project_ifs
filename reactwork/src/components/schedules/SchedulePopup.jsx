@@ -44,7 +44,7 @@ export default function SchedulePopup({ date, event, onClose, realtimeEvent }) {
       } else if (targetEvent?.date) {
         setStartDate(targetEvent.date);
         setEndDate(targetEvent.date);
-      } else if (fallbackDate) 
+      } else if (fallbackDate) {
         setStartDate(fallbackDate);
         setEndDate(fallbackDate);
       } else {
