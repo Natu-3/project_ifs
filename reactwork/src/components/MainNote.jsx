@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { usePosts } from '../context/PostContext'
 import { useAuth } from '../context/AuthContext'
 import { useSchedule } from '../context/ScheduleContext'
@@ -6,6 +7,7 @@ import { useTeamCalendar } from '../components/TeamCalendarContext'
 import '../componentsCss/MainNote.css'
 
 export default function MainNote() {
+    const navigate = useNavigate();
     const { posts, loading, hydrated, selectedPost, selectedPostId, updatePost, addPost, setSelectedPostId } = usePosts();
     const { user } = useAuth();
     const { getPostCalendarInfo } = useSchedule();
@@ -325,6 +327,14 @@ export default function MainNote() {
             }
         }
 
+    const handleAIMemo = () => {
+        navigate('/chatbot', {
+            state: {
+                initialPrompt: text || '',
+                source: 'main-note',
+            },
+        });
+    };
 
 
 
@@ -397,7 +407,7 @@ export default function MainNote() {
                     onBlur={flushPendingEdit}
                 />
                 <div className='memo-btn'>
-                    <button className='AImemo'> AI메모 </button>
+                    <button className='AImemo' onClick={handleAIMemo}> AI메모 </button>
                     <button className='save-btn' onClick={handleSave}>{selectedPost ? '수정' : '생성'}</button>
                 </div>
             </div>

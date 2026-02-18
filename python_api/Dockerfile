@@ -6,13 +6,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
-# Optional: install dependencies when requirements.txt exists.
-COPY requirements.txt* ./
-RUN if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+# Install dependencies from requirements.txt (or python.txt fallback).
+COPY requirements.txt* python.txt* ./
+RUN if [ -f requirements.txt ]; then pip install -r requirements.txt; \
+    elif [ -f python.txt ]; then pip install -r python.txt; fi
 
 COPY . .
 
 EXPOSE 8000
 
-# Template default (replace with your real app start command).
-CMD ["python", "-m", "http.server", "8000"]
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]

@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Signup from './pages/Signup'
 import CalendarPage from './pages/CalendarPage'
 import MyPage from './pages/MyPage'
+import ChatbotPage from './pages/ChatbotPage'
 import ProtectedRoute from './routes/ProtectedRoute'
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -77,6 +78,18 @@ function App() {
           <div className="layout calendar-layout">
             <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
             <CalendarPage />
+          </div>
+        </div>
+      }
+    />
+    <Route
+      path='/chatbot'
+      element={
+        <div className="app-wrapper">
+          <TopBar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+          <div className="layout calendar-layout">
+            <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+            <ChatbotPage />
           </div>
         </div>
       }
