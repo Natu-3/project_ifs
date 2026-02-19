@@ -8,8 +8,11 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class MemoRequest {
+    private Long id;
     private String content;
     private Boolean pinned;
     private Boolean visible;
     private Integer priority;
+    private Boolean mainNoteVisible;
+    private Integer mainNoteOrder;
 }

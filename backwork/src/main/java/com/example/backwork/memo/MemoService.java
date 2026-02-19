@@ -28,6 +28,13 @@ public class MemoService {
             .map(MemoResponse::from)
             .collect(Collectors.toList());
     }
+
+     private Integer resolveMainNoteOrder(Integer value) {
+        if (value == null) {
+            return null;
+        }
+        return Math.max(value, 0);
+    }
     
     // 메모 생성
     public MemoResponse createMemo(Long userId, MemoRequest request) {
@@ -40,6 +47,8 @@ public class MemoService {
         memo.setPinned(request.getPinned() != null ? request.getPinned() : false);
         memo.setVisible(request.getVisible() != null ? request.getVisible() : true);
         memo.setPriority(request.getPriority() != null ? request.getPriority() : 2);
+        memo.setMainNoteVisible(request.getMainNoteVisible() != null ? request.getMainNoteVisible() : false);
+        memo.setMainNoteOrder(resolveMainNoteOrder(request.getMainNoteOrder()));
         
         MemoPost saved = memoPostRepository.save(memo);
         return MemoResponse.from(saved);
@@ -65,8 +74,39 @@ public class MemoService {
         if (request.getPriority() != null) {
             memo.setPriority(request.getPriority());
         }
+        if (request.getMainNoteVisible() != null) {
+            memo.setMainNoteVisible(request.getMainNoteVisible());
+        }
+        if (request.getMainNoteOrder() != null) {
+            memo.setMainNoteOrder(resolveMainNoteOrder(request.getMainNoteOrder()));
+        }
         
         return MemoResponse.from(memo);
+    }
+
+     public List<MemoResponse> updateMainNoteOrder(Long userId, List<MemoRequest> requests) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
+
+        for (MemoRequest request : requests) {
+            if (request == null || request.getId() == null) {
+                continue;
+            }
+
+            MemoPost memo = memoPostRepository.findByIdAndUser(request.getId(), user)
+                    .orElseThrow(() -> new IllegalArgumentException("메모를 찾을 수 없습니다"));
+
+            if (request.getMainNoteVisible() != null) {
+                memo.setMainNoteVisible(request.getMainNoteVisible());
+            }
+            memo.setMainNoteOrder(resolveMainNoteOrder(request.getMainNoteOrder()));
+        }
+
+        return memoPostRepository
+                .findByUserAndVisibleTrueOrderByCreatedAtDesc(user)
+                .stream()
+                .map(MemoResponse::from)
+                .collect(Collectors.toList());
     }
     
     // 메모 삭제 (soft delete - visible을 false로)
