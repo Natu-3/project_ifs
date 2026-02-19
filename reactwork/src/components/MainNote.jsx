@@ -15,7 +15,10 @@ export default function MainNote() {
     const teams = teamCalendar?.teams || [];
 
     const [isDragOver, setIsDragOver] = useState(false);
+    const [isCardDragOver, setIsCardDragOver] = useState(false);
     const [isManualEditMode, setIsManualEditMode] = useState(false);
+    const [draggingCardId, setDraggingCardId] = useState(null);
+    const [cardDropTargetId, setCardDropTargetId] = useState(null);
 
     const [ text, setText ] = useState('');
 
@@ -336,7 +339,64 @@ export default function MainNote() {
         });
     };
 
+    const handleCardDragStart = (e, cardId) => {
+        setDraggingCardId(cardId);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('cardId', String(cardId));
+    };
 
+    const handleCardDragOver = (e, cardId) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.dataTransfer.dropEffect = 'move';
+        if (draggingCardId && draggingCardId !== cardId) {
+            setCardDropTargetId(cardId);
+        }
+    };
+
+    const handleCardDrop = (e, targetCardId) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const draggedCardId = Number(e.dataTransfer.getData('cardId') || draggingCardId);
+        if (!Number.isFinite(draggedCardId) || draggedCardId === targetCardId) {
+            setCardDropTargetId(null);
+            setDraggingCardId(null);
+            return;
+        }
+
+        setCards((prev) => {
+            const fromIndex = prev.findIndex((card) => card.id === draggedCardId);
+            const toIndex = prev.findIndex((card) => card.id === targetCardId);
+            if (fromIndex < 0 || toIndex < 0) return prev;
+
+            const next = [...prev];
+            const [moved] = next.splice(fromIndex, 1);
+            next.splice(toIndex, 0, moved);
+            return next;
+        });
+
+        setCardDropTargetId(null);
+        setDraggingCardId(null);
+    };
+
+    const handleCardAreaDrop = (e) => {
+        const cardIdData = e.dataTransfer.getData('cardId');
+        if (cardIdData) {
+            e.preventDefault();
+            e.stopPropagation();
+            setCardDropTargetId(null);
+            setDraggingCardId(null);
+            setIsCardDragOver(false);
+            return;
+        }
+        handleDrop(e);
+    };
+
+    const handleCardDragEnd = () => {
+        setCardDropTargetId(null);
+        setDraggingCardId(null);
+        setIsCardDragOver(false);
+    };
 
 
     return(
@@ -345,7 +405,18 @@ export default function MainNote() {
             onDragOver={(e) =>{e.preventDefault(); setIsDragOver(true); }}
             onDragLeave={()=> setIsDragOver(false)}
             onDrop={handleDrop}>
-            <div className='card-area'>
+            <div
+                className={`card-area ${isCardDragOver ? 'card-drag-over' : ''}`}
+                onDragOver={(e) => {
+                    if (e.dataTransfer.types.includes('cardId')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsCardDragOver(true);
+                    }
+                }}
+                onDragLeave={() => setIsCardDragOver(false)}
+                onDrop={handleCardAreaDrop}
+            >
                 {cards.map(card=> {
                     // posts에서 최신 메모 정보를 가져옴 (제목이 업데이트되었을 수 있음)
                     const post = posts.find(p => p.id === card.postId);
@@ -366,8 +437,13 @@ export default function MainNote() {
                     return (
                         <div
                             key={card.id}
-                            className={`note-card ${card.postId === selectedPostId ? 'selected' : ''}`}
-                             onClick={()=> {
+                            className={`note-card ${card.postId === selectedPostId ? 'selected' : ''} ${cardDropTargetId === card.id ? 'drag-target' : ''} ${draggingCardId === card.id ? 'dragging' : ''}`}
+                            draggable
+                            onDragStart={(e) => handleCardDragStart(e, card.id)}
+                            onDragOver={(e) => handleCardDragOver(e, card.id)}
+                            onDrop={(e) => handleCardDrop(e, card.id)}
+                            onDragEnd={handleCardDragEnd}
+                            onClick={()=> {
                                 activateEditingForPost(card.postId);
                             }}
                         >

@@ -11,6 +11,35 @@ export function PostProvider({ children }) {
     const [loading, setLoading] = useState(false);
     const [hydrated, setHydrated] = useState(false);
     const {user} = useAuth();
+    const orderStorageKey = user?.id ? `memo_order:${user.id}` : null;
+
+    const orderPosts = (items, preferredOrderIds = []) => {
+        const orderMap = new Map(preferredOrderIds.map((id, index) => [id, index]));
+        return [...items].sort((a, b) => {
+            const aIndex = orderMap.get(a.id);
+            const bIndex = orderMap.get(b.id);
+            const aHasOrder = aIndex !== undefined;
+            const bHasOrder = bIndex !== undefined;
+
+            if (aHasOrder && bHasOrder) return aIndex - bIndex;
+            if (aHasOrder) return -1;
+            if (bHasOrder) return 1;
+
+            // 기본 정렬: pinned 우선, 이후 id 오름차순
+            if (a.pinned !== b.pinned) return Number(b.pinned) - Number(a.pinned);
+            return a.id - b.id;
+        });
+    };
+
+    const saveOrder = (orderedPosts) => {
+        if (!orderStorageKey) return;
+        try {
+            localStorage.setItem(orderStorageKey, JSON.stringify(orderedPosts.map((post) => post.id)));
+        } catch {
+            // localStorage 저장 실패는 무시
+        }
+    };
+
     // 로그인 상태 변경 시 메모 목록 불러오기
     useEffect(() => {
         if (!user) {
@@ -59,9 +88,17 @@ export function PostProvider({ children }) {
             });
 
             // pinned 먼저, 그 다음 최신 순(서버가 최신순이면 유지)
-            setPosts(
-                formattedPosts.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0))
-            );
+            const storedOrder = (() => {
+                if (!orderStorageKey) return [];
+                try {
+                    return JSON.parse(localStorage.getItem(orderStorageKey) ?? "[]");
+                } catch {
+                    return [];
+                }
+            })();
+
+        setPosts(orderPosts(formattedPosts, Array.isArray(storedOrder) ? storedOrder : []));
+            
         } catch (error) {
             console.error("메모 불러오기 실패:", error);
             // 에러 발생 시 빈 배열로 설정
@@ -95,7 +132,8 @@ export function PostProvider({ children }) {
             
             setPosts(prev => {
                 const next = [...prev, newPost];
-                return next.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+                saveOrder(next);
+                return next;
             });
             setSelectedPostId(newPost.id);
             return newPost.id;
@@ -131,7 +169,8 @@ export function PostProvider({ children }) {
                         }
                         : post
                 );
-                return next.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+                saveOrder(next);
+                return next;
             });
         } catch (error) {
             console.error("메모 수정 실패:", error);
@@ -166,7 +205,11 @@ export function PostProvider({ children }) {
 
             // user.id를 직접 전달 (로그인한 사용자의 ID)
             await deleteMemo(user.id, id);
-            setPosts(prev => prev.filter(p => p.id !== id));
+            setPosts(prev => {
+                const next = prev.filter(p => p.id !== id);
+                saveOrder(next);
+                return next;
+            });
             
             if (id === selectedPostId) {
                 setSelectedPostId(null);
@@ -178,6 +221,21 @@ export function PostProvider({ children }) {
         }
     };
     
+    const reorderPosts = (draggedPostId, targetPostId) => {
+        if (!draggedPostId || !targetPostId || draggedPostId === targetPostId) return;
+
+        setPosts((prev) => {
+            const fromIndex = prev.findIndex((post) => post.id === draggedPostId);
+            const toIndex = prev.findIndex((post) => post.id === targetPostId);
+            if (fromIndex < 0 || toIndex < 0) return prev;
+
+            const next = [...prev];
+            const [moved] = next.splice(fromIndex, 1);
+            next.splice(toIndex, 0, moved);
+            saveOrder(next);
+            return next;
+        });
+    };
 
     //메모 리셋
     const resetPosts = () => {
@@ -203,6 +261,7 @@ export function PostProvider({ children }) {
             updatePost,
             deletePost,
             togglePinned,
+            reorderPosts,
             loading,
             hydrated,
             loadMemos,  // 필요시 수동으로 새로고침
