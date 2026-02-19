@@ -1,9 +1,9 @@
 # EC2 + RDS Production Deployment Guide
 
 ## Scope
-- Deploy `main` branch images to EC2 automatically through GitHub Actions.
-- Use private RDS MySQL 8.0.x instead of containerized MySQL.
-- Keep production schema policy as `JPA_DDL_AUTO=validate`.
+- CI builds and pushes images to GHCR on `main` push.
+- CD (deploy/rollback trigger) runs only from EC2.
+- Use private RDS MySQL 8.0.x and `JPA_DDL_AUTO=validate`.
 
 ## AWS Prerequisites
 1. Create RDS MySQL 8.0 in a private subnet.
@@ -12,54 +12,80 @@
 4. Install Docker and Docker Compose plugin on EC2.
 5. Clone this repository on EC2 to a fixed path (example: `/srv/project_ifs`).
 
-## Required GitHub Secrets
-- `EC2_HOST`
-- `EC2_USER`
-- `EC2_SSH_KEY`
-- `EC2_SSH_PORT` (example: `22`)
-- `EC2_APP_DIR` (example: `/srv/project_ifs`)
-- `GHCR_USERNAME`
-- `GHCR_PAT` (`read:packages` scope)
-- `DB_HOST`
-- `DB_PORT`
-- `DB_NAME`
-- `DB_USER`
-- `DB_PASSWORD`
-- `OPENAI_API_KEY`
-- `OPENAI_MODEL` (example: `gpt-4.1-mini`)
-- `CHAT_RETENTION_DAYS` (example: `30`)
-- `RATE_LIMIT_PER_MINUTE` (example: `20`)
+## Required GitHub Secrets (CI only)
+- No EC2 SSH secrets are required for CI.
+- Default `GITHUB_TOKEN` is enough for GHCR push from Actions.
 
-## Local Template
-Use `.env.prod.example` as the canonical production template.
+## EC2 Required Runtime Inputs
+- `.env.prod` in repository root (DB/app settings; use `.env.prod.example` as template).
+- GHCR auth on EC2 for private pulls:
+  - Option A: `docker login ghcr.io` once and reuse docker config.
+  - Option B: set `GHCR_USERNAME`, `GHCR_PAT` env vars before running scripts.
 
-## Deployment Flow
+## CI Flow (GitHub Actions)
 1. Push to `main`.
-2. Workflow `.github/workflows/ghcr-build.yml` builds and pushes three images:
-   - `ghcr.io/natu-3/project_ifs-backend`
-   - `ghcr.io/natu-3/project_ifs-frontend`
-   - `ghcr.io/natu-3/project_ifs-ai`
-3. Workflow deploys to EC2 with `sha-<short>` immutable tags.
-4. Workflow rewrites `.env.prod` on EC2 from GitHub Secrets.
-5. Workflow executes:
-   - `docker compose --env-file .env.prod -f docker-compose.prod.yml pull`
-   - `docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --remove-orphans`
-6. Workflow health checks:
-   - `http://localhost:8081/actuator/health`
-   - `http://localhost:8000/chat-api/v1/health`
+2. Workflow `.github/workflows/ghcr-build.yml` builds and pushes:
+   - `ghcr.io/natu-3/project_ifs-backend:sha-<short>` (+ `latest`)
+   - `ghcr.io/natu-3/project_ifs-frontend:sha-<short>` (+ `latest`)
+   - `ghcr.io/natu-3/project_ifs-ai:sha-<short>` (+ `latest`)
 
-## Rollback
-- If deploy fails, workflow automatically attempts rollback to previous commit SHA image tags.
-- Rollback rewrites `.env.prod` with previous immutable tags and re-runs compose up.
+## CD Flow (EC2 Manual Trigger)
+From repo root on EC2:
 
-## Schema Policy
-- Spring backend: `JPA_DDL_AUTO=validate` in production.
-- Python API: Alembic migration runs at container startup (`alembic upgrade head`).
-- For schema changes, add migration first, then deploy.
+```bash
+chmod +x runbook/deploy-ec2.sh runbook/rollback-ec2.sh runbook/auto-deploy-latest.sh
+./runbook/deploy-ec2.sh <short_sha>
+```
+
+Rollback:
+
+```bash
+./runbook/rollback-ec2.sh
+# or
+./runbook/rollback-ec2.sh sha-abcdef1
+```
+
+## CD Flow (EC2 Auto Trigger with systemd timer)
+1. Copy unit files and reload daemon:
+
+```bash
+sudo mkdir -p /etc/project_ifs
+sudo cp runbook/systemd/project-ifs-autodeploy.service /etc/systemd/system/
+sudo cp runbook/systemd/project-ifs-autodeploy.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+```
+
+2. Optional secret env file for GHCR login (`/etc/project_ifs/auto-deploy.env`):
+
+```bash
+sudo tee /etc/project_ifs/auto-deploy.env >/dev/null <<'EOF'
+GHCR_USERNAME=<github_username>
+GHCR_PAT=<ghcr_pat_with_read_packages>
+# OWNER=natu-3
+# WATCH_TAG=latest
+EOF
+sudo chmod 600 /etc/project_ifs/auto-deploy.env
+```
+
+3. Enable timer:
+
+```bash
+sudo systemctl enable --now project-ifs-autodeploy.timer
+sudo systemctl status project-ifs-autodeploy.timer
+```
+
+4. Check execution logs:
+
+```bash
+sudo journalctl -u project-ifs-autodeploy.service -n 100 --no-pager
+```
+
+Notes:
+- Default interval is every 3 minutes (`runbook/systemd/project-ifs-autodeploy.timer`).
+- Auto deploy runs only when GHCR `latest` digest changed.
 
 ## Verification Checklist
 1. `docker ps` shows `ifs-frontend`, `ifs-backend`, `ifs-python-api`, `ifs-redis` running.
-2. Backend health endpoint returns `UP`.
-3. Python health endpoint returns `status=ok`.
-4. Login and schedule CRUD work.
-5. Team calendar sync and chat API flow work.
+2. Backend health endpoint returns `UP` from `http://localhost:8081/actuator/health`.
+3. Python health endpoint returns `status=ok` from `http://localhost:8000/chat-api/v1/health`.
+4. Login, schedule CRUD, team calendar sync, chat API flow all work.

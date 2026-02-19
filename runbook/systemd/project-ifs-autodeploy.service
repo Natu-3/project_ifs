@@ -1,0 +1,12 @@
+[Unit]
+Description=Project IFS Auto Deploy (GHCR latest watcher)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/srv/project_ifs
+Environment=APP_DIR=/srv/project_ifs
+Environment=WATCH_TAG=latest
+EnvironmentFile=-/etc/project_ifs/auto-deploy.env
+ExecStart=/srv/project_ifs/runbook/auto-deploy-latest.sh
