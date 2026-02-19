@@ -4,6 +4,7 @@ import { usePosts } from '../context/PostContext'
 import { useAuth } from '../context/AuthContext'
 import { useSchedule } from '../context/ScheduleContext'
 import { useTeamCalendar } from '../components/TeamCalendarContext'
+import { extractTextFromImage } from '../api/ocr'
 import '../componentsCss/MainNote.css'
 
 export default function MainNote() {
@@ -16,8 +17,10 @@ export default function MainNote() {
 
     const [isDragOver, setIsDragOver] = useState(false);
     const [isManualEditMode, setIsManualEditMode] = useState(false);
+    const [isProcessingOCR, setIsProcessingOCR] = useState(false);
 
     const [ text, setText ] = useState('');
+    const fileInputRef = useRef(null);
 
     const [ cards, setCards ] = useState([]);
 
@@ -278,11 +281,24 @@ export default function MainNote() {
         }
     };
     
-    const handleDrop = (e) => {
+    const handleDrop = async (e) => {
         e.preventDefault();
         setIsDragOver(false);
 
+        // 이미지 파일이 드롭되었는지 확인
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+            const imageFile = Array.from(files).find(file => file.type.startsWith('image/'));
+            if (imageFile) {
+                // 이미지 파일이면 OCR 처리
+                await processImageFile(imageFile);
+                return;
+            }
+        }
+
+        // 메모 카드 드롭 처리 (기존 로직)
         const postId = Number(e.dataTransfer.getData("postId"));
+        if (!postId) return;
 
         const post = posts.find(p => p.id === postId);
         if(!post) return ;
@@ -336,14 +352,186 @@ export default function MainNote() {
         });
     };
 
+    const handleImageUpload = () => {
+        fileInputRef.current?.click();
+    };
+
+    // 이미지 파일 처리 함수 (공통 로직)
+    const processImageFile = async (file) => {
+        // 이미지 파일인지 확인
+        if (!file.type.startsWith('image/')) {
+            alert('이미지 파일만 업로드할 수 있습니다.');
+            return;
+        }
+
+        // 파일 크기 제한 (10MB - 큰 이미지는 자동으로 리사이즈됨)
+        if (file.size > 10 * 1024 * 1024) {
+            alert('이미지 크기는 10MB 이하여야 합니다.');
+            return;
+        }
+
+        setIsProcessingOCR(true);
+        try {
+            // OCR API 호출
+            const result = await extractTextFromImage(file, [], 'json');
+            
+            // OCR 결과를 구조화된 형태로 변환
+            let ocrContent = '';
+            let ocrData = null;
+            
+            if (typeof result === 'string') {
+                // 문자열인 경우 JSON 파싱 시도
+                try {
+                    ocrData = JSON.parse(result);
+                } catch {
+                    ocrData = { rawText: result };
+                }
+            } else if (result && typeof result === 'object') {
+                ocrData = result;
+            } else {
+                ocrData = { rawText: String(result) };
+            }
+
+            // OCR 데이터를 읽기 쉬운 형태로 변환
+            ocrContent = formatOCRResult(ocrData);
+
+            // OCR 결과를 JSON 형식으로도 포함 (원본 데이터 보존)
+            const jsonData = JSON.stringify(ocrData, null, 2);
+            const fullContent = `${ocrContent}\n\n--- 원본 JSON 데이터 ---\n${jsonData}`;
+
+            // 기존 텍스트가 있으면 줄바꿈 후 추가, 없으면 그대로 설정
+            const newText = text.trim() 
+                ? `${text}\n\n${fullContent}` 
+                : fullContent;
+            
+            // 메모 영역에 OCR 결과 표시 (DB 저장은 하지 않음)
+            setText(newText);
+            
+            // 수동 편집 모드 활성화
+            setIsManualEditMode(true);
+            
+            // 기존 선택 해제 (새 메모 상태로)
+            clearSelectedPost();
+            
+            // 포커스 이동
+            setTimeout(() => {
+                textAreaRef.current?.focus();
+                // OCR 결과 부분으로 스크롤
+                const ocrStartIndex = newText.indexOf('[OCR 결과]');
+                if (ocrStartIndex >= 0) {
+                    textAreaRef.current?.setSelectionRange(ocrStartIndex, ocrStartIndex);
+                }
+            }, 100);
+            
+            alert('이미지에서 텍스트를 추출했습니다. "생성" 버튼을 눌러 메모로 저장하세요.');
+        } catch (error) {
+            console.error('OCR 처리 실패:', error);
+            
+            // 에러 메시지를 안전하게 추출
+            let errorMessage = '이미지 처리 중 오류가 발생했습니다.';
+            if (error && typeof error === 'object') {
+                if (error.message && typeof error.message === 'string') {
+                    errorMessage = `이미지 처리 중 오류가 발생했습니다: ${error.message}`;
+                } else if (error.response?.data) {
+                    const responseData = error.response.data;
+                    if (typeof responseData === 'string') {
+                        errorMessage = `이미지 처리 중 오류가 발생했습니다: ${responseData}`;
+                    } else if (responseData.message) {
+                        errorMessage = `이미지 처리 중 오류가 발생했습니다: ${responseData.message}`;
+                    } else if (responseData.error) {
+                        errorMessage = `이미지 처리 중 오류가 발생했습니다: ${responseData.error}`;
+                    } else {
+                        errorMessage = `이미지 처리 중 오류가 발생했습니다: ${JSON.stringify(responseData)}`;
+                    }
+                } else {
+                    errorMessage = `이미지 처리 중 오류가 발생했습니다: ${JSON.stringify(error)}`;
+                }
+            } else if (typeof error === 'string') {
+                errorMessage = `이미지 처리 중 오류가 발생했습니다: ${error}`;
+            }
+            
+            alert(errorMessage);
+        } finally {
+            setIsProcessingOCR(false);
+        }
+    };
+
+    const handleImageSelect = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        await processImageFile(file);
+        
+        // 파일 입력 초기화
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    // OCR 결과를 읽기 쉬운 형태로 변환
+    const formatOCRResult = (ocrData) => {
+        if (!ocrData || typeof ocrData !== 'object') {
+            return '[OCR 결과]\n데이터를 파싱할 수 없습니다.';
+        }
+
+        let formatted = '[OCR 결과]\n\n';
+        
+        // 일반적인 OCR 응답 필드 처리
+        if (ocrData.text) {
+            formatted += `추출된 텍스트:\n${ocrData.text}\n\n`;
+        }
+        
+        if (ocrData.rawText) {
+            formatted += `원본 텍스트:\n${ocrData.rawText}\n\n`;
+        }
+        
+        // 필드별 데이터 추출 (product, price, quantity 등)
+        if (ocrData.fields && Array.isArray(ocrData.fields)) {
+            formatted += '추출된 필드:\n';
+            ocrData.fields.forEach((field, index) => {
+                formatted += `  ${index + 1}. ${JSON.stringify(field)}\n`;
+            });
+            formatted += '\n';
+        }
+        
+        // 객체의 다른 속성들 처리
+        const otherFields = Object.keys(ocrData).filter(key => 
+            !['text', 'rawText', 'fields'].includes(key)
+        );
+        
+        if (otherFields.length > 0) {
+            formatted += '기타 정보:\n';
+            otherFields.forEach(key => {
+                const value = ocrData[key];
+                if (value !== null && value !== undefined) {
+                    formatted += `  ${key}: ${typeof value === 'object' ? JSON.stringify(value) : value}\n`;
+                }
+            });
+        }
+        
+        return formatted.trim();
+    };
+
 
 
 
     return(
          <main className={`mainnote ${isDragOver ? 'drag-over' : ''}`}
             onClick={handleMainClick}
-            onDragOver={(e) =>{e.preventDefault(); setIsDragOver(true); }}
-            onDragLeave={()=> setIsDragOver(false)}
+            onDragOver={(e) => {
+                e.preventDefault();
+                // 이미지 파일이나 메모 카드 드롭 허용
+                const hasFiles = e.dataTransfer.types.includes('Files');
+                const hasPostId = e.dataTransfer.types.includes('text/plain') && e.dataTransfer.getData('postId');
+                if (hasFiles || hasPostId) {
+                    setIsDragOver(true);
+                }
+            }}
+            onDragLeave={(e) => {
+                // 자식 요소로 이동한 경우는 드래그 상태 유지
+                if (!e.currentTarget.contains(e.relatedTarget)) {
+                    setIsDragOver(false);
+                }
+            }}
             onDrop={handleDrop}>
             <div className='card-area'>
                 {cards.map(card=> {
@@ -408,6 +596,20 @@ export default function MainNote() {
                 />
                 <div className='memo-btn'>
                     <button className='AImemo' onClick={handleAIMemo}> AI메모 </button>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={handleImageSelect}
+                    />
+                    <button 
+                        className='image-upload-btn' 
+                        onClick={handleImageUpload}
+                        disabled={isProcessingOCR}
+                    >
+                        {isProcessingOCR ? '처리 중...' : '이미지'}
+                    </button>
                     <button className='save-btn' onClick={handleSave}>{selectedPost ? '수정' : '생성'}</button>
                 </div>
             </div>
