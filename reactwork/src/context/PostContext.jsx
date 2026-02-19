@@ -83,7 +83,9 @@ export function PostProvider({ children }) {
                     title,
                     content,
                     pinned,
-                    priority: memo.priority ?? 2
+                    priority: memo.priority ?? 2,
+                    mainNoteVisible: memo.mainNoteVisible ?? false,
+                    mainNoteOrder: memo.mainNoteOrder ?? null
                 };
             });
 
@@ -97,7 +99,7 @@ export function PostProvider({ children }) {
                 }
             })();
 
-        setPosts(orderPosts(formattedPosts, Array.isArray(storedOrder) ? storedOrder : []));
+            setPosts(orderPosts(formattedPosts, Array.isArray(storedOrder) ? storedOrder : []));
             
         } catch (error) {
             console.error("메모 불러오기 실패:", error);
@@ -127,7 +129,9 @@ export function PostProvider({ children }) {
                 title: newContent.trim().length > 0 ? newContent.substring(0, 10) : "새 메모",
                 content: newContent,
                 pinned: newMemo.pinned ?? pinned,
-                priority: newMemo.priority ?? priority
+                priority: newMemo.priority ?? priority,
+                mainNoteVisible: newMemo.mainNoteVisible ?? false,
+                mainNoteOrder: newMemo.mainNoteOrder ?? null
             };
             
             setPosts(prev => {
@@ -165,7 +169,9 @@ export function PostProvider({ children }) {
                             ...updated,
                             content,
                             title: content.trim().length > 0 ? content.substring(0, 10) : "새 메모",
-                            priority: updated.priority ?? post.priority ?? 2
+                            priority: updated.priority ?? post.priority ?? 2,
+                            mainNoteVisible: updated.mainNoteVisible ?? post.mainNoteVisible ?? false,
+                            mainNoteOrder: updated.mainNoteOrder ?? post.mainNoteOrder ?? null
                         }
                         : post
                 );

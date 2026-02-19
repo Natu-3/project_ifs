@@ -13,6 +13,8 @@ public class MemoResponse {
     private Boolean pinned;
     private Boolean visible;
     private Integer priority;
+    private Boolean mainNoteVisible;
+    private Integer mainNoteOrder;
     private LocalDateTime createdAt;
     
     public static MemoResponse from(MemoPost memo) {
@@ -27,6 +29,8 @@ public class MemoResponse {
             memo.getPinned(),
             memo.getVisible(),
             memo.getPriority(),
+            memo.getMainNoteVisible(),
+            memo.getMainNoteOrder(),
             memo.getCreatedAt()
         );
     }
