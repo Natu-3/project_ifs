@@ -11,19 +11,19 @@ export const getMemos = (userId) => {
 };
 
 // 메모 생성
-export const createMemo = (userId, content, pinned = false, priority = 2, mainNoteVisible = false, mainNoteOrder = null) => {
+export const createMemo = (userId, content, pinned = false, priority = 2) => {
   if (!userId) {
     return Promise.reject(new Error("로그인이 필요합니다."));
   }
   return axios.post(
     `/api/memos?userId=${userId}`,
-    { content, pinned, visible: true, priority, mainNoteVisible, mainNoteOrder },
+    { content, pinned, visible: true, priority },
     { withCredentials: true }
   );
 };
 
 // 메모 수정
-export const updateMemo = (userId, id, content, pinned = null, priority = null, mainNoteVisible = null, mainNoteOrder = null) => {
+export const updateMemo = (userId, id, content, pinned = null, priority = null) => {
   if (!userId) {
     return Promise.reject(new Error("로그인이 필요합니다."));
   }
@@ -33,12 +33,6 @@ export const updateMemo = (userId, id, content, pinned = null, priority = null, 
   }
   if (priority !== null) {
     body.priority = priority;
-  }
-  if (mainNoteVisible !== null) {
-    body.mainNoteVisible = mainNoteVisible;
-  }
-  if (mainNoteOrder !== null) {
-    body.mainNoteOrder = mainNoteOrder;
   }
   return axios.put(
     `/api/memos/${id}?userId=${userId}`,
@@ -55,16 +49,4 @@ export const deleteMemo = (userId, id) => {
   return axios.delete(`/api/memos/${id}?userId=${userId}`, {
     withCredentials: true
   });
-};
-
-export const updateMainNoteOrder = (userId, payload) => {
-  if (!userId) {
-    return Promise.reject(new Error("로그인이 필요합니다."));
-  }
-
-  return axios.put(
-    `/api/memos/mainnote-order?userId=${userId}`,
-    payload,
-    { withCredentials: true }
-  );
 };
