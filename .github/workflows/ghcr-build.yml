@@ -14,6 +14,9 @@ env:
 jobs:
   build-push:
     runs-on: ubuntu-latest
+    outputs:
+      sha_short: ${{ steps.vars.outputs.SHA_SHORT }}
+      prev_sha_short: ${{ steps.vars.outputs.PREV_SHA_SHORT }}
     permissions:
       contents: read
       packages: write
@@ -24,7 +27,11 @@ jobs:
 
       - name: Short SHA
         id: vars
-        run: echo "SHA_SHORT=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+        run: |
+          echo "SHA_SHORT=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          echo "PREV_SHA_SHORT=${GITHUB_EVENT_BEFORE::7}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -62,3 +69,181 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_AI }}:latest
             ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_AI }}:sha-${{ steps.vars.outputs.SHA_SHORT }}
+
+  deploy-ec2:
+    runs-on: ubuntu-latest
+    needs: build-push
+    permissions:
+      contents: read
+    env:
+      SHA_SHORT: ${{ needs.build-push.outputs.sha_short }}
+      DB_HOST: ${{ secrets.DB_HOST }}
+      DB_PORT: ${{ secrets.DB_PORT }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      JPA_DDL_AUTO: validate
+      SPRING_PROFILES_ACTIVE: prod
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
+      CHAT_RETENTION_DAYS: ${{ secrets.CHAT_RETENTION_DAYS }}
+      RATE_LIMIT_PER_MINUTE: ${{ secrets.RATE_LIMIT_PER_MINUTE }}
+      BACKEND_IMAGE: ghcr.io/natu-3/project_ifs-backend:sha-${{ needs.build-push.outputs.sha_short }}
+      FRONTEND_IMAGE: ghcr.io/natu-3/project_ifs-frontend:sha-${{ needs.build-push.outputs.sha_short }}
+      PYTHON_API_IMAGE: ghcr.io/natu-3/project_ifs-ai:sha-${{ needs.build-push.outputs.sha_short }}
+      GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+      GHCR_PAT: ${{ secrets.GHCR_PAT }}
+      EC2_APP_DIR: ${{ secrets.EC2_APP_DIR }}
+    steps:
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          SHA_SHORT: ${{ env.SHA_SHORT }}
+          DB_HOST: ${{ env.DB_HOST }}
+          DB_PORT: ${{ env.DB_PORT }}
+          DB_NAME: ${{ env.DB_NAME }}
+          DB_USER: ${{ env.DB_USER }}
+          DB_PASSWORD: ${{ env.DB_PASSWORD }}
+          JPA_DDL_AUTO: ${{ env.JPA_DDL_AUTO }}
+          SPRING_PROFILES_ACTIVE: ${{ env.SPRING_PROFILES_ACTIVE }}
+          OPENAI_API_KEY: ${{ env.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ env.OPENAI_MODEL }}
+          CHAT_RETENTION_DAYS: ${{ env.CHAT_RETENTION_DAYS }}
+          RATE_LIMIT_PER_MINUTE: ${{ env.RATE_LIMIT_PER_MINUTE }}
+          BACKEND_IMAGE: ${{ env.BACKEND_IMAGE }}
+          FRONTEND_IMAGE: ${{ env.FRONTEND_IMAGE }}
+          PYTHON_API_IMAGE: ${{ env.PYTHON_API_IMAGE }}
+          GHCR_USERNAME: ${{ env.GHCR_USERNAME }}
+          GHCR_PAT: ${{ env.GHCR_PAT }}
+          EC2_APP_DIR: ${{ env.EC2_APP_DIR }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT }}
+          envs: SHA_SHORT,DB_HOST,DB_PORT,DB_NAME,DB_USER,DB_PASSWORD,JPA_DDL_AUTO,SPRING_PROFILES_ACTIVE,OPENAI_API_KEY,OPENAI_MODEL,CHAT_RETENTION_DAYS,RATE_LIMIT_PER_MINUTE,BACKEND_IMAGE,FRONTEND_IMAGE,PYTHON_API_IMAGE,GHCR_USERNAME,GHCR_PAT,EC2_APP_DIR
+          script_stop: true
+          script: |
+            set -eu
+            cd "$EC2_APP_DIR"
+
+            echo "$GHCR_PAT" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+
+            cat > .env.prod <<EOF
+            DB_HOST=$DB_HOST
+            DB_PORT=$DB_PORT
+            DB_NAME=$DB_NAME
+            DB_USER=$DB_USER
+            DB_PASSWORD=$DB_PASSWORD
+            BACKEND_IMAGE=$BACKEND_IMAGE
+            FRONTEND_IMAGE=$FRONTEND_IMAGE
+            PYTHON_API_IMAGE=$PYTHON_API_IMAGE
+            JPA_DDL_AUTO=$JPA_DDL_AUTO
+            SPRING_PROFILES_ACTIVE=$SPRING_PROFILES_ACTIVE
+            OPENAI_API_KEY=$OPENAI_API_KEY
+            OPENAI_MODEL=$OPENAI_MODEL
+            CHAT_RETENTION_DAYS=$CHAT_RETENTION_DAYS
+            RATE_LIMIT_PER_MINUTE=$RATE_LIMIT_PER_MINUTE
+            EOF
+
+            docker compose --env-file .env.prod -f docker-compose.prod.yml pull
+            docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --remove-orphans
+
+            BACKEND_OK=0
+            for i in $(seq 1 24); do
+              if curl -fsS "http://localhost:8081/actuator/health" > /dev/null; then
+                BACKEND_OK=1
+                break
+              fi
+              sleep 5
+            done
+            [ "$BACKEND_OK" -eq 1 ]
+
+            PYTHON_OK=0
+            for i in $(seq 1 24); do
+              if curl -fsS "http://localhost:8000/chat-api/v1/health" > /dev/null; then
+                PYTHON_OK=1
+                break
+              fi
+              sleep 5
+            done
+            [ "$PYTHON_OK" -eq 1 ]
+
+  rollback-ec2:
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: [build-push, deploy-ec2]
+    permissions:
+      contents: read
+    env:
+      PREV_SHA_SHORT: ${{ needs.build-push.outputs.prev_sha_short }}
+      DB_HOST: ${{ secrets.DB_HOST }}
+      DB_PORT: ${{ secrets.DB_PORT }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      JPA_DDL_AUTO: validate
+      SPRING_PROFILES_ACTIVE: prod
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
+      CHAT_RETENTION_DAYS: ${{ secrets.CHAT_RETENTION_DAYS }}
+      RATE_LIMIT_PER_MINUTE: ${{ secrets.RATE_LIMIT_PER_MINUTE }}
+      GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+      GHCR_PAT: ${{ secrets.GHCR_PAT }}
+      EC2_APP_DIR: ${{ secrets.EC2_APP_DIR }}
+    steps:
+      - name: Rollback on EC2 via SSH
+        if: ${{ env.PREV_SHA_SHORT != '' && env.PREV_SHA_SHORT != '0000000' }}
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          PREV_SHA_SHORT: ${{ env.PREV_SHA_SHORT }}
+          DB_HOST: ${{ env.DB_HOST }}
+          DB_PORT: ${{ env.DB_PORT }}
+          DB_NAME: ${{ env.DB_NAME }}
+          DB_USER: ${{ env.DB_USER }}
+          DB_PASSWORD: ${{ env.DB_PASSWORD }}
+          JPA_DDL_AUTO: ${{ env.JPA_DDL_AUTO }}
+          SPRING_PROFILES_ACTIVE: ${{ env.SPRING_PROFILES_ACTIVE }}
+          OPENAI_API_KEY: ${{ env.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ env.OPENAI_MODEL }}
+          CHAT_RETENTION_DAYS: ${{ env.CHAT_RETENTION_DAYS }}
+          RATE_LIMIT_PER_MINUTE: ${{ env.RATE_LIMIT_PER_MINUTE }}
+          GHCR_USERNAME: ${{ env.GHCR_USERNAME }}
+          GHCR_PAT: ${{ env.GHCR_PAT }}
+          EC2_APP_DIR: ${{ env.EC2_APP_DIR }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT }}
+          envs: PREV_SHA_SHORT,DB_HOST,DB_PORT,DB_NAME,DB_USER,DB_PASSWORD,JPA_DDL_AUTO,SPRING_PROFILES_ACTIVE,OPENAI_API_KEY,OPENAI_MODEL,CHAT_RETENTION_DAYS,RATE_LIMIT_PER_MINUTE,GHCR_USERNAME,GHCR_PAT,EC2_APP_DIR
+          script_stop: true
+          script: |
+            set -eu
+            cd "$EC2_APP_DIR"
+
+            echo "$GHCR_PAT" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+
+            BACKEND_IMAGE="ghcr.io/natu-3/project_ifs-backend:sha-$PREV_SHA_SHORT"
+            FRONTEND_IMAGE="ghcr.io/natu-3/project_ifs-frontend:sha-$PREV_SHA_SHORT"
+            PYTHON_API_IMAGE="ghcr.io/natu-3/project_ifs-ai:sha-$PREV_SHA_SHORT"
+
+            cat > .env.prod <<EOF
+            DB_HOST=$DB_HOST
+            DB_PORT=$DB_PORT
+            DB_NAME=$DB_NAME
+            DB_USER=$DB_USER
+            DB_PASSWORD=$DB_PASSWORD
+            BACKEND_IMAGE=$BACKEND_IMAGE
+            FRONTEND_IMAGE=$FRONTEND_IMAGE
+            PYTHON_API_IMAGE=$PYTHON_API_IMAGE
+            JPA_DDL_AUTO=$JPA_DDL_AUTO
+            SPRING_PROFILES_ACTIVE=$SPRING_PROFILES_ACTIVE
+            OPENAI_API_KEY=$OPENAI_API_KEY
+            OPENAI_MODEL=$OPENAI_MODEL
+            CHAT_RETENTION_DAYS=$CHAT_RETENTION_DAYS
+            RATE_LIMIT_PER_MINUTE=$RATE_LIMIT_PER_MINUTE
+            EOF
+
+            docker compose --env-file .env.prod -f docker-compose.prod.yml pull
+            docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --remove-orphans

@@ -27,7 +27,7 @@ services:
       - "8081:8080"
 
   python_api:
-    image: ${PYTHON_API_IMAGE:-python-api:latest}
+    image: ${PYTHON_API_IMAGE:-ghcr.io/natu-3/project_ifs-ai:latest}
     container_name: ifs-python-api
     restart: unless-stopped
     depends_on:
