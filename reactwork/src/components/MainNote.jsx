@@ -243,10 +243,14 @@ export default function MainNote() {
         const trimmedText = text.trim();
         
         // 빈 메모는 저장하지 않음 (삭제는 삭제 버튼에서만)
-        if (!trimmedText) return;
+        if (!trimmedText) {
+            alert('메모 내용을 입력해주세요.');
+            return;
+        }
     
         try {
             if (selectedPost){
+                // 기존 메모 수정
                 await updatePost(selectedPost.id, {
                     ...selectedPost, 
                     content: trimmedText,
@@ -254,30 +258,18 @@ export default function MainNote() {
                     priority: 2
                 });
                 clearSelectedPost();
-                textAreaRef.current?.focus();
-            }else {
-                await addPost(trimmedText, false, 2);
-                // setCards(prev => {
-                //     if (prev.some(card => card.postId === newPostId)) {
-                //         return prev;
-                //     }
-
-                //     return [
-                //         ...prev,
-                //         {
-                //             id: newPostId,
-                //             postId: newPostId,
-                //             title: trimmedText.substring(0, 10),
-                //             priority: 2
-                //         }
-                //     ];
-                // });
+                setText(''); // 입력창 비우기
+                alert('메모가 수정되었습니다.');
+            } else {
+                // 새 메모 생성
+                const newPostId = await addPost(trimmedText, false, 2);
                 clearSelectedPost();
-               // textAreaRef.current.focus();
-
+                setText(''); // 입력창 비우기
+                alert('메모가 생성되었습니다.');
             }
-        } catch{
+        } catch (error) {
             // 에러는 이미 PostContext에서 처리됨
+            console.error('메모 저장 실패:', error);
         }
     };
     
@@ -375,52 +367,127 @@ export default function MainNote() {
             // OCR API 호출
             const result = await extractTextFromImage(file, [], 'json');
             
-            // OCR 결과를 구조화된 형태로 변환
-            let ocrContent = '';
+            // 디버깅: 응답 데이터 확인
+            console.log('=== OCR API 응답 데이터 ===');
+            console.log('응답 타입:', typeof result);
+            console.log('응답 데이터 (전체):', result);
+            console.log('응답 데이터 (JSON):', JSON.stringify(result, null, 2));
+            if (result && typeof result === 'object') {
+                console.log('응답 데이터 키들:', Object.keys(result));
+            }
+            
+            // OCR 결과에서 순수 텍스트만 추출
+            let extractedText = '';
             let ocrData = null;
             
+            // 응답 데이터 파싱
             if (typeof result === 'string') {
                 // 문자열인 경우 JSON 파싱 시도
                 try {
                     ocrData = JSON.parse(result);
+                    console.log('문자열을 JSON으로 파싱 성공:', ocrData);
                 } catch {
-                    ocrData = { rawText: result };
+                    // 파싱 실패 시 문자열 자체를 텍스트로 사용
+                    extractedText = result;
+                    console.log('문자열을 그대로 텍스트로 사용:', extractedText);
                 }
             } else if (result && typeof result === 'object') {
                 ocrData = result;
+                console.log('객체로 받은 OCR 데이터:', ocrData);
             } else {
-                ocrData = { rawText: String(result) };
+                extractedText = String(result);
+                console.log('기타 타입을 문자열로 변환:', extractedText);
             }
 
-            // OCR 데이터를 읽기 쉬운 형태로 변환
-            ocrContent = formatOCRResult(ocrData);
+            // OCR 데이터에서 텍스트 추출 (여러 가능한 필드명 확인)
+            if (ocrData && !extractedText) {
+                console.log('OCR 데이터에서 텍스트 추출 시도...');
+                console.log('OCR 데이터 구조:', JSON.stringify(ocrData, null, 2));
+                
+                // 재귀적으로 텍스트 찾기 함수
+                const findTextInObject = (obj, depth = 0) => {
+                    if (depth > 3) return null; // 깊이 제한
+                    if (typeof obj === 'string' && obj.trim()) return obj;
+                    if (typeof obj !== 'object' || obj === null) return null;
+                    
+                    // 우선순위: text > rawText > content > result > data > message > output
+                    const priorityFields = ['text', 'rawText', 'content', 'result', 'data', 'message', 'output', 'extractedText'];
+                    for (const field of priorityFields) {
+                        if (obj[field]) {
+                            const found = findTextInObject(obj[field], depth + 1);
+                            if (found) return found;
+                        }
+                    }
+                    
+                    // 배열인 경우 각 요소 확인
+                    if (Array.isArray(obj)) {
+                        const texts = obj.map(item => findTextInObject(item, depth + 1)).filter(Boolean);
+                        if (texts.length > 0) return texts.join('\n');
+                    }
+                    
+                    // 모든 문자열 값 찾기
+                    const allStrings = [];
+                    for (const [key, value] of Object.entries(obj)) {
+                        if (typeof value === 'string' && value.trim() && value.length > 5) {
+                            allStrings.push(value);
+                        } else if (typeof value === 'object' && value !== null) {
+                            const nested = findTextInObject(value, depth + 1);
+                            if (nested) allStrings.push(nested);
+                        }
+                    }
+                    return allStrings.length > 0 ? allStrings.join('\n') : null;
+                };
+                
+                const foundText = findTextInObject(ocrData);
+                if (foundText) {
+                    extractedText = foundText;
+                    console.log('재귀 검색으로 텍스트 추출 성공:', extractedText.substring(0, 100) + '...');
+                } else {
+                    // 마지막 시도: 전체 객체를 JSON으로 변환
+                    extractedText = JSON.stringify(ocrData, null, 2);
+                    console.warn('텍스트를 찾지 못해 전체 객체를 JSON으로 변환:', extractedText.substring(0, 200));
+                }
+            }
 
-            // OCR 결과를 JSON 형식으로도 포함 (원본 데이터 보존)
-            const jsonData = JSON.stringify(ocrData, null, 2);
-            const fullContent = `${ocrContent}\n\n--- 원본 JSON 데이터 ---\n${jsonData}`;
+            // 텍스트가 비어있으면 기본 메시지
+            if (!extractedText || extractedText.trim() === '') {
+                extractedText = '[이미지에서 텍스트를 추출하지 못했습니다]';
+                console.warn('추출된 텍스트가 비어있음. OCR 응답 구조를 확인하세요.');
+            }
+
+            console.log('=== 최종 추출된 텍스트 ===');
+            console.log('추출된 텍스트:', extractedText);
+            console.log('텍스트 길이:', extractedText.length);
+
+            // 파일 이름과 OCR 텍스트를 함께 표시
+            const fileName = file.name || '이미지';
+            const ocrContent = `[파일명: ${fileName}]\n\n${extractedText}`;
 
             // 기존 텍스트가 있으면 줄바꿈 후 추가, 없으면 그대로 설정
             const newText = text.trim() 
-                ? `${text}\n\n${fullContent}` 
-                : fullContent;
+                ? `${text}\n\n${ocrContent}` 
+                : ocrContent;
             
-            // 메모 영역에 OCR 결과 표시 (DB 저장은 하지 않음)
-            setText(newText);
+            console.log('=== 메모 입력창에 표시할 텍스트 ===');
+            console.log('전체 텍스트:', newText);
+            console.log('텍스트 길이:', newText.length);
             
-            // 수동 편집 모드 활성화
+            // 기존 선택 해제 (새 메모 상태로) - 먼저 호출
+            setSelectedPostId(null);
             setIsManualEditMode(true);
             
-            // 기존 선택 해제 (새 메모 상태로)
-            clearSelectedPost();
+            // 메모 영역에 OCR 결과 표시 (DB 저장은 하지 않음)
+            // clearSelectedPost() 대신 직접 설정 (setText('')를 피하기 위해)
+            setText(newText);
+            console.log('setText() 호출 완료, 텍스트:', newText.substring(0, 50) + '...');
             
-            // 포커스 이동
+            // 포커스 이동 및 커서를 텍스트 끝으로
             setTimeout(() => {
                 textAreaRef.current?.focus();
-                // OCR 결과 부분으로 스크롤
-                const ocrStartIndex = newText.indexOf('[OCR 결과]');
-                if (ocrStartIndex >= 0) {
-                    textAreaRef.current?.setSelectionRange(ocrStartIndex, ocrStartIndex);
-                }
+                const textLength = newText.length;
+                textAreaRef.current?.setSelectionRange(textLength, textLength);
+                // 텍스트가 제대로 설정되었는지 확인
+                console.log('포커스 이동 완료, 현재 text 상태:', text);
             }, 100);
             
             alert('이미지에서 텍스트를 추출했습니다. "생성" 버튼을 눌러 메모로 저장하세요.');
