@@ -235,4 +235,18 @@
 
 .image-upload-btn:active:not(:disabled) {
     transform: scale(0.98);
+.card-area.card-drag-over {
+    outline: 2px dashed var(--color-accent);
+    border-radius: var(--radius-md);
+    background: rgba(35, 131, 226, 0.05);
+}
+
+.note-card.dragging {
+    opacity: 0.55;
+    transform: rotate(1.5deg) scale(0.97);
+}
+
+.note-card.drag-target {
+    outline: 2px dashed var(--color-accent);
+    background: rgba(35, 131, 226, 0.08);
 }
