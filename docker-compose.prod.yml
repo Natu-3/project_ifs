@@ -36,7 +36,7 @@ services:
       DB_HOST: db
       DB_PORT: ${DB_PORT:-3306}
       DB_NAME: ${DB_NAME:-ifscm}
-      DB_USER: ${DB_USER:-root}
+      DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
@@ -59,7 +59,7 @@ services:
       DB_HOST: db
       DB_PORT: ${DB_PORT:-3306}
       DB_NAME: ${DB_NAME:-ifscm}
-      DB_USER: ${DB_USER:-root}
+      DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       BACKEND_BASE_URL: http://backend:8080
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
