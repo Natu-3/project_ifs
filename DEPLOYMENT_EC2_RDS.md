@@ -4,6 +4,7 @@
 - CI builds and pushes images to GHCR on `main` push.
 - CD (deploy/rollback trigger) runs only from EC2.
 - Use private RDS MySQL 8.0.x and `JPA_DDL_AUTO=validate`.
+- Follow the gate checklist in `runbook/MAIN_EC2_RDS_PREDEPLOY_GATE_CHECKLIST.md` before production deploy.
 
 ## AWS Prerequisites
 1. Create RDS MySQL 8.0 in a private subnet.
@@ -18,6 +19,7 @@
 
 ## EC2 Required Runtime Inputs
 - `.env.prod` in repository root (DB/app settings; use `.env.prod.example` as template).
+- Set `DB_HOST` to the RDS endpoint (do not use the compose `db` service in AWS production).
 - GHCR auth on EC2 for private pulls:
   - Option A: `docker login ghcr.io` once and reuse docker config.
   - Option B: set `GHCR_USERNAME`, `GHCR_PAT` env vars before running scripts.

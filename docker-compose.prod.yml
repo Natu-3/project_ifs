@@ -1,5 +1,6 @@
 services:
   db:
+    # Optional local/demo DB service. For AWS production, use RDS and set DB_HOST in .env.prod.
     image: mysql:8.0
     container_name: ifs-db
     restart: unless-stopped
@@ -33,12 +34,12 @@ services:
       redis:
         condition: service_started
     environment:
-      DB_HOST: db
+      DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT:-3306}
       DB_NAME: ${DB_NAME:-ifscm}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-validate}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
       APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:-http://localhost:3000}
       REDIS_HOST: redis
@@ -56,7 +57,7 @@ services:
       backend:
         condition: service_started
     environment:
-      DB_HOST: db
+      DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT:-3306}
       DB_NAME: ${DB_NAME:-ifscm}
       DB_USER: ${DB_USER}

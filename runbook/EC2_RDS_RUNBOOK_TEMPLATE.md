@@ -25,6 +25,7 @@
 - EC2 inbound only required ports (`22`, `80`, `443`).
 - Secrets are stored in a secret manager, not in Git.
 - Production DB policy: `JPA_DDL_AUTO=validate`.
+- Run gate checklist before deploy: `runbook/MAIN_EC2_RDS_PREDEPLOY_GATE_CHECKLIST.md`.
 
 ## Required Secrets Checklist
 - [ ] `EC2_HOST`
@@ -52,15 +53,16 @@
 5. Confirm `docker-compose.prod.yml` is present.
 
 ## Standard Deployment Procedure
-1. Merge changes into `main`.
-2. Confirm CI built/pushed immutable `sha-*` image tags.
-3. On EC2:
+1. Complete all gates in `runbook/MAIN_EC2_RDS_PREDEPLOY_GATE_CHECKLIST.md` and record evidence.
+2. Merge changes into `main`.
+3. Confirm CI built/pushed immutable `sha-*` image tags.
+4. On EC2:
    - `docker compose --env-file .env.prod -f docker-compose.prod.yml pull`
    - `docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --remove-orphans`
-4. Verify health:
+5. Verify health:
    - `curl -fsS http://localhost:8081/actuator/health`
    - `curl -fsS http://localhost:8000/chat-api/v1/health`
-5. Run smoke tests:
+6. Run smoke tests:
    - Login
    - Schedule CRUD
    - Team calendar sync
