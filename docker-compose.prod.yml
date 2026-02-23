@@ -1,22 +1,4 @@
 services:
-  db:
-    # Optional local/demo DB service. For AWS production, use RDS and set DB_HOST in .env.prod.
-    image: mysql:8.0
-    container_name: ifs-db
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME:-ifscm}
-    volumes:
-      - db_data:/var/lib/mysql
-    ports:
-      - "3307:3306"
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_PASSWORD}"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
   redis:
     image: redis:7-alpine
     container_name: ifs-redis
@@ -29,8 +11,9 @@ services:
     container_name: ifs-backend
     restart: unless-stopped
     depends_on:
-      db:
-        condition: service_healthy
+      # RDS migration: no local MySQL container in AWS prod profile.
+      # db:
+      #   condition: service_healthy
       redis:
         condition: service_started
     environment:
@@ -52,8 +35,9 @@ services:
     container_name: ifs-python-api
     restart: unless-stopped
     depends_on:
-      db:
-        condition: service_healthy
+      # RDS migration: no local MySQL container in AWS prod profile.
+      # db:
+      #   condition: service_healthy
       backend:
         condition: service_started
     environment:
@@ -80,6 +64,4 @@ services:
     ports:
       - "3000:80"
 
-volumes:
-  db_data:
 
