@@ -52,6 +52,27 @@
 4. Prepare `.env.prod` using secure values.
 5. Confirm `docker-compose.prod.yml` is present.
 
+## `.env.prod` Update Procedure (EC2)
+1. Prepare a new `.env.prod` locally from `.env.prod.example` (do not commit).
+2. Validate required values before upload:
+   - `DB_HOST` = RDS endpoint (not `db`)
+   - `DB_PORT` = `3306` (unless custom)
+   - `DB_NAME` = application schema (do not use MySQL system DB like `mysql`)
+   - `DB_USER` / `DB_PASSWORD` = production app credentials
+   - `JPA_DDL_AUTO=validate`
+3. Upload to EC2 app directory (overwrite only after review):
+   - `scp .env.prod <EC2_USER>@<EC2_HOST>:<EC2_APP_DIR>/.env.prod`
+4. On EC2, restrict file permission:
+   - `chmod 600 <EC2_APP_DIR>/.env.prod`
+5. Optional safe replacement pattern:
+   - upload as `.env.prod.new`
+   - validate compose config
+   - replace with `mv .env.prod.new .env.prod`
+6. Validate compose interpolation before deploy:
+   - `docker compose --env-file .env.prod -f docker-compose.prod.yml config > /tmp/project_ifs.compose.resolved.yml`
+   - Confirm no unresolved placeholders like `${DB_USER}` remain
+7. Keep a masked change record in runbook evidence (do not paste raw secrets).
+
 ## Standard Deployment Procedure
 1. Complete all gates in `runbook/MAIN_EC2_RDS_PREDEPLOY_GATE_CHECKLIST.md` and record evidence.
 2. Merge changes into `main`.
@@ -60,6 +81,8 @@
    - `docker compose --env-file .env.prod -f docker-compose.prod.yml pull`
    - `docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --remove-orphans`
 5. Verify health:
+   - `docker ps` shows `ifs-frontend`, `ifs-backend`, `ifs-python-api`, `ifs-redis`
+   - `docker ps` does **not** show local MySQL container `ifs-db` (RDS migration validation)
    - `curl -fsS http://localhost:8081/actuator/health`
    - `curl -fsS http://localhost:8000/chat-api/v1/health`
 6. Run smoke tests:
@@ -70,6 +93,7 @@
 
 ## Rollback Procedure
 1. Identify previous stable SHA tag.
+2. (If env change caused failure) restore previous `.env.prod` backup file before image rollback.
 2. Update `.env.prod` image tags to previous SHA:
    - `BACKEND_IMAGE`
    - `FRONTEND_IMAGE`
@@ -87,6 +111,8 @@
 ## Incident Response Notes
 - DB connect error:
   - Check SG, route table, subnet, DB credential.
+  - Confirm `DB_HOST` points to RDS endpoint, not compose service `db`.
+  - Confirm `DB_NAME` is the application schema, not system DB (`mysql`).
 - Deployment failure:
   - Roll back to previous SHA immediately.
 - Unknown app error:

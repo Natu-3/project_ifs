@@ -33,6 +33,7 @@ services:
   python_api:
     image: ${PYTHON_API_IMAGE:-ghcr.io/natu-3/project_ifs-ai:latest}
     container_name: ifs-python-api
+    profiles: ["ai"]
     restart: unless-stopped
     depends_on:
       # RDS migration: no local MySQL container in AWS prod profile.
@@ -60,7 +61,6 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
-      - python_api
     ports:
       - "3000:80"
 
