@@ -298,3 +298,12 @@
     }
 }
 
+.sidebar-item.dragging {
+    opacity: 0.55;
+    transform: scale(0.98);
+}
+
+.sidebar-item.drag-over {
+    outline: 2px dashed var(--color-accent);
+    background: rgba(35, 131, 226, 0.1);
+}

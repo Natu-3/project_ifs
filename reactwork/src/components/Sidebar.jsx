@@ -53,7 +53,9 @@ const matchesKoreanQuery = (text, rawQuery) => {
 
 export default function Sidebar({ isOpen, setIsOpen }) {
     const [query, setQuery] = useState("");
-    const { posts, setSelectedPostId, addPost, deletePost, togglePinned, selectedPostId } = usePosts();
+    const [draggingPostId, setDraggingPostId] = useState(null);
+    const [dragOverPostId, setDragOverPostId] = useState(null);
+    const { posts, setSelectedPostId, deletePost, togglePinned, selectedPostId, reorderPosts } = usePosts();
     const { getUsedPostIds, getScheduleColor } = useSchedule();
     const usedPostIds = getUsedPostIds();
     
@@ -87,7 +89,32 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     };
 
     const handleDragStart = (e, postId) => {
-        e.dataTransfer.setData("postId", postId);
+        setDraggingPostId(postId);
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("postId", String(postId));
+    };
+
+    const handleItemDragOver = (e, postId) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        if (draggingPostId && draggingPostId !== postId) {
+            setDragOverPostId(postId);
+        }
+    };
+
+    const handleItemDrop = (e, targetPostId) => {
+        e.preventDefault();
+        const draggedPostId = Number(e.dataTransfer.getData("postId") || draggingPostId);
+        if (Number.isFinite(draggedPostId)) {
+            reorderPosts(draggedPostId, targetPostId);
+        }
+        setDragOverPostId(null);
+        setDraggingPostId(null);
+    };
+
+    const handleDragEnd = () => {
+        setDragOverPostId(null);
+        setDraggingPostId(null);
     };
 
     const [showCreatePopup, setShowCreatePopup] = useState(false);
@@ -128,9 +155,15 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                     return (
                     <li
                         key={post.id}
-                        className={`sidebar-item ${selectedPostId === post.id ? 'selected' : ''} ${hasCalendarEvent ? 'has-calendar-event' : ''}`}
+                        className={`sidebar-item ${selectedPostId === post.id ? 'selected' : ''}
+                        ${hasCalendarEvent ? 'has-calendar-event' : ''}
+                        ${dragOverPostId === post.id ? 'drag-over' : ''}
+                        ${draggingPostId === post.id ? 'dragging' : ''}`}
                         draggable
                         onDragStart={(e) => handleDragStart(e, post.id)}
+                        onDragOver={(e) => handleItemDragOver(e, post.id)}
+                        onDrop={(e) => handleItemDrop(e, post.id)}
+                        onDragEnd={handleDragEnd}
                         onClick={()=>setSelectedPostId(post.id)}
                         style={priorityColor ? {
                             borderLeft: `4px solid ${priorityColor}`,
