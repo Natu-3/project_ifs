@@ -758,4 +758,8 @@ export default function MainNote() {
         
     )
 }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> a5cf92d6c163425085ad7eca3f965f028a6ad3c5
