@@ -422,7 +422,7 @@ export default function MainNote() {
         setDraggingCardId(null);
     };
 
-    const handleCardAreaDrop = (e) => {
+    const handleCardAreaDrop = async (e) => {
         const cardIdData = e.dataTransfer.getData('cardId');
         if (cardIdData) {
             e.preventDefault();
@@ -757,4 +757,5 @@ export default function MainNote() {
         </main>
         
     )
+}
 }
