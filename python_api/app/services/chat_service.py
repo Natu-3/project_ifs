@@ -21,7 +21,7 @@ class ChatService:
         # 서비스 인스턴스 단위로 DB 세션/설정/OpenAI 클라이언트를 묶어 사용한다.
         self.db = db
         self.settings = get_settings()
-        self.openai = OpenAIChatClient()
+        self.openai: OpenAIChatClient | None = None
 
     def create_session(self, user_id: int, title: str | None = None) -> ChatSession:
         # 새 세션 생성 시 만료시각(expires_at)을 함께 기록한다.
@@ -83,6 +83,8 @@ class ChatService:
         model_input.extend({"role": item.role, "content": item.content} for item in recent_messages)
 
         # 모델 응답과 토큰 사용량을 저장해 추후 분석/관측에 활용한다.
+        if self.openai is None:
+            self.openai = OpenAIChatClient()
         answer, token_in, token_out = self.openai.complete(model_input)
         assistant_message = ChatMessage(
             session_id=session.id,
