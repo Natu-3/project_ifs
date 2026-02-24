@@ -47,4 +47,13 @@ public class MemoController {
         memoService.deleteMemo(id, userId);
         return ResponseEntity.ok().build();
     }
+
+    @PutMapping("/main-note-order")
+    public ResponseEntity<Void> updateMainNoteOrder(
+        @RequestParam Long userId,
+        @RequestBody List<MemoMainNoteOrderUpdateRequest> requests
+    ) {
+        memoService.updateMainNoteOrder(userId, requests);
+        return ResponseEntity.ok().build();
+    }
 }
