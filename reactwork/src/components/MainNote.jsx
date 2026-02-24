@@ -439,7 +439,7 @@ export default function MainNote() {
         setIsProcessingOCR(true);
         try {
             // OCR API 호출
-            const result = await extractTextFromImage(file, [], 'json');
+            const result = extractTextFromImage(file, [], 'json');
             
             // 디버깅: 응답 데이터 확인
             console.log('=== OCR API 응답 데이터 ===');
@@ -758,4 +758,8 @@ export default function MainNote() {
         
     )
 }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> a5cf92d6c163425085ad7eca3f965f028a6ad3c5
