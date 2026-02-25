@@ -24,7 +24,8 @@ jobs:
 
       - name: Short SHA
         id: vars
-        run: echo "SHA_SHORT=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+        run: |
+          echo "SHA_SHORT=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -62,3 +63,10 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_AI }}:latest
             ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_AI }}:sha-${{ steps.vars.outputs.SHA_SHORT }}
+
+      - name: Build Summary
+        run: |
+          echo "Built and pushed tags:" >> "$GITHUB_STEP_SUMMARY"
+          echo "- ghcr.io/${{ env.OWNER }}/${{ env.IMAGE_BACKEND }}:sha-${{ steps.vars.outputs.SHA_SHORT }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- ghcr.io/${{ env.OWNER }}/${{ env.IMAGE_FRONTEND }}:sha-${{ steps.vars.outputs.SHA_SHORT }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- ghcr.io/${{ env.OWNER }}/${{ env.IMAGE_AI }}:sha-${{ steps.vars.outputs.SHA_SHORT }}" >> "$GITHUB_STEP_SUMMARY"

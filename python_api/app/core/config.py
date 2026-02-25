@@ -15,8 +15,8 @@ class Settings(BaseSettings):
     db_host: str = "db"
     db_port: int = 3306
     db_name: str = "ifscm"
-    db_user: str = "root"
-    db_password: str = "1234"
+    db_user: str = ""
+    db_password: str = ""
 
     backend_base_url: str = "http://backend:8080"
     openai_api_key: str = ""
@@ -33,6 +33,8 @@ class Settings(BaseSettings):
         # DATABASE_URL이 있으면 우선 사용하고, 없으면 DB_* 값으로 접속 문자열을 조합한다.
         if self.database_url:
             return self.database_url
+        if not self.db_user or not self.db_password:
+            raise ValueError("DB_USER and DB_PASSWORD must be set when DATABASE_URL is not provided.")
         return (
             f"mysql+pymysql://{self.db_user}:{self.db_password}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}?charset=utf8mb4"

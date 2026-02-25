@@ -11,19 +11,19 @@ export const getMemos = (userId) => {
 };
 
 // 메모 생성
-export const createMemo = (userId, content, pinned = false, priority = 2, mainNoteVisible = false, mainNoteOrder = null) => {
+export const createMemo = (userId, content, pinned = false, priority = 2) => {
   if (!userId) {
     return Promise.reject(new Error("로그인이 필요합니다."));
   }
   return axios.post(
     `/api/memos?userId=${userId}`,
-    { content, pinned, visible: true, priority, mainNoteVisible, mainNoteOrder },
+    { content, pinned, visible: true, priority },
     { withCredentials: true }
   );
 };
 
 // 메모 수정
-export const updateMemo = (userId, id, content, pinned = null, priority = null, mainNoteVisible = null, mainNoteOrder = null) => {
+export const updateMemo = (userId, id, content, pinned = null, priority = null) => {
   if (!userId) {
     return Promise.reject(new Error("로그인이 필요합니다."));
   }
@@ -33,12 +33,6 @@ export const updateMemo = (userId, id, content, pinned = null, priority = null, 
   }
   if (priority !== null) {
     body.priority = priority;
-  }
-  if (mainNoteVisible !== null) {
-    body.mainNoteVisible = mainNoteVisible;
-  }
-  if (mainNoteOrder !== null) {
-    body.mainNoteOrder = mainNoteOrder;
   }
   return axios.put(
     `/api/memos/${id}?userId=${userId}`,
@@ -57,14 +51,12 @@ export const deleteMemo = (userId, id) => {
   });
 };
 
+// TODO: 백엔드 일괄 업데이트 API 추가 후 실제 요청으로 교체
 export const updateMainNoteOrder = (userId, payload) => {
   if (!userId) {
     return Promise.reject(new Error("로그인이 필요합니다."));
   }
-
-  return axios.put(
-    `/api/memos/mainnote-order?userId=${userId}`,
-    payload,
-    { withCredentials: true }
-  );
+  return axios.put(`/api/memos/main-note-order?userId=${userId}`, payload, {
+    withCredentials: true
+  });
 };

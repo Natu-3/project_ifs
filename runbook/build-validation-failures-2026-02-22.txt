@@ -1,0 +1,71 @@
+﻿빌드/검증 실패 기록 (2026-02-22)
+=================================
+
+대상
+- 프론트엔드: reactwork
+- 백엔드: backwork
+- Python API: python_api
+
+결과 요약
+- reactwork 빌드: 성공
+- backwork 테스트 빌드: 실패 (6 tests completed, 1 failed)
+- python_api 설정 검증: 실패 (로컬 의존성 미설치)
+
+1) backwork 실패 내용
+----------------------
+실행 명령
+- .\\gradlew.bat test
+
+실패 증상
+- Spring ApplicationContext 로딩 실패
+- JPA/Hibernate가 JDBC 메타데이터를 읽지 못함
+- 실제 원인 로그에서 DB 사용자 값이 문자열 치환되지 않음
+
+핵심 로그 포인트
+- Failed to load ApplicationContext
+- Unable to determine Dialect without JDBC metadata
+- Access denied for user '${DB_USER}'@'localhost' (using password: YES)
+
+영향받은 설정 변경(직접 원인 가능성 높음)
+- backwork/src/main/resources/application.properties
+  - spring.datasource.username=${DB_USER}
+  - spring.datasource.password=${DB_PASSWORD}
+
+원인 분석
+- P1 작업에서 Spring 설정의 fallback (`:root`, `:1234`) 제거
+- 테스트 실행 환경에서 `DB_USER`, `DB_PASSWORD` 값을 제공하지 않음
+- 결과적으로 `${DB_USER}` / `${DB_PASSWORD}`가 실제 값으로 치환되지 않아 DB 연결 실패
+
+권장 조치
+- 테스트 전용 설정에 DB 값 주입 (예: backwork/src/test/resources/application-test.properties)
+- 또는 테스트에서 DB 의존 분리(H2/Testcontainers)
+- CI/로컬 테스트 실행 스크립트에 env 주입 절차 명시
+
+2) python_api 검증 실패 내용
+-----------------------------
+실행 검증
+- app.core.config.Settings 로드 및 DB URL 생성 확인용 간단 스크립트
+
+실패 증상
+- ModuleNotFoundError: No module named 'pydantic_settings'
+
+원인 분석
+- 로컬 파이썬 환경에 python_api 의존성 미설치
+- 이번 설정 변경 자체의 문법/로직 오류로 단정 불가
+
+권장 조치
+- python_api/requirements.txt 설치 후 재검증
+- 최소 검증: Settings(DB_USER='u', DB_PASSWORD='p').sqlalchemy_database_url
+
+3) reactwork 빌드 결과
+----------------------
+실행 명령
+- npm run build
+
+결과
+- Vite production build 성공
+- dist 산출물 생성 완료
+
+판정
+- 현재 리팩토링 변경 기준으로 전체 빌드/검증은 '부분 실패'
+- 백엔드 테스트 환경값 주입 정리 전까지 '정상 작동'으로 판정 불가

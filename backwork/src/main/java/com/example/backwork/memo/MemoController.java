@@ -38,14 +38,6 @@ public class MemoController {
     ) {
         return ResponseEntity.ok(memoService.updateMemo(id, userId, request));
     }
-
-    @PutMapping("/mainnote-order")
-    public ResponseEntity<List<MemoResponse>> putMainNoteOrder(
-        @RequestParam Long userId,
-        @RequestBody List<MemoRequest> requests
-    ) {
-        return ResponseEntity.ok(memoService.updateMainNoteOrder(userId, requests));
-    }
     
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMemo(
@@ -53,6 +45,15 @@ public class MemoController {
         @RequestParam Long userId
     ) {
         memoService.deleteMemo(id, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/main-note-order")
+    public ResponseEntity<Void> updateMainNoteOrder(
+        @RequestParam Long userId,
+        @RequestBody List<MemoMainNoteOrderUpdateRequest> requests
+    ) {
+        memoService.updateMainNoteOrder(userId, requests);
         return ResponseEntity.ok().build();
     }
 }

@@ -12,6 +12,7 @@ public interface MemoPostRepository extends JpaRepository<MemoPost, Long> {
     
     // 특정 사용자의 메모 조회 (ID로)
     Optional<MemoPost> findByIdAndUser(Long id, User user);
+    List<MemoPost> findByUserAndIdIn(User user, List<Long> ids);
     
     // 특정 사용자의 고정된 메모 조회
     List<MemoPost> findByUserAndPinnedTrueAndVisibleTrueOrderByCreatedAtDesc(User user);

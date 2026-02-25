@@ -1,0 +1,12 @@
+[Unit]
+Description=Run Project IFS Auto Deploy every few minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=3min
+RandomizedDelaySec=30
+Persistent=true
+Unit=project-ifs-autodeploy.service
+
+[Install]
+WantedBy=timers.target

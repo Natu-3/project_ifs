@@ -6,7 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,13 +30,6 @@ public class MemoService {
             .map(MemoResponse::from)
             .collect(Collectors.toList());
     }
-
-     private Integer resolveMainNoteOrder(Integer value) {
-        if (value == null) {
-            return null;
-        }
-        return Math.max(value, 0);
-    }
     
     // 메모 생성
     public MemoResponse createMemo(Long userId, MemoRequest request) {
@@ -47,8 +42,6 @@ public class MemoService {
         memo.setPinned(request.getPinned() != null ? request.getPinned() : false);
         memo.setVisible(request.getVisible() != null ? request.getVisible() : true);
         memo.setPriority(request.getPriority() != null ? request.getPriority() : 2);
-        memo.setMainNoteVisible(request.getMainNoteVisible() != null ? request.getMainNoteVisible() : false);
-        memo.setMainNoteOrder(resolveMainNoteOrder(request.getMainNoteOrder()));
         
         MemoPost saved = memoPostRepository.save(memo);
         return MemoResponse.from(saved);
@@ -74,39 +67,8 @@ public class MemoService {
         if (request.getPriority() != null) {
             memo.setPriority(request.getPriority());
         }
-        if (request.getMainNoteVisible() != null) {
-            memo.setMainNoteVisible(request.getMainNoteVisible());
-        }
-        if (request.getMainNoteOrder() != null) {
-            memo.setMainNoteOrder(resolveMainNoteOrder(request.getMainNoteOrder()));
-        }
         
         return MemoResponse.from(memo);
-    }
-
-     public List<MemoResponse> updateMainNoteOrder(Long userId, List<MemoRequest> requests) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
-
-        for (MemoRequest request : requests) {
-            if (request == null || request.getId() == null) {
-                continue;
-            }
-
-            MemoPost memo = memoPostRepository.findByIdAndUser(request.getId(), user)
-                    .orElseThrow(() -> new IllegalArgumentException("메모를 찾을 수 없습니다"));
-
-            if (request.getMainNoteVisible() != null) {
-                memo.setMainNoteVisible(request.getMainNoteVisible());
-            }
-            memo.setMainNoteOrder(resolveMainNoteOrder(request.getMainNoteOrder()));
-        }
-
-        return memoPostRepository
-                .findByUserAndVisibleTrueOrderByCreatedAtDesc(user)
-                .stream()
-                .map(MemoResponse::from)
-                .collect(Collectors.toList());
     }
     
     // 메모 삭제 (soft delete - visible을 false로)
@@ -119,5 +81,45 @@ public class MemoService {
             
         memo.setVisible(false);
         memoPostRepository.save(memo);
+    }
+    public void updateMainNoteOrder(Long userId, List<MemoMainNoteOrderUpdateRequest> requests) {
+        if (requests == null || requests.isEmpty()) {
+            return;
+        }
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("?ъ슜?먮? 李얠쓣 ???놁뒿?덈떎"));
+
+        List<Long> ids = requests.stream()
+            .map(MemoMainNoteOrderUpdateRequest::getId)
+            .collect(Collectors.toList());
+
+        if (ids.stream().anyMatch(id -> id == null)) {
+            throw new IllegalArgumentException("memo id is required");
+        }
+
+        List<MemoPost> memos = memoPostRepository.findByUserAndIdIn(user, ids);
+        if (memos.size() != ids.size()) {
+            throw new IllegalArgumentException("some memos not found for user");
+        }
+
+        Map<Long, MemoPost> memoById = new HashMap<>();
+        for (MemoPost memo : memos) {
+            memoById.put(memo.getId(), memo);
+        }
+
+        for (MemoMainNoteOrderUpdateRequest request : requests) {
+            MemoPost memo = memoById.get(request.getId());
+            if (memo == null) {
+                continue;
+            }
+
+            if (request.getMainNoteVisible() != null) {
+                memo.setMainNoteVisible(request.getMainNoteVisible());
+            }
+            memo.setMainNoteOrder(request.getMainNoteOrder());
+        }
+
+        memoPostRepository.saveAll(memos);
     }
 }

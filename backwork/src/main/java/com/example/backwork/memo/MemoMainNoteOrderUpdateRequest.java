@@ -7,9 +7,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class MemoRequest {
-    private String content;
-    private Boolean pinned;
-    private Boolean visible;
-    private Integer priority;
+public class MemoMainNoteOrderUpdateRequest {
+    private Long id;
+    private Boolean mainNoteVisible;
+    private Integer mainNoteOrder;
 }

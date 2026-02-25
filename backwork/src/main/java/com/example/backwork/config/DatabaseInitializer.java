@@ -64,9 +64,9 @@ public class DatabaseInitializer {
                     if (!hasColumn("memopost", "main_note_order")) {
                         String alterOrderSql = "ALTER TABLE `memopost` ADD COLUMN `main_note_order` INT NULL AFTER `main_note_visible`";
                         jdbcTemplate.execute(alterOrderSql);
-                        System.out.println("✅ memopost 테이블에 main_note_order 컬럼이 추가되었습니다.");
+                        System.out.println("memopost 테이블에 main_note_order 컬럼이 추가되었습니다.");
                     } else {
-                        System.out.println("ℹ️ memopost 테이블에 main_note_order 컬럼이 이미 존재합니다.");
+                        System.out.println("memopost 테이블에 main_note_order 컬럼이 이미 존재합니다.");
                     }
                 } catch (Exception e) {
                     System.out.println("⚠️ main note 컬럼 확인 중 오류 발생 (무시됨): " + e.getMessage());

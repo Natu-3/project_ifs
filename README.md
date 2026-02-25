@@ -63,6 +63,7 @@ CI에서 Docker 이미지를 푸시할 때 아래 2개 태그를 동시에 입�
 동일 계정으로 여러 브라우저 세션(예: Chrome 일반창 + 시크릿창, 또는 Chrome + Edge)에서 동기화를 점검합니다.
 
 ## EC2 + RDS 운영 배포용 Compose 분리
+배포 상세 가이드: [DEPLOYMENT_EC2_RDS.md](DEPLOYMENT_EC2_RDS.md)
 운영 환경에서는 로컬 개발용(`docker-compose.yml`)과 분리된 `docker-compose.prod.yml` 사용을 권장합니다.
 
 1. 예시 파일 복사
