@@ -65,6 +65,8 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
   const [isSelectingRange, setIsSelectingRange] = useState(false);
   const [rangeStart, setRangeStart] = useState(null);
   const [rangeEnd, setRangeEnd] = useState(null);
+  const [hoveredEvent, setHoveredEvent] = useState(null);
+  const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
   const selectingRef = useRef(false);
   const rangeStartRef = useRef(null);
   const rangeEndRef = useRef(null);
@@ -152,6 +154,18 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
     const start = rangeStart < rangeEnd ? rangeStart : rangeEnd;
     const end = rangeStart < rangeEnd ? rangeEnd : rangeStart;
     return dateKey >= start && dateKey <= end;
+  };
+
+  //스케줄 미리보기 활성화
+  const formatDateText = (value) => {
+    if (!value) return "";
+    const normalized = String(value).slice(0, 10);
+    return normalized;
+  };
+
+  const updateHoverPosition = (event) => {
+    const offset = 14;
+    setHoverPosition({ x: event.clientX + offset, y: event.clientY + offset });
   };
 
   // 같은 범위의 이벤트들을 찾아서 위치 결정
@@ -347,6 +361,16 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
                       e.stopPropagation();
                       onEventClick(dateKey, ev);
                     }}
+                    onMouseEnter={(e) => {
+                      updateHoverPosition(e);
+                      setHoveredEvent({ dateKey, event: ev });
+                    }}
+                    onMouseMove={(e) => {
+                      updateHoverPosition(e);
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredEvent(null);
+                    }}
                   >
                     {ev.title}
                   </div>
@@ -356,6 +380,27 @@ export default function CalendarGrid({ currentDate, onDateClick, onEventClick, o
           </div>
         );
       })}
+      
+      {hoveredEvent && (
+        <div
+          className="schedule-hover-tooltip"
+          style={{
+            top: `${hoverPosition.y}px`,
+            left: `${hoverPosition.x}px`,
+          }}
+        >
+          <p className="schedule-hover-tooltip-title">{hoveredEvent.event.title}</p>
+          <p className="schedule-hover-tooltip-date">
+            {formatDateText(hoveredEvent.event.startDate) || hoveredEvent.dateKey}
+            {hoveredEvent.event.endDate && hoveredEvent.event.endDate !== hoveredEvent.event.startDate
+              ? ` ~ ${formatDateText(hoveredEvent.event.endDate)}`
+              : ""}
+          </p>
+          {hoveredEvent.event.content && (
+            <p className="schedule-hover-tooltip-content">{hoveredEvent.event.content}</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
