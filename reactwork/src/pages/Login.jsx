@@ -51,6 +51,13 @@ const Login = () => {
     }
   };
 
+  const handlePasswordKeyDown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleLogin();
+    }
+  };
+
   return (
     <div className="login-wrapper">
       <div className="login-container">
@@ -69,6 +76,7 @@ const Login = () => {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          onKeyDown={handlePasswordKeyDown}
         />
 
         <button onClick={handleLogin} disabled={loading}>
