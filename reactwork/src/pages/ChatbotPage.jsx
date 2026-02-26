@@ -8,7 +8,13 @@ import {
 } from "../api/chatbot";
 import "./ChatbotPage.css";
 
-export default function ChatbotPage() {
+export default function ChatbotPage({
+  initialPrompt = "",
+  embedded = false,
+  onClose,
+  showSessionList = true,
+  extraActions = null,
+}) {
   const location = useLocation();
   const seededRef = useRef(false);
   const [sessions, setSessions] = useState([]);
@@ -116,39 +122,60 @@ export default function ChatbotPage() {
   };
 
   useEffect(() => {
-    const initialPrompt = location.state?.initialPrompt;
+    const seededPrompt = initialPrompt || location.state?.initialPrompt;
     if (seededRef.current) return;
-    if (!initialPrompt || !initialPrompt.trim()) return;
+    if (!seededPrompt || !seededPrompt.trim()) return;
     if (loading) return;
 
     seededRef.current = true;
     setInput("");
-    sendContent(initialPrompt);
+    sendContent(seededPrompt);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.state, loading]);
+  }, [initialPrompt, location.state, loading]);
+
+  const compact = embedded && !showSessionList;
 
   return (
-    <div className="chatbot-page">
-      <aside className="chatbot-session-list">
-        <button className="chatbot-new-btn" onClick={handleCreateSession}>
-          New Chat
-        </button>
-        <ul>
-          {sessions.map((session) => (
-            <li key={session.id}>
-              <button
-                className={session.id === activeSessionId ? "active" : ""}
-                onClick={() => setActiveSessionId(session.id)}
-              >
-                {session.title || "New Chat"}
+    <div className={`chatbot-page ${embedded ? "embedded" : ""} ${compact ? "compact" : ""}`}>
+      {showSessionList && (
+        <aside className="chatbot-session-list">
+          <div className="chatbot-session-header-row">
+            <button className="chatbot-new-btn" onClick={handleCreateSession}>
+              New
+            </button>
+            {embedded && (
+              <button className="chatbot-close-btn" onClick={onClose} aria-label="채팅 닫기">
+                닫기
               </button>
-            </li>
-          ))}
-        </ul>
-      </aside>
+              )}
+          </div>
+          <ul>
+            {sessions.map((session) => (
+              <li key={session.id}>
+                <button
+                  className={session.id === activeSessionId ? "active" : ""}
+                  onClick={() => setActiveSessionId(session.id)}
+                >
+                  {session.title || "New Chat"}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      )}
 
       <section className="chatbot-main">
-        <header className="chatbot-header">{activeSession?.title || "Chatbot"}</header>
+        <header className="chatbot-header">
+          <span className="chatbot-header-title">{activeSession?.title || "AI 채팅"}</span>
+          <div className="chatbot-header-actions">
+            {!showSessionList && (
+              <button className="chatbot-new-btn compact-new" onClick={handleCreateSession}>
+                New
+              </button>
+            )}
+            {extraActions}
+          </div>
+        </header>
         <div className="chatbot-messages">
           {messages.map((msg) => (
             <div key={msg.id} className={`chatbot-message ${msg.role}`}>
@@ -162,7 +189,7 @@ export default function ChatbotPage() {
           <textarea
             value={input}
             maxLength={4000}
-            placeholder="Type your message..."
+            placeholder="무엇이든 물어보세요"
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -172,7 +199,7 @@ export default function ChatbotPage() {
             }}
           />
           <button onClick={handleSend} disabled={loading}>
-            {loading ? "Sending..." : "Send"}
+            {loading ? "생성중..." : "생성"}
           </button>
         </div>
       </section>

@@ -1,15 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { usePosts } from '../context/PostContext'
 import { useAuth } from '../context/AuthContext'
 import { useSchedule } from '../context/ScheduleContext'
 import { useTeamCalendar } from '../components/TeamCalendarContext'
 import { updateMainNoteOrder } from '../api/memo'
 import { extractTextFromImage } from '../api/ocr'
+import ChatbotPage from '../pages/ChatbotPage'
 import '../componentsCss/MainNote.css'
 
 export default function MainNote() {
-    const navigate = useNavigate();
     const { posts, loading, hydrated, selectedPost, selectedPostId, updatePost, addPost, setSelectedPostId } = usePosts();
     const { user } = useAuth();
     const { getPostCalendarInfo } = useSchedule();
@@ -19,6 +18,7 @@ export default function MainNote() {
     const [isDragOver, setIsDragOver] = useState(false);
     const [isManualEditMode, setIsManualEditMode] = useState(false);
     const [isProcessingOCR, setIsProcessingOCR] = useState(false);
+    const [isAIChatOpen, setIsAIChatOpen] = useState(false);
 
     const [ text, setText ] = useState('');
     const fileInputRef = useRef(null);
@@ -32,9 +32,6 @@ export default function MainNote() {
 
 
     useEffect(() => {
-        
-
-
 
         if (!hydrated || loading) return;
 
@@ -300,12 +297,7 @@ export default function MainNote() {
         }
 
     const handleAIMemo = () => {
-        navigate('/chatbot', {
-            state: {
-                initialPrompt: text || '',
-                source: 'main-note',
-            },
-        });
+        setIsAIChatOpen(true);
     };
 
     const handleImageUpload = () => {
@@ -432,11 +424,8 @@ export default function MainNote() {
         }
     };
 
-
-
-
     return(
-         <main className={`mainnote ${isDragOver ? 'drag-over' : ''}`}
+        <main className={`mainnote ${isAIChatOpen ? 'ai-chat-open' : ''} ${isDragOver ? 'drag-over' : ''}`}
             onClick={handleMainClick}
             onDragOver={(e) => {
                 e.preventDefault();
@@ -452,8 +441,8 @@ export default function MainNote() {
                 }
             }}
             onDrop={handleDrop}>
-            <div className='card-area'>
-                {cards.map(card=> {
+            <div className={`card-area ${isAIChatOpen ? 'ai-chat-mode' : ''}`}>
+                {!isAIChatOpen && cards.map(card=> {
                     const post = posts.find(p => p.id === card.postId);
                     const displayTitle = post?.title || card.title || '제목없음';
                     
@@ -494,41 +483,62 @@ export default function MainNote() {
                         </div>
                     );
                 })}
+
+                {isAIChatOpen && (
+                    <div className='mainnote-chatbot-panel card-chatbot-panel'>
+                        <ChatbotPage
+                            embedded
+                            showSessionList={false}
+                            initialPrompt={text || ''}
+                            extraActions={(
+                                <>
+                                    <button className='chat-toolbar-btn' onClick={handleImageUpload} disabled={isProcessingOCR}>{isProcessingOCR ? '처리 중..' : '이미지'}</button>
+                                    <button className='chat-toolbar-btn close' onClick={() => setIsAIChatOpen(false)}>닫기</button>
+                                </>
+                            )}
+                        />
+                    </div>
+                )}
             </div>
 
-            <div className="memo-container">
-                <textarea
-                    ref={textAreaRef}
-                    className='memo-post-it'
-                    placeholder='메모를 입력하세요...'
-                    value={text}
-                     readOnly={Boolean(selectedPost) && !isManualEditMode}
-                    onFocus={() => {
-                        if ((!isManualEditMode)) return;
-                        if (text === '새 메모') setText('');
-                    }}
-                    onChange={(e) => handleMemoChange(e.target.value)}
-                    onBlur={flushPendingEdit}
-                />
-                <div className='memo-btn'>
-                    <button className='AImemo' onClick={handleAIMemo}> AI메모 </button>
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        style={{ display: 'none' }}
-                        onChange={handleImageSelect}
-                    />
-                    <button 
-                        className='image-upload-btn' 
-                        onClick={handleImageUpload}
-                        disabled={isProcessingOCR}
-                    >
-                        {isProcessingOCR ? '처리 중..' : '이미지'}
-                    </button>
-                    <button className='save-btn' onClick={handleSave}>{selectedPost ? '수정' : '생성'}</button>
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleImageSelect}
+            />
+
+            {!isAIChatOpen && (
+                <div className='memo-container'>
+                    <div className='memo-editor'>
+                        <textarea
+                            ref={textAreaRef}
+                            className='memo-post-it'
+                            placeholder='메모를 입력하세요...'
+                            value={text}
+                            readOnly={Boolean(selectedPost) && !isManualEditMode}
+                            onFocus={() => {
+                                if ((!isManualEditMode)) return;
+                                if (text === '새 메모') setText('');
+                            }}
+                            onChange={(e) => handleMemoChange(e.target.value)}
+                            onBlur={flushPendingEdit}
+                        />
+                        <div className='memo-btn'>
+                            <button className='AImemo' onClick={handleAIMemo}> AI메모 </button>
+                            <button 
+                                className='image-upload-btn' 
+                                onClick={handleImageUpload}
+                                disabled={isProcessingOCR}
+                            >
+                                {isProcessingOCR ? '처리 중..' : '이미지'}
+                            </button>
+                            <button className='save-btn' onClick={handleSave}>{selectedPost ? '수정' : '생성'}</button>
+                    </div>
                 </div>
             </div>
+                )}
         </main>
         
     )

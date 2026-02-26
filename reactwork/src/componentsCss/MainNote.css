@@ -39,22 +39,38 @@
   background: rgba(35, 131, 226, 0.05);
 }
 
+.mainnote.ai-chat-open {
+    padding-bottom: 0;
+}
+
+.mainnote.ai-chat-open .card-area.ai-chat-mode {
+    flex: 1;
+    height: 100%;
+    padding: var(--spacing-lg) var(--spacing-xl);
+}
+
 .memo-container {
     flex-shrink: 0;
-    padding: var(--spacing-xl);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    width: 100%;
+    min-height: 180px;
+    box-sizing: border-box;
+}
 
+.memo-editor {
+    width: 100%;
     display: flex;
     align-items: flex-start;
     justify-content: center;
     gap: var(--spacing-md);
-
-    width: auto;
-    min-height: 250px;
-    box-sizing: border-box;
 }
 
 .memo-post-it {
-    width: 60%;
+    width: min(760px, 100%);
+    min-height: 140px;
     height: 100%;
     resize: none;
     font-size: var(--font-size-sm);
@@ -83,6 +99,11 @@
     flex-wrap: wrap;
     justify-content: center;
     align-content: flex-start;
+}
+
+.card-area.ai-chat-mode {
+    padding: var(--spacing-lg);
+    display: block;
 }
 
 .note-card {
@@ -155,10 +176,6 @@
 }
 
 .delete-card-btn:active {
-    transform: scale(1.0);
-}
-
-.delete-card-btn:active {
     transform: scale(0.95);
 }
 
@@ -203,6 +220,17 @@
     align-self: flex-end;
 }
 
+.memo-container.with-chatbot .memo-btn {
+    justify-content: flex-end;
+}
+
+.memo-container.with-chatbot .save-btn {
+    margin: 0;
+    align-self: stretch;
+    min-width: 94px;
+    height: 44px;
+}
+
 .image-upload-btn {
     align-self: flex-start;
     margin-top: var(--spacing-sm);
@@ -235,4 +263,45 @@
 
 .image-upload-btn:active:not(:disabled) {
     transform: scale(0.98);
+}
+
+.mainnote-chatbot-panel {
+    height: 100%;
+    min-height: 320px;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.card-chatbot-panel {
+    min-height: 100%;
+}
+
+.chat-toolbar-btn {
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: var(--font-size-sm);
+}
+
+.chat-toolbar-btn.close {
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+}
+
+@media (max-width: 1200px) {
+    .memo-container.with-chatbot .memo-editor {
+        flex-direction: column;
+    }
+
+    .memo-container.with-chatbot .save-btn {
+        width: 100%;
+    }
+}
+
+.chat-toolbar-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
