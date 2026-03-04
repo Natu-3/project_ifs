@@ -224,12 +224,12 @@ export default function MainNote() {
                 });
                 clearSelectedPost();
                 setText(''); // 입력창 비우기
-                alert('메모가 수정되었습니다.');
+                //alert('메모가 수정되었습니다.');
             } else {
                 const newPostId = await addPost(trimmedText, false, 2);
                 clearSelectedPost();
                 setText(''); // 입력창 비우기
-                alert('메모가 생성되었습니다.');
+                //alert('메모가 생성되었습니다.');
             }
         } catch (error) {
             console.error('메모 저장 실패:', error);
