@@ -15,11 +15,14 @@ from app.schemas.chat import (
     SessionCreateRequest,
     SessionResponse,
 )
+from app.schemas.rag import IngestRequest, IngestResponse, QueryRequest, QueryResponse
 from app.services.auth_client import AuthUser, resolve_current_user
 from app.services.chat_service import ChatService
+from app.services.rag_service import RagService
 
 
 router = APIRouter(prefix="/chat-api/v1", tags=["chat"])
+internal_router = APIRouter(tags=["internal"])
 logger = logging.getLogger(__name__)
 rate_limiter = InMemoryRateLimiter()
 
@@ -102,3 +105,28 @@ def chat(
         token_out=assistant_message.token_out,
         model=settings.openai_model,
     )
+
+
+def _assert_internal_token(request: Request) -> None:
+    settings = get_settings()
+    token = request.headers.get("x-internal-token")
+    if token != settings.internal_api_token:
+        raise AppError(status_code=403, code="FORBIDDEN_INTERNAL", message="Invalid internal token.")
+
+
+@internal_router.post("/internal/rag/ingest", response_model=IngestResponse, include_in_schema=False)
+def ingest_rag(
+    payload: IngestRequest,
+    request: Request,
+) -> IngestResponse:
+    _assert_internal_token(request)
+    return RagService().ingest(payload)
+
+
+@internal_router.post("/internal/rag/query", response_model=QueryResponse, include_in_schema=False)
+def query_rag(
+    payload: QueryRequest,
+    request: Request,
+) -> QueryResponse:
+    _assert_internal_token(request)
+    return RagService().query(payload)

@@ -1,154 +1,153 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import {
-  createChatSession,
-  getChatMessages,
-  getChatSessions,
-  sendChatMessage,
+  completeDocumentUpload,
+  getDocumentStatus,
+  queryRagChat,
+  requestDocumentPresign,
+  startDocumentIndexing,
 } from "../api/chatbot";
 import "./ChatbotPage.css";
 
 export default function ChatbotPage() {
   const location = useLocation();
-  const seededRef = useRef(false);
-  const [sessions, setSessions] = useState([]);
-  const [activeSessionId, setActiveSessionId] = useState(null);
+  const [calendarId, setCalendarId] = useState("");
+  const [documentIdInput, setDocumentIdInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [sources, setSources] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const activeSession = useMemo(
-    () => sessions.find((session) => session.id === activeSessionId) || null,
-    [sessions, activeSessionId]
-  );
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadResult, setUploadResult] = useState(null);
+  const [docStatus, setDocStatus] = useState(null);
 
-  const loadSessions = async () => {
-    const res = await getChatSessions();
-    const list = res.data || [];
-    setSessions(list);
-    if (!activeSessionId && list.length > 0) {
-      setActiveSessionId(list[0].id);
+  useEffect(() => {
+    const prompt = location.state?.initialPrompt;
+    if (prompt && prompt.trim()) {
+      setInput(prompt.trim());
     }
-    return list;
-  };
+  }, [location.state]);
 
-  const loadMessages = async (sessionId) => {
-    if (!sessionId) {
-      setMessages([]);
+  const parseDocumentIds = () =>
+    documentIdInput
+      .split(",")
+      .map((id) => Number(id.trim()))
+      .filter((id) => Number.isFinite(id) && id > 0);
+
+  const handleSend = async () => {
+    const question = input.trim();
+    const parsedCalendarId = Number(calendarId);
+    if (!question || !Number.isFinite(parsedCalendarId) || parsedCalendarId <= 0) {
+      setError("calendarId와 질문을 올바르게 입력하세요.");
       return;
     }
-    const res = await getChatMessages(sessionId);
-    setMessages(res.data || []);
-  };
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        await loadSessions();
-        if (!mounted) return;
-      } catch (e) {
-        if (!mounted) return;
-        setError(e?.response?.data?.message || "Failed to load chatbot sessions.");
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    loadMessages(activeSessionId).catch((e) =>
-      setError(e?.response?.data?.message || "Failed to load messages.")
-    );
-  }, [activeSessionId]);
-
-  const handleCreateSession = async () => {
-    try {
-      setError("");
-      const res = await createChatSession();
-      const created = res.data;
-      setSessions((prev) => [created, ...prev]);
-      setActiveSessionId(created.id);
-      setMessages([]);
-    } catch (e) {
-      setError(e?.response?.data?.message || "Failed to create a new chat session.");
-    }
-  };
-
-  const sendContent = async (rawContent) => {
-    const content = (rawContent || "").trim();
-    if (!content || loading) return;
 
     setLoading(true);
     setError("");
+    setMessages((prev) => [...prev, { role: "user", content: question, id: Date.now() }]);
 
     try {
-      let sessionId = activeSessionId;
-      if (!activeSessionId) {
-        const created = await createChatSession();
-        setSessions((prev) => [created.data, ...prev]);
-        sessionId = created.data.id;
-        setActiveSessionId(sessionId);
-      }
-
+      const res = await queryRagChat({
+        question,
+        calendarId: parsedCalendarId,
+        documentIds: parseDocumentIds(),
+        topK: 6,
+      });
       setMessages((prev) => [
         ...prev,
-        { id: Date.now(), role: "user", content, created_at: new Date().toISOString() },
+        { role: "assistant", content: res.data?.answer || "", id: Date.now() + 1 },
       ]);
-      const res = await sendChatMessage(sessionId, content);
-      await loadMessages(res.data.session_id);
-      await loadSessions();
-      setActiveSessionId(res.data.session_id);
+      setSources(res.data?.sources || []);
+      setInput("");
     } catch (e) {
-      setError(e?.response?.data?.message || "Failed to send message.");
+      setError(e?.response?.data?.message || "질의 처리에 실패했습니다.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSend = async () => {
-    const content = input.trim();
-    if (!content) return;
-    setInput("");
-    await sendContent(content);
+  const handlePrepareAndIndex = async () => {
+    const parsedCalendarId = Number(calendarId);
+    if (!file) {
+      setError("업로드할 파일을 선택하세요.");
+      return;
+    }
+    if (!Number.isFinite(parsedCalendarId) || parsedCalendarId <= 0) {
+      setError("calendarId를 입력하세요.");
+      return;
+    }
+
+    setUploading(true);
+    setError("");
+    setDocStatus(null);
+    try {
+      const presign = await requestDocumentPresign({
+        fileName: file.name,
+        contentType: file.type || "application/octet-stream",
+        calendarId: parsedCalendarId,
+      });
+      const documentId = presign.data.documentId;
+      await completeDocumentUpload({
+        documentId,
+        title: file.name,
+        tags: ["uploaded-via-ui"],
+      });
+      await startDocumentIndexing(documentId);
+      const status = await getDocumentStatus(documentId);
+      setUploadResult(presign.data);
+      setDocStatus(status.data);
+      setDocumentIdInput(String(documentId));
+    } catch (e) {
+      setError(e?.response?.data?.message || "문서 인덱싱 준비에 실패했습니다.");
+    } finally {
+      setUploading(false);
+    }
   };
 
-  useEffect(() => {
-    const initialPrompt = location.state?.initialPrompt;
-    if (seededRef.current) return;
-    if (!initialPrompt || !initialPrompt.trim()) return;
-    if (loading) return;
-
-    seededRef.current = true;
-    setInput("");
-    sendContent(initialPrompt);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.state, loading]);
-
   return (
-    <div className="chatbot-page">
-      <aside className="chatbot-session-list">
-        <button className="chatbot-new-btn" onClick={handleCreateSession}>
-          New Chat
-        </button>
-        <ul>
-          {sessions.map((session) => (
-            <li key={session.id}>
-              <button
-                className={session.id === activeSessionId ? "active" : ""}
-                onClick={() => setActiveSessionId(session.id)}
-              >
-                {session.title || "New Chat"}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </aside>
-
+    <div className="chatbot-page chatbot-single">
       <section className="chatbot-main">
-        <header className="chatbot-header">{activeSession?.title || "Chatbot"}</header>
+        <header className="chatbot-header">RAG Chat</header>
+
+        <div className="chatbot-controls">
+          <label>
+            Calendar ID
+            <input
+              value={calendarId}
+              onChange={(e) => setCalendarId(e.target.value)}
+              placeholder="예: 1"
+            />
+          </label>
+          <label>
+            Document IDs (comma)
+            <input
+              value={documentIdInput}
+              onChange={(e) => setDocumentIdInput(e.target.value)}
+              placeholder="예: 101,102"
+            />
+          </label>
+        </div>
+
+        <div className="chatbot-upload-box">
+          <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          <button onClick={handlePrepareAndIndex} disabled={uploading}>
+            {uploading ? "Indexing..." : "Presign + Complete + Index"}
+          </button>
+          {uploadResult && (
+            <div className="chatbot-upload-meta">
+              documentId: {uploadResult.documentId}, s3Key: {uploadResult.s3Key}
+            </div>
+          )}
+          {docStatus && (
+            <div className="chatbot-upload-meta">
+              status: {docStatus.status}, chunkCount: {docStatus.chunkCount ?? 0}
+            </div>
+          )}
+        </div>
+
         <div className="chatbot-messages">
           {messages.map((msg) => (
             <div key={msg.id} className={`chatbot-message ${msg.role}`}>
@@ -156,13 +155,24 @@ export default function ChatbotPage() {
               <div className="chatbot-content">{msg.content}</div>
             </div>
           ))}
+          {sources.length > 0 && (
+            <div className="chatbot-sources">
+              <h4>Sources</h4>
+              {sources.map((source, idx) => (
+                <div key={`${source.chunkKey}-${idx}`} className="chatbot-source-item">
+                  <strong>{source.documentTitle}</strong> ({source.chunkKey})
+                  <div>{source.preview}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         {error && <div className="chatbot-error">{error}</div>}
         <div className="chatbot-input-wrap">
           <textarea
             value={input}
             maxLength={4000}
-            placeholder="Type your message..."
+            placeholder="Type your question..."
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {

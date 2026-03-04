@@ -38,6 +38,7 @@ class ChatMessage(Base):
     content: Mapped[str] = mapped_column(Text, nullable=False)
     token_in: Mapped[int | None] = mapped_column(Integer, nullable=True)
     token_out: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    sources_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
 
     # ORM 양방향 탐색을 위해 세션 객체를 참조한다.

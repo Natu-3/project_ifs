@@ -19,6 +19,7 @@ repositories {
 }
 
 dependencies {
+	implementation platform('software.amazon.awssdk:bom:2.30.38')
 	implementation 'org.springframework.boot:spring-boot-starter'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -43,6 +44,7 @@ dependencies {
 
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'software.amazon.awssdk:s3'
 
 
 

@@ -9,7 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from app.api.routes import router
+from app.api.routes import internal_router, router
 from app.core.config import get_settings
 from app.core.errors import AppError
 from app.core.logging import configure_logging
@@ -37,6 +37,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title=settings.app_name, version="1.0.0", lifespan=lifespan)
 app.include_router(router)
+app.include_router(internal_router)
 
 
 @app.middleware("http")

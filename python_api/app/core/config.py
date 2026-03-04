@@ -27,6 +27,16 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = 20
     openai_timeout_seconds: int = 30
     openai_max_retries: int = 2
+    internal_api_token: str = "dev-internal-token"
+    rag_vector_bucket: str = "mock-rag-dev"
+    rag_vector_index: str = "knowledge-base"
+    rag_embedding_model: str = "text-embedding-3-small"
+    rag_vector_backend: str = "s3vectors"  # s3vectors | inmemory
+    aws_region: str = "ap-northeast-2"
+    aws_access_key_id: str | None = None
+    aws_secret_access_key: str | None = None
+    aws_session_token: str | None = None
+    rag_presign_expiry_seconds: int = 900
 
     @property
     def sqlalchemy_database_url(self) -> str:

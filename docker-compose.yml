@@ -43,6 +43,14 @@
       JPA_DDL_AUTO: update
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      PYTHON_API_BASE_URL: http://python_api:8000
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-dev-internal-token}
+      RAG_RAW_BUCKET: ${RAG_RAW_BUCKET:-mock-documents-dev}
+      RAG_VECTOR_BUCKET: ${RAG_VECTOR_BUCKET:-mock-rag-dev}
+      RAG_VECTOR_INDEX: ${RAG_VECTOR_INDEX:-knowledge-base}
+      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL:-text-embedding-3-small}
+      RAG_PRESIGN_EXPIRY_SECONDS: ${RAG_PRESIGN_EXPIRY_SECONDS:-900}
+      AWS_REGION: ${AWS_REGION:-ap-northeast-2}
     ports:
       - "8081:8080"
 
@@ -68,6 +76,15 @@
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
       CHAT_RETENTION_DAYS: ${CHAT_RETENTION_DAYS:-30}
       RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-20}
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-dev-internal-token}
+      RAG_VECTOR_BUCKET: ${RAG_VECTOR_BUCKET:-mock-rag-dev}
+      RAG_VECTOR_INDEX: ${RAG_VECTOR_INDEX:-knowledge-base}
+      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL:-text-embedding-3-small}
+      RAG_VECTOR_BACKEND: ${RAG_VECTOR_BACKEND:-s3vectors}
+      AWS_REGION: ${AWS_REGION:-ap-northeast-2}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
     ports:
       - "8000:8000"
 

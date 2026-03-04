@@ -1,23 +1,14 @@
-import axios from "axios";
+import api from "./axios";
 
-const chatApi = axios.create({
-  baseURL: "/chat-api/v1",
-  withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+export const queryRagChat = ({ question, calendarId, documentIds = [], topK = 6 }) =>
+  api.post("/chat/query", { question, calendarId, documentIds, topK });
 
-export const createChatSession = (title = null) => chatApi.post("/sessions", { title });
+export const requestDocumentPresign = ({ fileName, contentType, calendarId }) =>
+  api.post("/documents/presign", { fileName, contentType, calendarId });
 
-export const getChatSessions = (limit = 20, offset = 0) =>
-  chatApi.get("/sessions", { params: { limit, offset } });
+export const completeDocumentUpload = ({ documentId, title, tags = [] }) =>
+  api.post(`/documents/${documentId}/complete`, { title, tags });
 
-export const getChatMessages = (sessionId, limit = 100) =>
-  chatApi.get(`/sessions/${sessionId}/messages`, { params: { limit } });
+export const startDocumentIndexing = (documentId) => api.post(`/documents/${documentId}/index`);
 
-export const sendChatMessage = (sessionId, message) =>
-  chatApi.post("/chat", { session_id: sessionId, message });
-
-export default chatApi;
-
+export const getDocumentStatus = (documentId) => api.get(`/documents/${documentId}/status`);
