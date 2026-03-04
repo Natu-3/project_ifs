@@ -70,7 +70,8 @@ public class AuthController {
                     new LoginResponse(
                             user.getId(),
                             user.getUserid(),
-                            auth
+                            auth,
+                            user.isMustChangePassword()
                     )
             );
         } catch (IllegalArgumentException e) {
@@ -143,7 +144,8 @@ public class AuthController {
                             user.getUserid(),
                             user.getAuth(),
                             user.getName() != null ? user.getName() : "",
-                            user.getEmail() != null ? user.getEmail() : ""
+                            user.getEmail() != null ? user.getEmail() : "",
+                            user.isMustChangePassword()
                     )
             );
         } catch (Exception e) {
@@ -168,5 +170,25 @@ public class AuthController {
             @RequestBody UpdateUserRequest request
     ) {
         return ResponseEntity.ok(authService.updateUser(userId, request));
+    }
+
+    @PutMapping("/password")
+    public ResponseEntity<?> changePassword(
+            @RequestBody ChangePasswordRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        SessionUser user = getLoginUser(httpRequest);
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        authService.changePassword(user.getId(), request);
+        return ResponseEntity.ok().build();
+    }
+
+    private SessionUser getLoginUser(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) return null;
+        return (SessionUser) session.getAttribute("LOGIN_USER");
     }
 }

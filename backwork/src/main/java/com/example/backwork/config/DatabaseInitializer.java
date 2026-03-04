@@ -17,6 +17,8 @@ public class DatabaseInitializer {
     @PostConstruct
     public void init() {
             ensureUserNameColumn();
+            ensureUserAuthColumnDefaults();
+            ensureMustChangePasswordColumn();
             ensureMemoPriorityColumn();
             ensureMainNoteColumns();
         }
@@ -34,6 +36,30 @@ public class DatabaseInitializer {
                 }
             } catch (Exception e) {
                 System.out.println("⚠️ name 컬럼 확인 중 오류 발생 (무시됨): " + e.getMessage());
+            }
+        }
+
+        private void ensureUserAuthColumnDefaults() {
+            try {
+                if (hasColumn("user", "auth")) {
+                    jdbcTemplate.update("UPDATE `user` SET `auth` = 'USER' WHERE `auth` IS NULL OR TRIM(`auth`) = ''");
+                }
+            } catch (Exception e) {
+                System.out.println("auth 기본값 보정 중 오류 발생 (무시): " + e.getMessage());
+            }
+        }
+
+        private void ensureMustChangePasswordColumn() {
+            try {
+                if (!hasColumn("user", "must_change_password")) {
+                    String alterTableSql = "ALTER TABLE `user` ADD COLUMN `must_change_password` TINYINT(1) NOT NULL DEFAULT 0 AFTER `auth`";
+                    jdbcTemplate.execute(alterTableSql);
+                    System.out.println("user 테이블에 must_change_password 컬럼을 추가했습니다.");
+                } else {
+                    System.out.println("user 테이블에 must_change_password 컬럼이 이미 존재합니다.");
+                }
+            } catch (Exception e) {
+                System.out.println("must_change_password 컬럼 확인 중 오류 발생 (무시): " + e.getMessage());
             }
         }
 

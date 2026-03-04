@@ -19,7 +19,7 @@ export function AuthProvider({ children }) {
         // 401은 로그인하지 않은 상태이므로 정상적인 상황
         if (res.status === 401) {
           setUser(null);
-          return;
+          return null;
         }
         setUser(null);
         throw new Error("unauthorized");
@@ -28,12 +28,14 @@ export function AuthProvider({ children }) {
       
       const data = await res.json();
       setUser(data);
+      return data;
     } catch(e) {
         // 네트워크 오류나 기타 오류만 콘솔에 출력
         if (e.message !== "unauthorized") {
           console.error("fetchMe Err", e);
         }
       setUser(null);
+      return null;
      } finally {
       setIsAuthLoading(false);
     } 

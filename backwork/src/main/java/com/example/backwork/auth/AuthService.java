@@ -8,6 +8,7 @@ import com.example.backwork.member.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -58,6 +59,31 @@ public class AuthService {
                 saveUser.getAuth(),
                 saveUser.getName() != null ? saveUser.getName() : ""
         );
+    }
+
+    @Transactional
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+        if (request == null
+                || request.getCurrentPassword() == null
+                || request.getCurrentPassword().isBlank()
+                || request.getNewPassword() == null
+                || request.getNewPassword().isBlank()) {
+            throw new IllegalArgumentException("currentPassword and newPassword are required");
+        }
+        if (request.getNewPassword().length() < 8) {
+            throw new IllegalArgumentException("newPassword must be at least 8 characters");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setMustChangePassword(false);
+        userRepository.save(user);
     }
 
     // 사용자 정보 수정

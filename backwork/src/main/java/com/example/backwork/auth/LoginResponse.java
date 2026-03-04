@@ -15,6 +15,7 @@
      private Long id;
      private String userid;
      private String auth;
+     private boolean mustChangePassword;
      //private String devToken;
  }
 

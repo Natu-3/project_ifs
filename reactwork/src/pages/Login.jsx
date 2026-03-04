@@ -27,10 +27,14 @@ const Login = () => {
       await login(userid, password);
 
       // 세션 기반 유저 정보 동기화
-      await fetchMe();
+      const me = await fetchMe();
 
       alert("로그인 성공");
-      navigate("/");
+      if (me?.mustChangePassword) {
+        navigate("/force-password-change");
+      } else {
+        navigate("/");
+      }
     } catch (err) {
       console.error("login err", err);
       

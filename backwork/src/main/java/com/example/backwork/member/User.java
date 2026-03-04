@@ -38,6 +38,9 @@ public class User {
     @Column(nullable = false)
     private String auth; // USER / ADMIN
 
+    @Column(name = "must_change_password", nullable = false)
+    private boolean mustChangePassword = false;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -45,6 +48,7 @@ public class User {
         this.userid = userid;
         this.password = encode;
         this.auth = "USER";
+        this.mustChangePassword = false;
         this.email = null;
         this.name = null;
     }
@@ -53,6 +57,7 @@ public class User {
         this.userid = userid;
         this.password = encode;
         this.auth = "USER";
+        this.mustChangePassword = false;
         this.email = email;
         this.name = name;
     }

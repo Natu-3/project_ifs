@@ -11,10 +11,15 @@ import CalendarPage from './pages/CalendarPage'
 import MyPage from './pages/MyPage'
 import ChatbotPage from './pages/ChatbotPage'
 import ProtectedRoute from './routes/ProtectedRoute'
+import AdminRoute from './routes/AdminRoute'
+import MustChangePasswordRoute from './routes/MustChangePasswordRoute'
+import AdminPage from './pages/AdminPage'
+import ForcePasswordChange from './pages/ForcePasswordChange'
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
+    <MustChangePasswordRoute>
     <Routes>
     <Route 
       path='/login' 
@@ -37,30 +42,60 @@ function App() {
     <Route 
       path='/mypage'
       element={
-        <div className="app-wrapper">
-          <TopBar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-          <MyPage />
-        </div>
+        <ProtectedRoute>
+          <div className="app-wrapper">
+            <TopBar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+            <MyPage />
+          </div>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path='/force-password-change'
+      element={
+        <ProtectedRoute>
+          <div className="app-wrapper">
+            <TopBar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+            <ForcePasswordChange />
+          </div>
+        </ProtectedRoute>
       }
     />
 
     <Route 
       path='/'
       element={
-      <div className="app-wrapper">
-        <TopBar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-        <div className="layout">
-          <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-          <MainNote />
-          <CalendarPanel />
+      <ProtectedRoute>
+        <div className="app-wrapper">
+          <TopBar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+          <div className="layout">
+            <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+            <MainNote />
+            <CalendarPanel />
+          </div>
         </div>
-      </div>
+      </ProtectedRoute>
       }
     />
       
     <Route
       path='/calendar'
         element={
+          <ProtectedRoute>
+            <div className="app-wrapper">
+              <TopBar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+              <div className="layout calendar-layout">
+                <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+                <CalendarPage />
+              </div>
+            </div>
+          </ProtectedRoute>
+        }
+    />
+    <Route
+      path='/calendar/team/:teamId'
+        element={
+        <ProtectedRoute>
           <div className="app-wrapper">
             <TopBar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
             <div className="layout calendar-layout">
@@ -68,33 +103,36 @@ function App() {
               <CalendarPage />
             </div>
           </div>
-        }
-    />
-    <Route
-      path='/calendar/team/:teamId'
-        element={
-        <div className="app-wrapper">
-          <TopBar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-          <div className="layout calendar-layout">
-            <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-            <CalendarPage />
-          </div>
-        </div>
+        </ProtectedRoute>
       }
     />
     <Route
       path='/chatbot'
       element={
-        <div className="app-wrapper">
-          <TopBar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-          <div className="layout calendar-layout">
-            <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-            <ChatbotPage />
+        <ProtectedRoute>
+          <div className="app-wrapper">
+            <TopBar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+            <div className="layout calendar-layout">
+              <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+              <ChatbotPage />
+            </div>
           </div>
-        </div>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path='/admin'
+      element={
+        <AdminRoute>
+          <div className="app-wrapper">
+            <TopBar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+            <AdminPage />
+          </div>
+        </AdminRoute>
       }
     />
     </Routes>
+    </MustChangePasswordRoute>
   )
 }
 

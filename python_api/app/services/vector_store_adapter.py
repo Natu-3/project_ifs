@@ -37,7 +37,7 @@ class InMemoryVectorStoreAdapter:
         __: str,
         query_embedding: list[float],
         top_k: int,
-        owner_user_id: int,
+        owner_user_id: int | None,
         calendar_id: int,
         document_ids: list[int],
     ) -> list[VectorHit]:
@@ -45,7 +45,7 @@ class InMemoryVectorStoreAdapter:
             filtered = [
                 record
                 for record in self._records
-                if int(record.metadata.get("ownerUserId", -1)) == owner_user_id
+                if (owner_user_id is None or int(record.metadata.get("ownerUserId", -1)) == owner_user_id)
                 and int(record.metadata.get("calendarId", -1)) == calendar_id
                 and record.metadata.get("status") == "active"
                 and int(record.metadata.get("documentId", -1)) in document_ids
@@ -109,18 +109,18 @@ class S3VectorsAdapter:
         vector_index: str,
         query_embedding: list[float],
         top_k: int,
-        owner_user_id: int,
+        owner_user_id: int | None,
         calendar_id: int,
         document_ids: list[int],
     ) -> list[VectorHit]:
-        filter_json = {
-            "$and": [
-                {"ownerUserId": {"$eq": owner_user_id}},
-                {"calendarId": {"$eq": calendar_id}},
-                {"status": {"$eq": "active"}},
-                {"documentId": {"$in": document_ids}},
-            ]
-        }
+        conditions = [
+            {"calendarId": {"$eq": calendar_id}},
+            {"status": {"$eq": "active"}},
+            {"documentId": {"$in": document_ids}},
+        ]
+        if owner_user_id is not None:
+            conditions.insert(0, {"ownerUserId": {"$eq": owner_user_id}})
+        filter_json = {"$and": conditions}
         try:
             response = self.client.query_vectors(
                 vectorBucketName=vector_bucket,

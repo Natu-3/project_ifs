@@ -22,7 +22,7 @@ class IngestResponse(BaseModel):
 
 class QueryRequest(BaseModel):
     question: str = Field(min_length=1, max_length=4000)
-    owner_user_id: int = Field(alias="ownerUserId")
+    owner_user_id: int | None = Field(alias="ownerUserId", default=None)
     calendar_id: int = Field(alias="calendarId")
     document_ids: list[int] = Field(alias="documentIds", default_factory=list)
     vector_bucket: str = Field(alias="vectorBucket")

@@ -11,4 +11,5 @@ public class UserMeResponse {
     private String auth;
     private String name;
     private String email;
+    private boolean mustChangePassword;
 }

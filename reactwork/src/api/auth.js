@@ -26,6 +26,12 @@ export const updateUserProfile = (userId, data) => {
   });
 }
 
+export const changePassword = (currentPassword, newPassword) => {
+  return axios.put(`${API_BASE}/password`, { currentPassword, newPassword }, {
+    withCredentials: true
+  });
+}
+
 
 
 export const logout = () => {
