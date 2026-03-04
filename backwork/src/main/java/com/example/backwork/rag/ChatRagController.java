@@ -1,5 +1,8 @@
 package com.example.backwork.rag;
 
+import com.example.backwork.assistant.AssistantChatService;
+import com.example.backwork.assistant.dto.AssistantChatRequest;
+import com.example.backwork.assistant.dto.AssistantChatResponse;
 import com.example.backwork.member.SessionUser;
 import com.example.backwork.rag.dto.ChatQueryRequest;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +20,7 @@ public class ChatRagController {
 
     private final RagDocumentService ragDocumentService;
     private final SessionUserResolver sessionUserResolver;
+    private final AssistantChatService assistantChatService;
 
     @PostMapping("/query")
     public ResponseEntity<?> query(
@@ -26,6 +30,17 @@ public class ChatRagController {
         SessionUser user = sessionUserResolver.resolve(httpRequest);
         if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         return ResponseEntity.ok(ragDocumentService.query(user.getId(), request));
+    }
+
+    @PostMapping("/assistant")
+    public ResponseEntity<?> assistant(
+            @RequestBody AssistantChatRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        SessionUser user = sessionUserResolver.resolve(httpRequest);
+        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        AssistantChatResponse response = assistantChatService.chat(user.getId(), request);
+        return ResponseEntity.ok(response);
     }
 
     @ExceptionHandler(SecurityException.class)

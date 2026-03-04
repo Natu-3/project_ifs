@@ -72,6 +72,38 @@ public class ScheduleService {
         return new ArrayList<>(uniqueSchedules.values());
     }
 
+    public List<Schedule> findByRange(
+            Long userId,
+            LocalDateTime start,
+            LocalDateTime end
+    ) {
+        return findByMonth(userId, start, end);
+    }
+
+    @Transactional
+    public Schedule createFromAssistant(
+            Long userId,
+            String title,
+            String content,
+            LocalDateTime startAt,
+            LocalDateTime endAt
+    ) {
+        User user = userRepository.findById(userId).orElseThrow();
+        Calendar calendar = calendarRepository
+                .findByOwnerIdAndType(userId, "PERSONAL")
+                .orElseThrow(() -> new IllegalStateException("개인 캘린더가 없습니다."));
+        return scheduleRepository.save(new Schedule(
+                calendar,
+                user,
+                title,
+                content,
+                startAt,
+                endAt,
+                null,
+                2
+        ));
+    }
+
     //일정 수정
     @Transactional
     public Schedule update(

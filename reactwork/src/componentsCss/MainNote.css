@@ -39,22 +39,38 @@
   background: rgba(35, 131, 226, 0.05);
 }
 
+.mainnote.ai-chat-open {
+    padding-bottom: 0;
+}
+
+.mainnote.ai-chat-open .card-area.ai-chat-mode {
+    flex: 1;
+    height: 100%;
+    padding: var(--spacing-lg) var(--spacing-xl);
+}
+
 .memo-container {
     flex-shrink: 0;
-    padding: var(--spacing-xl);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    width: 100%;
+    min-height: 180px;
+    box-sizing: border-box;
+}
 
+.memo-editor {
+    width: 100%;
     display: flex;
     align-items: flex-start;
     justify-content: center;
     gap: var(--spacing-md);
-
-    width: auto;
-    min-height: 250px;
-    box-sizing: border-box;
 }
 
 .memo-post-it {
-    width: 60%;
+    width: min(760px, 100%);
+    min-height: 140px;
     height: 100%;
     resize: none;
     font-size: var(--font-size-sm);
@@ -83,6 +99,11 @@
     flex-wrap: wrap;
     justify-content: center;
     align-content: flex-start;
+}
+
+.card-area.ai-chat-mode {
+    padding: var(--spacing-lg);
+    display: block;
 }
 
 .note-card {
@@ -155,10 +176,6 @@
 }
 
 .delete-card-btn:active {
-    transform: scale(1.0);
-}
-
-.delete-card-btn:active {
     transform: scale(0.95);
 }
 
@@ -203,18 +220,88 @@
     align-self: flex-end;
 }
 
-.card-area.card-drag-over {
-    outline: 2px dashed var(--color-accent);
+.memo-container.with-chatbot .memo-btn {
+    justify-content: flex-end;
+}
+
+.memo-container.with-chatbot .save-btn {
+    margin: 0;
+    align-self: stretch;
+    min-width: 94px;
+    height: 44px;
+}
+
+.image-upload-btn {
+    align-self: flex-start;
+    margin-top: var(--spacing-sm);
+    white-space: nowrap;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    background: rgba(35, 131, 226, 0.05);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    transition: all var(--transition-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
 }
 
-.note-card.dragging {
-    opacity: 0.55;
-    transform: rotate(1.5deg) scale(0.97);
+.image-upload-btn:hover:not(:disabled) {
+    background: var(--color-accent);
+    color: white;
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-sm);
 }
 
-.note-card.drag-target {
-    outline: 2px dashed var(--color-accent);
-    background: rgba(35, 131, 226, 0.08);
+.image-upload-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.image-upload-btn:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.mainnote-chatbot-panel {
+    height: 100%;
+    min-height: 320px;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.card-chatbot-panel {
+    min-height: 100%;
+}
+
+.chat-toolbar-btn {
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: var(--font-size-sm);
+}
+
+.chat-toolbar-btn.close {
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+}
+
+@media (max-width: 1200px) {
+    .memo-container.with-chatbot .memo-editor {
+        flex-direction: column;
+    }
+
+    .memo-container.with-chatbot .save-btn {
+        width: 100%;
+    }
+}
+
+.chat-toolbar-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }

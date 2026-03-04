@@ -47,6 +47,10 @@ public class TeamScheduleService {
         return new ArrayList<>(uniqueSchedules.values());
     }
 
+    public List<Schedule> findByRange(Long userId, Long calendarId, LocalDateTime start, LocalDateTime end) {
+        return findByMonth(userId, calendarId, start, end);
+    }
+
     @Transactional
     public Schedule create(Long userId, TeamScheduleCreateRequest request) {
         Calendar calendar = teamCalendarAccessService.requireWritable(request.getCalendarId(), userId);
@@ -64,6 +68,32 @@ public class TeamScheduleService {
         ));
 
         publishEvent("CREATED", request.getCalendarId(), saved.getId(), userId);
+        return saved;
+    }
+
+    @Transactional
+    public Schedule createFromAssistant(
+            Long userId,
+            Long calendarId,
+            String title,
+            String content,
+            LocalDateTime startAt,
+            LocalDateTime endAt
+    ) {
+        Calendar calendar = teamCalendarAccessService.requireWritable(calendarId, userId);
+        User user = userRepository.findById(userId).orElseThrow();
+
+        Schedule saved = scheduleRepository.save(new Schedule(
+                calendar,
+                user,
+                title,
+                content,
+                startAt,
+                endAt,
+                null,
+                2
+        ));
+        publishEvent("CREATED", calendarId, saved.getId(), userId);
         return saved;
     }
 

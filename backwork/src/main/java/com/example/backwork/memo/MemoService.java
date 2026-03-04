@@ -6,7 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -79,5 +81,45 @@ public class MemoService {
             
         memo.setVisible(false);
         memoPostRepository.save(memo);
+    }
+    public void updateMainNoteOrder(Long userId, List<MemoMainNoteOrderUpdateRequest> requests) {
+        if (requests == null || requests.isEmpty()) {
+            return;
+        }
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("?ъ슜?먮? 李얠쓣 ???놁뒿?덈떎"));
+
+        List<Long> ids = requests.stream()
+            .map(MemoMainNoteOrderUpdateRequest::getId)
+            .collect(Collectors.toList());
+
+        if (ids.stream().anyMatch(id -> id == null)) {
+            throw new IllegalArgumentException("memo id is required");
+        }
+
+        List<MemoPost> memos = memoPostRepository.findByUserAndIdIn(user, ids);
+        if (memos.size() != ids.size()) {
+            throw new IllegalArgumentException("some memos not found for user");
+        }
+
+        Map<Long, MemoPost> memoById = new HashMap<>();
+        for (MemoPost memo : memos) {
+            memoById.put(memo.getId(), memo);
+        }
+
+        for (MemoMainNoteOrderUpdateRequest request : requests) {
+            MemoPost memo = memoById.get(request.getId());
+            if (memo == null) {
+                continue;
+            }
+
+            if (request.getMainNoteVisible() != null) {
+                memo.setMainNoteVisible(request.getMainNoteVisible());
+            }
+            memo.setMainNoteOrder(request.getMainNoteOrder());
+        }
+
+        memoPostRepository.saveAll(memos);
     }
 }

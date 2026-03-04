@@ -15,7 +15,9 @@ from app.schemas.chat import (
     SessionCreateRequest,
     SessionResponse,
 )
+from app.schemas.assistant import AssistantParseRequest, AssistantParseResponse
 from app.schemas.rag import IngestRequest, IngestResponse, QueryRequest, QueryResponse
+from app.services.assistant_parse_service import AssistantParseService
 from app.services.auth_client import AuthUser, resolve_current_user
 from app.services.chat_service import ChatService
 from app.services.rag_service import RagService
@@ -130,3 +132,12 @@ def query_rag(
 ) -> QueryResponse:
     _assert_internal_token(request)
     return RagService().query(payload)
+
+
+@internal_router.post("/internal/assistant/parse", response_model=AssistantParseResponse, include_in_schema=False)
+def parse_assistant(
+    payload: AssistantParseRequest,
+    request: Request,
+) -> AssistantParseResponse:
+    _assert_internal_token(request)
+    return AssistantParseService().parse(payload)

@@ -4,6 +4,7 @@ import com.example.backwork.calendar.share.ShareMember;
 import com.example.backwork.calendar.share.ShareMemberRepository;
 import com.example.backwork.member.User;
 import com.example.backwork.member.UserRepository;
+import com.example.backwork.assistant.dto.AssistantChatResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,6 +63,27 @@ public class CalendarService {
         return List.copyOf(calendarMap.values());
 
 
+    }
+
+    @Transactional(readOnly = true)
+    public List<AssistantChatResponse.CalendarOption> getAssistantCalendarOptions(Long userId) {
+        List<AssistantChatResponse.CalendarOption> options = new java.util.ArrayList<>();
+        options.add(new AssistantChatResponse.CalendarOption("PERSONAL", null, "개인 캘린더", true));
+
+        List<CalendarResponse> teamCalendars = getTeamCalendars(userId);
+        for (CalendarResponse team : teamCalendars) {
+            boolean writable = "OWNER".equalsIgnoreCase(team.getCurrentUserRole())
+                    || "WRITE".equalsIgnoreCase(team.getCurrentUserRole());
+            options.add(new AssistantChatResponse.CalendarOption("TEAM", team.getId(), team.getName(), writable));
+        }
+        return options;
+    }
+
+    @Transactional(readOnly = true)
+    public Long getPersonalCalendarId(Long userId) {
+        return calendarRepository.findByOwnerIdAndType(userId, "PERSONAL")
+                .map(Calendar::getId)
+                .orElse(null);
     }
     
     // 팀 캘린더 생성

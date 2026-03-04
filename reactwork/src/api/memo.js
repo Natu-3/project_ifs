@@ -50,3 +50,13 @@ export const deleteMemo = (userId, id) => {
     withCredentials: true
   });
 };
+
+// TODO: 백엔드 일괄 업데이트 API 추가 후 실제 요청으로 교체
+export const updateMainNoteOrder = (userId, payload) => {
+  if (!userId) {
+    return Promise.reject(new Error("로그인이 필요합니다."));
+  }
+  return axios.put(`/api/memos/main-note-order?userId=${userId}`, payload, {
+    withCredentials: true
+  });
+};
