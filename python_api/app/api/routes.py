@@ -139,5 +139,6 @@ def parse_assistant(
     payload: AssistantParseRequest,
     request: Request,
 ) -> AssistantParseResponse:
+    # Java 백엔드 전용 내부 엔드포인트 (외부 클라이언트 직접 호출 금지)
     _assert_internal_token(request)
     return AssistantParseService().parse(payload)

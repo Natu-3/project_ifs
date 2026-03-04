@@ -44,6 +44,7 @@ public class AssistantChatService {
 
     @Transactional
     public AssistantChatResponse chat(Long userId, AssistantChatRequest request) {
+        // 단일 진입점: 의도 분류 -> 등록/요약/RAG 폴백 실행
         String message = request.message() == null ? "" : request.message().trim();
         if (message.isBlank()) {
             throw new IllegalArgumentException("message is required.");
@@ -59,6 +60,7 @@ public class AssistantChatService {
         String intent = parsed.intent() == null ? INTENT_GENERAL : parsed.intent();
 
         if (INTENT_CREATE.equals(intent)) {
+            // 등록 의도는 항상 캘린더 명시 선택이 필요하다.
             AssistantChatResponse.CalendarOption selected = resolveSelectedCalendar(
                     message,
                     options
@@ -88,10 +90,12 @@ public class AssistantChatService {
             }
 
             if (parsed.allDay()) {
+                // 날짜만 있는 입력은 종일 일정으로 강제 정규화
                 LocalDate date = startAt.toLocalDate();
                 startAt = date.atStartOfDay();
                 endAt = date.atTime(23, 59, 59);
             } else if (endAt == null) {
+                // 종료 시각 미지정 시 1시간 기본값 적용
                 endAt = startAt.plusHours(1);
             }
 
@@ -141,6 +145,7 @@ public class AssistantChatService {
         }
 
         if (INTENT_SUMMARY.equals(intent)) {
+            // 요약은 기본적으로 "현재월 + 활성 캘린더" 정책을 사용
             AssistantChatResponse.CalendarOption targetCalendar = resolveTargetCalendar(options, request.activeCalendar(), message);
             LocalDateTime startAt = parseDateTime(parsed.startAt());
             LocalDateTime endAt = parseDateTime(parsed.endAt());
@@ -177,6 +182,7 @@ public class AssistantChatService {
         }
 
         try {
+            // 일반 질의는 기존 RAG query를 재사용한다.
             ChatQueryResponse rag = ragDocumentService.query(
                     userId,
                     new ChatQueryRequest(message, ragCalendarId, List.of(), 6)
@@ -201,6 +207,7 @@ public class AssistantChatService {
                     : request.conversation().stream()
                     .map(item -> new PythonAssistantParseRequest.ConversationMessage(item.role(), item.content()))
                     .toList();
+            // Python 파서가 1차 의도/날짜 정규화를 수행
             return pythonAssistantClient.parse(new PythonAssistantParseRequest(
                     request.message(),
                     conversation,
@@ -208,6 +215,7 @@ public class AssistantChatService {
                     ZonedDateTime.now(ZoneId.of(timezone)).toString()
             ));
         } catch (Exception e) {
+            // Python 파서 장애 시 키워드 기반 최소 분류로 폴백
             String text = request.message() == null ? "" : request.message().toLowerCase(Locale.ROOT);
             String intent = (text.contains("요약") || text.contains("summary")) ? INTENT_SUMMARY : INTENT_GENERAL;
             if (text.contains("추가") || text.contains("등록") || text.contains("일정")) {

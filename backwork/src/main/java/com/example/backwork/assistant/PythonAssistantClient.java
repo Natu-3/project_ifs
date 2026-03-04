@@ -25,6 +25,7 @@ public class PythonAssistantClient {
     private String internalApiToken;
 
     public PythonAssistantParseResponse parse(PythonAssistantParseRequest request) {
+        // Spring -> Python 내부 파서 호출(의도/날짜 추출 전용)
         HttpEntity<PythonAssistantParseRequest> entity = new HttpEntity<>(request, buildHeaders());
         ResponseEntity<PythonAssistantParseResponse> response = restTemplate.exchange(
                 pythonApiBaseUrl + "/internal/assistant/parse",
@@ -38,6 +39,7 @@ public class PythonAssistantClient {
     private HttpHeaders buildHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        // 내부 엔드포인트는 공유 토큰으로만 접근 허용
         headers.set("X-Internal-Token", internalApiToken);
         return headers;
     }

@@ -24,10 +24,12 @@ class AssistantParseService:
         self.settings = settings
         self.client: OpenAI | None = None
         if settings.openai_api_key:
+            # OpenAI 키가 있을 때만 LLM 기반 파서를 활성화
             self.client = OpenAI(api_key=settings.openai_api_key)
 
     def parse(self, payload: AssistantParseRequest) -> AssistantParseResponse:
         if self.client is None:
+            # 키가 없거나 비활성 환경에서는 규칙 기반 폴백 사용
             return self._fallback(payload.message)
 
         conversation_lines = []
@@ -44,6 +46,7 @@ class AssistantParseService:
         )
 
         try:
+            # 모델 출력은 JSON 고정 계약으로 받아 Java 오케스트레이터가 그대로 사용
             response = self.client.responses.create(
                 model=self.settings.openai_model,
                 input=[
@@ -56,9 +59,11 @@ class AssistantParseService:
             parsed = json.loads(self._strip_code_fence(text))
             return AssistantParseResponse.model_validate(parsed)
         except Exception:
+            # 모델 오류/파싱 오류는 사용자 기능 중단 없이 폴백 처리
             return self._fallback(payload.message)
 
     def _fallback(self, message: str) -> AssistantParseResponse:
+        # 최소 보장 분류기: 등록/요약 키워드만 빠르게 분기
         lower = message.lower()
         intent = "GENERAL"
         if "요약" in message or "summary" in lower:

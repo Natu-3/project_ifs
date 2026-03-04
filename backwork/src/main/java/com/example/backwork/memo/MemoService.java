@@ -88,7 +88,7 @@ public class MemoService {
         }
 
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("?ъ슜?먮? 李얠쓣 ???놁뒿?덈떎"));
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
 
         List<Long> ids = requests.stream()
             .map(MemoMainNoteOrderUpdateRequest::getId)
