@@ -69,7 +69,13 @@ export default function ChatbotPage({
       setQuickReplies(options.filter((item) => item?.writable).map((item) => item.name));
       setInput("");
     } catch (e) {
-      setError(e?.response?.data?.message || "요청 처리에 실패했습니다.");
+      const status = e?.response?.status;
+      const message = e?.response?.data?.message;
+      if (status === 401) {
+        setError("로그인이 만료되었습니다. 다시 로그인해 주세요.");
+      } else {
+        setError(message || `요청 처리에 실패했습니다. (${status || "unknown"})`);
+      }
     } finally {
       setLoading(false);
     }

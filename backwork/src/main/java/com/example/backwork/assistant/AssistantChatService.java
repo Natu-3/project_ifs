@@ -13,7 +13,6 @@ import com.example.backwork.schedule.service.ScheduleService;
 import com.example.backwork.teamsch.service.TeamScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -42,7 +41,6 @@ public class AssistantChatService {
     private final TeamScheduleService teamScheduleService;
     private final RagDocumentService ragDocumentService;
 
-    @Transactional
     public AssistantChatResponse chat(Long userId, AssistantChatRequest request) {
         // 단일 진입점: 의도 분류 -> 등록/요약/RAG 폴백 실행
         String message = request.message() == null ? "" : request.message().trim();
@@ -89,14 +87,13 @@ public class AssistantChatService {
                 );
             }
 
-            if (parsed.allDay()) {
-                // 날짜만 있는 입력은 종일 일정으로 강제 정규화
-                LocalDate date = startAt.toLocalDate();
-                startAt = date.atStartOfDay();
-                endAt = date.atTime(23, 59, 59);
-            } else if (endAt == null) {
-                // 종료 시각 미지정 시 1시간 기본값 적용
-                endAt = startAt.plusHours(1);
+            // 챗봇 일정은 시간 정보 대신 날짜(종일) 기준으로 저장
+            LocalDate startDate = startAt.toLocalDate();
+            LocalDate endDate = endAt == null ? startDate : endAt.toLocalDate();
+            if (endDate.isBefore(startDate)) {
+                LocalDate tmp = startDate;
+                startDate = endDate;
+                endDate = tmp;
             }
 
             String title = parsed.title();
@@ -105,40 +102,55 @@ public class AssistantChatService {
             }
             String content = parsed.content();
 
-            Schedule created;
-            if ("TEAM".equalsIgnoreCase(selected.type())) {
-                created = teamScheduleService.createFromAssistant(
-                        userId,
-                        selected.id(),
-                        title,
-                        content,
-                        startAt,
-                        endAt
-                );
-            } else {
-                created = scheduleService.createFromAssistant(
-                        userId,
-                        title,
-                        content,
-                        startAt,
-                        endAt
-                );
+            List<Schedule> createdSchedules = new ArrayList<>();
+            for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+                LocalDateTime dayStart = date.atStartOfDay();
+                LocalDateTime dayEnd = date.atTime(23, 59, 59);
+
+                Schedule created;
+                if ("TEAM".equalsIgnoreCase(selected.type())) {
+                    created = teamScheduleService.createFromAssistant(
+                            userId,
+                            selected.id(),
+                            title,
+                            content,
+                            dayStart,
+                            dayEnd
+                    );
+                } else {
+                    created = scheduleService.createFromAssistant(
+                            userId,
+                            title,
+                            content,
+                            dayStart,
+                            dayEnd
+                    );
+                }
+                createdSchedules.add(created);
             }
 
+            Schedule representative = createdSchedules.get(0);
             AssistantChatResponse.CreatedSchedule createdSchedule = new AssistantChatResponse.CreatedSchedule(
-                    created.getId(),
-                    created.getTitle(),
-                    created.getStartAt(),
-                    created.getEndAt(),
+                    representative.getId(),
+                    representative.getTitle(),
+                    representative.getStartAt(),
+                    representative.getEndAt(),
                     selected.type(),
                     selected.id()
             );
 
-            String reply = "%s 캘린더에 일정을 등록했습니다: %s (%s ~ %s)".formatted(
+            String reply = createdSchedules.size() == 1
+                    ? "%s 캘린더에 일정을 등록했습니다: %s (%s)".formatted(
                     selected.name(),
-                    created.getTitle(),
-                    created.getStartAt(),
-                    created.getEndAt()
+                    representative.getTitle(),
+                    representative.getStartAt().toLocalDate()
+            )
+                    : "%s 캘린더에 %s ~ %s 기간으로 동일 일정 %d건을 등록했습니다: %s".formatted(
+                    selected.name(),
+                    startDate,
+                    endDate,
+                    createdSchedules.size(),
+                    representative.getTitle()
             );
 
             return new AssistantChatResponse(reply, INTENT_CREATE, "COMPLETED", null, createdSchedule, null);
@@ -300,11 +312,7 @@ public class AssistantChatService {
         for (Map.Entry<LocalDate, List<Schedule>> entry : grouped.entrySet()) {
             lines.add("%s".formatted(entry.getKey()));
             for (Schedule schedule : entry.getValue()) {
-                lines.add("- %s (%s ~ %s)".formatted(
-                        schedule.getTitle(),
-                        schedule.getStartAt() == null ? "-" : schedule.getStartAt().toLocalTime(),
-                        schedule.getEndAt() == null ? "-" : schedule.getEndAt().toLocalTime()
-                ));
+                lines.add("- %s".formatted(schedule.getTitle()));
             }
         }
         return String.join("\n", lines);

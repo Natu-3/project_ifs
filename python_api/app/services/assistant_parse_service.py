@@ -12,8 +12,11 @@ SYSTEM_PROMPT = (
     "Return only valid JSON with keys: "
     "intent, title, content, startAt, endAt, allDay, missingFields, needsCalendarSelection. "
     "intent must be one of CREATE_SCHEDULE, SUMMARY_SCHEDULE, GENERAL, CLARIFY. "
-    "If date exists but time missing, set allDay true and use startAt/endAt as full day with "
-    "00:00:00 and 23:59:59 in local timezone. "
+    "Ignore clock time even if user mentions it; this calendar assistant stores date-only schedules. "
+    "For CREATE_SCHEDULE: if one date is provided, set startAt to 00:00:00 and endAt to 23:59:59 of that date. "
+    "If two dates are provided, set an inclusive date range: first date 00:00:00 to second date 23:59:59. "
+    "If date order is reversed, normalize so startAt <= endAt. "
+    "Always set allDay true for CREATE_SCHEDULE. "
     "Use ISO local datetime format yyyy-MM-ddTHH:mm:ss for startAt/endAt."
 )
 

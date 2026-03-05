@@ -7,6 +7,7 @@ import com.example.backwork.member.SessionUser;
 import com.example.backwork.rag.dto.ChatQueryRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/chat")
 @RequiredArgsConstructor
+@Slf4j
 public class ChatRagController {
 
     private final RagDocumentService ragDocumentService;
@@ -38,7 +40,12 @@ public class ChatRagController {
             HttpServletRequest httpRequest
     ) {
         SessionUser user = sessionUserResolver.resolve(httpRequest);
-        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "code", "UNAUTHORIZED",
+                    "message", "login required"
+            ));
+        }
         AssistantChatResponse response = assistantChatService.chat(user.getId(), request);
         return ResponseEntity.ok(response);
     }
@@ -56,6 +63,24 @@ public class ChatRagController {
         return ResponseEntity.badRequest().body(Map.of(
                 "code", "BAD_REQUEST",
                 "message", e.getMessage()
+        ));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalStateException(IllegalStateException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                "code", "INVALID_STATE",
+                "message", e.getMessage()
+        ));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleUnhandled(Exception e) {
+        log.error("Unhandled exception in /api/chat", e);
+        String detail = e.getMessage() == null ? e.getClass().getSimpleName() : (e.getClass().getSimpleName() + ": " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "code", "INTERNAL_ERROR",
+                "message", detail
         ));
     }
 }
