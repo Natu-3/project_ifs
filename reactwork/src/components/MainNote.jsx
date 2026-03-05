@@ -386,9 +386,9 @@ export default function MainNote() {
                 textAreaRef.current?.setSelectionRange(textLength, textLength);
             }, 100);
 
-            alert('OCR text extracted. Click Save to create a memo.');
+            alert('OCR 적용 완료.');
         } catch (error) {
-            console.error('OCR processing failed:', error);
+            console.error('OCR 적용 실패:', error);
 
             let errorMessage = 'An error occurred while processing the image.';
             if (error && typeof error === 'object') {
