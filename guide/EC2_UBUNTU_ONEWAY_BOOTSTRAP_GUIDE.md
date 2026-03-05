@@ -68,7 +68,7 @@ docker compose version
 
 ```bash
 sudo mkdir -p /srv
-sudo chown -R $USER:$USER /srv
+sudo chown -R $USER:$USER /srv  !! 중요함 이거 해야지 폴더 접근권한 얻음
 cd /srv
 git clone <YOUR_REPO_URL> project_ifs
 cd /srv/project_ifs

@@ -127,12 +127,12 @@ export default function ChatbotPage({
             maxLength={4000}
             placeholder="일정 등록/요약 또는 질문을 입력하세요."
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
+           /* onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage(input);
               }
-            }}
+            }}*/
           />
           <button onClick={() => sendMessage(input)} disabled={loading}>
             {loading ? "생성 중.." : "전송"}
